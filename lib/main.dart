@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/firebase_options.dart';
 import 'package:flutter_moodic/presentatin/pares/home_page/home_page.dart';
+import 'package:flutter_moodic/presentatin/pares/login_page/login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: HomePage());
+    return MaterialApp(home: LoginPage());
   }
 }
