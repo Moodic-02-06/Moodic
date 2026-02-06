@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "648526573724",
+    "project_id": "moodic-54e16",
+    "storage_bucket": "moodic-54e16.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:648526573724:android:03f2b1e82eb9ba10b43d59",
+        "android_client_info": {
+          "package_name": "com.example.flutter_moodic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQH8v96Eik9R09EW9BWznzn9uMa1vXv8I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
