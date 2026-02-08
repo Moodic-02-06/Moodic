@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_item.dart';
-import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 
 //////////////////////////////////////////////////
 /// 1️⃣ 기분 선택 섹션

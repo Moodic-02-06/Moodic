@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
+import 'package:flutter_moodic/presentation/music_search_page/music_search_page.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/image_upload_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_selector_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input_section.dart';
+import 'package:flutter_moodic/presentation/provider/selected_music_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class WritePage extends StatelessWidget {
+class WritePage extends ConsumerWidget {
   const WritePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.primary900,
       appBar: AppBar(
@@ -80,36 +83,48 @@ class MusicSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.primary700,
-        borderRadius: BorderRadius.circular(50),
-        border: Border.all(color: AppColors.primary600),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: AppColors.gray300),
-
-          const SizedBox(width: 8),
-
-          Text(
-            '음악 검색..',
-            style: AppTextStyles.bodyPrimary16w500.copyWith(
-              color: AppColors.gray300,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MusicSearchPage()),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primary700,
+          borderRadius: BorderRadius.circular(50),
+          border: Border.all(color: AppColors.primary600),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search, color: AppColors.gray300),
+            const SizedBox(width: 8),
+            Text(
+              '음악 검색..',
+              style: AppTextStyles.bodyPrimary16w500.copyWith(
+                color: AppColors.gray300,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class SelectedMusicCard extends StatelessWidget {
+class SelectedMusicCard extends ConsumerWidget {
   const SelectedMusicCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final music = ref.watch(selectedMusicProvider);
+
+    if (music == null) {
+      return const SizedBox();
+    }
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -124,7 +139,13 @@ class SelectedMusicCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundImage: NetworkImage('https://placehold.co/44x44'),
+                backgroundColor: AppColors.primary600,
+                backgroundImage: music.artwork.isNotEmpty
+                    ? NetworkImage(music.artwork)
+                    : null,
+                child: music.artwork.isEmpty
+                    ? const Icon(Icons.music_note_outlined, color: Colors.white)
+                    : null,
               ),
 
               const SizedBox(width: 12),
@@ -133,14 +154,14 @@ class SelectedMusicCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '춘몽',
+                    music.title,
                     style: AppTextStyles.bodyPrimary16w600.copyWith(
                       color: AppColors.gray900,
                     ),
                   ),
 
                   Text(
-                    '현서 (HYUNSEO)',
+                    music.artist,
                     style: AppTextStyles.labelStatus12w500.copyWith(
                       color: AppColors.text600,
                     ),
@@ -150,7 +171,13 @@ class SelectedMusicCard extends StatelessWidget {
             ],
           ),
 
-          const Icon(Icons.close, color: AppColors.gray300),
+          /// 삭제 버튼
+          GestureDetector(
+            onTap: () {
+              ref.read(selectedMusicProvider.notifier).clear();
+            },
+            child: const Icon(Icons.close, color: AppColors.gray300),
+          ),
         ],
       ),
     );

@@ -164,7 +164,7 @@ class HomeFeedCard extends StatelessWidget {
                 ),
 
                 decoration: BoxDecoration(
-                  color: AppColors.statusWarning.withOpacity(0.5),
+                  color: AppColors.statusWarning.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(23),
                   border: Border.all(color: AppColors.statusWarning),
                 ),
