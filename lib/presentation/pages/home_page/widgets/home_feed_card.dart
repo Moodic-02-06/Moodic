@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/core/theme/app_color.dart';
+import 'package:flutter_moodic/core/theme/fonts.dart';
 
 class HomeFeedCard extends StatelessWidget {
   const HomeFeedCard({super.key});
@@ -8,15 +10,20 @@ class HomeFeedCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
+
+      /// 카드 배경
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1B2E),
+        color: AppColors.primary700,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF1E293B), width: 1),
+        border: Border.all(color: AppColors.gray100),
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// ================== 작성자 영역 ==================
+          // ==================================================
+          // 작성자 영역
+          // ==================================================
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -26,7 +33,7 @@ class HomeFeedCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(26),
                     child: Image.network(
-                      'https://picsum.photos/200/300',
+                      'https://picsum.photos/36',
                       width: 36,
                       height: 36,
                       fit: BoxFit.cover,
@@ -37,21 +44,20 @@ class HomeFeedCard extends StatelessWidget {
 
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
                         '현더',
-                        style: TextStyle(
-                          color: Color(0xFFF1F5F9),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        style: AppTextStyles.bodyPrimary16w600.copyWith(
+                          color: AppColors.text900,
                         ),
                       ),
-                      SizedBox(height: 4),
+
+                      const SizedBox(height: 4),
+
                       Text(
                         '1분 전',
-                        style: TextStyle(
-                          color: Color(0xFF8B99AE),
-                          fontSize: 12,
+                        style: AppTextStyles.labelStatus12w500.copyWith(
+                          color: AppColors.text600,
                         ),
                       ),
                     ],
@@ -59,25 +65,30 @@ class HomeFeedCard extends StatelessWidget {
                 ],
               ),
 
-              /// 옵션 버튼 자리
-              const Icon(Icons.more_vert, size: 16, color: Color(0xFF94A3B8)),
+              /// 옵션 버튼
+              Icon(Icons.more_vert, size: 18, color: AppColors.gray500),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          /// ================== 음악/콘텐츠 카드 ==================
+          // ==================================================
+          // 콘텐츠 카드
+          // ==================================================
           Container(
             padding: const EdgeInsets.all(12),
+
             decoration: BoxDecoration(
-              color: const Color(0xFF101022),
+              color: AppColors.primary900,
               borderRadius: BorderRadius.circular(12),
             ),
+
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
+                    /// 앨범 이미지
                     ClipRRect(
                       borderRadius: BorderRadius.circular(32),
                       child: Image.network(
@@ -92,21 +103,20 @@ class HomeFeedCard extends StatelessWidget {
 
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           '춘몽',
-                          style: TextStyle(
-                            color: Color(0xFFF1F5F9),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          style: AppTextStyles.bodyPrimary16w600.copyWith(
+                            color: AppColors.text900,
                           ),
                         ),
-                        SizedBox(height: 4),
+
+                        const SizedBox(height: 4),
+
                         Text(
                           '현서 (HYUNSEO)',
-                          style: TextStyle(
-                            color: Color(0xFF8B99AE),
-                            fontSize: 12,
+                          style: AppTextStyles.labelStatus12w500.copyWith(
+                            color: AppColors.text600,
                           ),
                         ),
                       ],
@@ -114,27 +124,35 @@ class HomeFeedCard extends StatelessWidget {
                   ],
                 ),
 
-                const Icon(Icons.play_arrow, color: Color(0xFF94A3B8)),
+                Icon(
+                  Icons.play_arrow_rounded,
+                  color: AppColors.gray500,
+                  size: 28,
+                ),
               ],
             ),
           ),
 
           const SizedBox(height: 12),
 
-          /// ================== 이미지 ==================
+          // ==================================================
+          // 메인 이미지
+          // ==================================================
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
               'https://picsum.photos/200/300',
               width: double.infinity,
-              height: 199,
+              height: 200,
               fit: BoxFit.cover,
             ),
           ),
 
           const SizedBox(height: 12),
 
-          /// ================== 감정 + 내용 ==================
+          // ==================================================
+          // 감정 + 텍스트
+          // ==================================================
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -144,19 +162,25 @@ class HomeFeedCard extends StatelessWidget {
                   horizontal: 10,
                   vertical: 4,
                 ),
+
                 decoration: BoxDecoration(
-                  color: const Color(0x7FFCE48A),
+                  color: AppColors.statusWarning.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(23),
-                  border: Border.all(color: const Color(0xFFCBB254)),
+                  border: Border.all(color: AppColors.statusWarning),
                 ),
+
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Text('😊'),
-                    SizedBox(width: 6),
+                  children: [
+                    const Text('😊'),
+
+                    const SizedBox(width: 6),
+
                     Text(
                       '행복',
-                      style: TextStyle(color: Color(0xFFF8FAFF), fontSize: 14),
+                      style: AppTextStyles.bodySecondary14w500.copyWith(
+                        color: AppColors.text900,
+                      ),
                     ),
                   ],
                 ),
@@ -165,53 +189,59 @@ class HomeFeedCard extends StatelessWidget {
               const SizedBox(height: 10),
 
               /// 내용
-              const Text(
+              Text(
                 '오늘 저 기분이 그지같아요',
-                style: TextStyle(color: Color(0xFFF1F5F9), fontSize: 14),
+                style: AppTextStyles.bodySecondary14w500.copyWith(
+                  color: AppColors.text900,
+                ),
               ),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          /// ================== 좋아요 / 댓글 ==================
+          // ==================================================
+          // 좋아요 / 댓글
+          // ==================================================
           Row(
             children: [
-              Row(
-                children: const [
-                  Icon(
-                    Icons.favorite_border,
-                    size: 20,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    '12',
-                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                  ),
-                ],
-              ),
+              _ActionItem(icon: Icons.favorite_border, count: '12'),
 
               const SizedBox(width: 25),
 
-              Row(
-                children: const [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 20,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    '12',
-                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                  ),
-                ],
-              ),
+              _ActionItem(icon: Icons.chat_bubble_outline, count: '12'),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// ==================================================
+/// 좋아요 / 댓글 공통 위젯
+/// ==================================================
+class _ActionItem extends StatelessWidget {
+  final IconData icon;
+  final String count;
+
+  const _ActionItem({required this.icon, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.gray500),
+
+        const SizedBox(width: 4),
+
+        Text(
+          count,
+          style: AppTextStyles.labelStatus12w500.copyWith(
+            color: AppColors.gray500,
+          ),
+        ),
+      ],
     );
   }
 }
