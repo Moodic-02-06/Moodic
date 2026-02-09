@@ -12,7 +12,12 @@
           "package_name": "com.example.flutter_moodic"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "648526573724-ahd58q46lsv5f8hdci2jg23sj7mfs6sk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCQH8v96Eik9R09EW9BWznzn9uMa1vXv8I"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "648526573724-ahd58q46lsv5f8hdci2jg23sj7mfs6sk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "648526573724-kv548pp2pb2t4d6o92m424tlelnlblee.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterMoodic"
+              }
+            }
+          ]
         }
       }
     }
