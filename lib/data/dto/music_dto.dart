@@ -21,6 +21,17 @@ class MusicDto extends Music {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'trackId': id,
+      'trackName': title,
+      'artistName': artist,
+      'previewUrl': previewUrl,
+      'artworkUrl100': artwork,
+      'trackViewUrl': trackUrl,
+    };
+  }
+
   Music toEntity() {
     return Music(
       id: id,
@@ -29,6 +40,17 @@ class MusicDto extends Music {
       previewUrl: previewUrl,
       artwork: artwork,
       trackUrl: trackUrl,
+    );
+  }
+
+  factory MusicDto.fromEntity(Music music) {
+    return MusicDto(
+      id: music.id,
+      title: music.title,
+      artist: music.artist,
+      previewUrl: music.previewUrl,
+      artwork: music.artwork,
+      trackUrl: music.trackUrl,
     );
   }
 }

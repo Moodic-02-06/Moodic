@@ -20,14 +20,20 @@ class ImageUploadSection extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: AppColors.primary700,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: AppColors.primary600),
           ),
-          child: Text(
-            '0/10',
-            style: AppTextStyles.labelStatus12w500.copyWith(
-              color: AppColors.gray500,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_photo_alternate, color: AppColors.gray400),
+              Text(
+                '0/10',
+                style: AppTextStyles.labelStatus12w500.copyWith(
+                  color: AppColors.gray400,
+                ),
+              ),
+            ],
           ),
         ),
 

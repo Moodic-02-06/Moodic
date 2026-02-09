@@ -9,7 +9,7 @@ class ItunesApi {
       'https://itunes.apple.com/search'
       '?term=$keyword'
       '&entity=song'
-      '&limit=20',
+      '&limit=30',
     );
 
     final response = await http.get(url);

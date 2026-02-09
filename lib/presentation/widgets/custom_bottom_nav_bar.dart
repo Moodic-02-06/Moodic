@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -27,11 +28,20 @@ class CustomBottomNavBar extends StatelessWidget {
         children: [
           // 왼쪽 아이템들
           _buildNavItem(index: 0, icon: Icons.home_filled),
-          _buildNavItem(index: 1, icon: Icons.explore_outlined),
+          _buildNavItem(index: 1, icon: Icons.search),
 
           // 중앙 강조 버튼 (라임 컬러)
           GestureDetector(
-            onTap: () => onTap(2), // 중앙 버튼 액션
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const WritePage();
+                  },
+                ),
+              );
+            }, // 중앙 버튼 액션
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: ShapeDecoration(
@@ -56,8 +66,8 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
 
           // 오른쪽 아이템들
-          _buildNavItem(index: 3, icon: Icons.chat_bubble_outline),
-          _buildNavItem(index: 4, icon: Icons.person_outline),
+          _buildNavItem(index: 3, icon: Icons.favorite),
+          _buildNavItem(index: 4, icon: Icons.person),
         ],
       ),
     );

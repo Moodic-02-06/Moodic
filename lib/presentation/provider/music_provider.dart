@@ -50,18 +50,16 @@ class MusicNotifier extends AsyncNotifier<List<Music>> {
   Future<List<Music>> build() async {
     _useCase = ref.read(searchMusicUseCaseProvider);
 
-    // 초기 상태
     return [];
   }
 
-  /// 🔍 음악 검색
   Future<void> search(String keyword) async {
     if (keyword.trim().isEmpty) return;
 
     state = const AsyncValue.loading();
 
     try {
-      final result = await _useCase.call(keyword); // ← 여기!!
+      final result = await _useCase.call(keyword);
 
       state = AsyncValue.data(result);
     } catch (e, st) {

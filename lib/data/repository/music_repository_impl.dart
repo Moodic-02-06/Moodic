@@ -5,7 +5,7 @@ import '../../domain/entity/music.dart';
 class MusicRepositoryImpl implements MusicRepository {
   final ItunesApi api;
 
-  MusicRepositoryImpl(this.api); // ← 생성자 수정 ✅
+  MusicRepositoryImpl(this.api);
 
   @override
   Future<List<Music>> searchMusic(String keyword) async {

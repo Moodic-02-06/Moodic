@@ -5,7 +5,7 @@ import 'package:flutter_moodic/presentation/music_search_page/music_search_page.
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/image_upload_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_selector_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input_section.dart';
-import 'package:flutter_moodic/presentation/provider/selected_music_provider.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WritePage extends ConsumerWidget {
@@ -32,13 +32,13 @@ class WritePage extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         children: const [
           MoodSelectorSection(),
-          SizedBox(height: 24),
+          SizedBox(height: 20),
 
           MusicSelectSection(),
-          SizedBox(height: 24),
+          SizedBox(height: 20),
 
           ImageUploadSection(),
-          SizedBox(height: 24),
+          SizedBox(height: 20),
 
           StoryInputSection(),
         ],
@@ -62,7 +62,7 @@ class MusicSelectSection extends StatelessWidget {
         Text(
           '기분과 어울리는 음악을 선택해주세요.',
           style: AppTextStyles.bodyPrimary16w500.copyWith(
-            color: AppColors.text600,
+            color: AppColors.gray700,
           ),
         ),
 
@@ -99,12 +99,12 @@ class MusicSearchBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.search, color: AppColors.gray300),
+            const Icon(Icons.search, color: AppColors.gray400),
             const SizedBox(width: 8),
             Text(
               '음악 검색..',
               style: AppTextStyles.bodyPrimary16w500.copyWith(
-                color: AppColors.gray300,
+                color: AppColors.gray400,
               ),
             ),
           ],
@@ -129,7 +129,7 @@ class SelectedMusicCard extends ConsumerWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.primary700,
-        borderRadius: BorderRadius.circular(60),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.primary600),
       ),
       child: Row(
@@ -156,7 +156,7 @@ class SelectedMusicCard extends ConsumerWidget {
                   Text(
                     music.title,
                     style: AppTextStyles.bodyPrimary16w600.copyWith(
-                      color: AppColors.gray900,
+                      color: AppColors.gray700,
                     ),
                   ),
 
