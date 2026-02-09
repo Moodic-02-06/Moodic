@@ -31,14 +31,27 @@ class MyPage extends StatelessWidget {
                 // 닉네임,소개
                 Column(
                   children: [
-                    Text("Maenggo"), Text("반갑습니다"),
+                    Text(
+                      "Maenggo",
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                    Text(
+                      "반갑습니다",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                     //
                   ],
                 ),
               ],
             ),
             SizedBox(height: 12),
-            SizedBox(width: double.infinity, child: Text("이달의 감정 리포트")),
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                "이달의 감정 리포트",
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
             //감정 그래프
             Container(
               width: double.infinity,
