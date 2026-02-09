@@ -4,7 +4,7 @@ import 'package:flutter_moodic/data/dto/music_dto.dart';
 import 'package:flutter_moodic/data/dto/post_dto.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
-import 'package:flutter_moodic/domain/repositories/post_repository.dart';
+import 'package:flutter_moodic/domain/repository/post_repository.dart';
 
 class PostRepositoryImpl implements PostRepository {
   final FirestorePostDataSource dataSource;
@@ -53,9 +53,12 @@ class PostRepositoryImpl implements PostRepository {
     final dto = PostDto(
       postId: post.postId,
       userId: post.userId,
+      userName: post.userName,
+      userImageUrl: post.userImageUrl,
       mood: post.mood,
       content: post.content,
       music: MusicDto.fromEntity(post.music),
+      imageUrls: post.imageUrls,
       likeCount: post.likeCount,
       commentCount: post.commentCount,
       createdAt: Timestamp.fromDate(post.createdAt),
@@ -70,9 +73,12 @@ class PostRepositoryImpl implements PostRepository {
     final dto = PostDto(
       postId: post.postId,
       userId: post.userId,
+      userName: post.userName,
+      userImageUrl: post.userImageUrl,
       mood: post.mood,
       content: post.content,
       music: MusicDto.fromEntity(post.music),
+      imageUrls: post.imageUrls,
       likeCount: post.likeCount,
       commentCount: post.commentCount,
       createdAt: Timestamp.fromDate(post.createdAt),

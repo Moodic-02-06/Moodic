@@ -1,4 +1,4 @@
-import '../repositories/music_repository.dart';
+import '../repository/music_repository.dart';
 import '../entity/music.dart';
 
 class SearchMusicUseCase {
