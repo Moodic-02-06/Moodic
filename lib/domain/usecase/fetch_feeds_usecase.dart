@@ -1,5 +1,5 @@
 import 'package:flutter_moodic/domain/entity/post.dart';
-import 'package:flutter_moodic/domain/repositories/post_repository.dart';
+import 'package:flutter_moodic/domain/repository/post_repository.dart';
 
 class FetchFeedsUseCase {
   final PostRepository repository;

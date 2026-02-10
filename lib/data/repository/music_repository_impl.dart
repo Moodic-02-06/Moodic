@@ -1,4 +1,4 @@
-import '../../domain/repositories/music_repository.dart';
+import '../../domain/repository/music_repository.dart';
 import '../data_source/itunes_api.dart';
 import '../../domain/entity/music.dart';
 

@@ -87,9 +87,7 @@ class HomePage extends ConsumerWidget {
               ),
             )
           : ListView.separated(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-              ).copyWith(bottom: 120),
+              padding: const EdgeInsets.all(12).copyWith(bottom: 120),
               itemCount: homeState.feeds.length,
               separatorBuilder: (context, index) {
                 return const SizedBox(height: 16);

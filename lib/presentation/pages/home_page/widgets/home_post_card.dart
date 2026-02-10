@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
+import 'package:flutter_moodic/core/utils/date_formatter.dart';
+import 'package:flutter_moodic/domain/entity/mood_type.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/player_view_model.dart';
+import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeFeedCard extends StatelessWidget {
+class HomeFeedCard extends ConsumerWidget {
   final Post post;
   final void Function(String postId) onLikeToggle;
 
@@ -14,7 +19,10 @@ class HomeFeedCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final moodData = MoodType.values.firstWhere(
+      (m) => m.label == post.mood || m.name == post.mood,
+    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -46,14 +54,14 @@ class HomeFeedCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        post.userId,
+                        post.userName,
                         style: AppTextStyles.bodyPrimary16w600.copyWith(
                           color: AppColors.text900,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${post.createdAt.hour}시간 전',
+                        DateFormatter.formatRelativeTime(post.createdAt),
                         style: AppTextStyles.labelStatus12w500.copyWith(
                           color: AppColors.text600,
                         ),
@@ -69,70 +77,39 @@ class HomeFeedCard extends StatelessWidget {
           const SizedBox(height: 12),
 
           // ================= 콘텐츠 카드 =================
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primary900,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(32),
-                      child: Image.network(
-                        post.music.artwork.isNotEmpty
-                            ? post.music.artwork
-                            : 'https://picsum.photos/200/300',
-                        width: 58,
-                        height: 58,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          post.music.title,
-                          style: AppTextStyles.bodyPrimary16w600.copyWith(
-                            color: AppColors.text900,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          post.music.artist,
-                          style: AppTextStyles.labelStatus12w500.copyWith(
-                            color: AppColors.text600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Icon(
-                  Icons.play_arrow_rounded,
-                  color: AppColors.gray500,
-                  size: 28,
-                ),
-              ],
-            ),
+          Consumer(
+            builder: (context, ref, child) {
+              final playerState = ref.watch(playerViewModelProvider);
+              final isCurrentPlaying =
+                  playerState.playingPostId == post.postId &&
+                  playerState.isPlaying;
+
+              return MusicDisplayCard(
+                music: post.music,
+                isPlaying: isCurrentPlaying,
+                onPlayPressed: () {
+                  ref
+                      .read(playerViewModelProvider.notifier)
+                      .togglePlay(post.postId, post.music.previewUrl);
+                },
+                backgroundColor: AppColors.primary900,
+              );
+            },
           ),
 
           const SizedBox(height: 12),
 
           // ================= 메인 이미지 =================
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              'https://picsum.photos/200/300',
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
+          if (post.imageUrls.isNotEmpty) //  이미지가 있을 때만 렌더링하도록 처리
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                post.imageUrls.first,
+                width: double.infinity,
+                height: 240,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
 
           const SizedBox(height: 12),
 
@@ -146,14 +123,14 @@ class HomeFeedCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.statusWarning.withValues(alpha: 0.5),
+                  color: moodData.color.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(23),
-                  border: Border.all(color: AppColors.statusWarning),
+                  border: Border.all(color: moodData.color),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('😊'),
+                    Text(moodData.emoji),
                     const SizedBox(width: 6),
                     Text(
                       post.mood,
@@ -180,15 +157,15 @@ class HomeFeedCard extends StatelessWidget {
           Row(
             children: [
               _ActionItem(
-                icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+                icon: !post.isLikedByMe
+                    ? Icons.favorite
+                    : Icons.favorite_border,
                 count: post.likeCount.toString(),
-                onTap: () => onLikeToggle(post.postId),
               ),
               const SizedBox(width: 25),
               _ActionItem(
                 icon: Icons.chat_bubble_outline,
                 count: post.commentCount.toString(),
-                onTap: () {}, // 댓글 버튼 클릭
               ),
             ],
           ),
@@ -201,26 +178,22 @@ class HomeFeedCard extends StatelessWidget {
 class _ActionItem extends StatelessWidget {
   final IconData icon;
   final String count;
-  final VoidCallback? onTap;
 
-  const _ActionItem({required this.icon, required this.count, this.onTap});
+  const _ActionItem({required this.icon, required this.count});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: AppColors.gray500),
-          const SizedBox(width: 4),
-          Text(
-            count,
-            style: AppTextStyles.labelStatus12w500.copyWith(
-              color: AppColors.gray500,
-            ),
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.gray500),
+        const SizedBox(width: 4),
+        Text(
+          count,
+          style: AppTextStyles.labelStatus12w500.copyWith(
+            color: AppColors.gray500,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter_moodic/domain/entity/comment.dart';
-import 'package:flutter_moodic/domain/repositories/post_repository.dart';
+import 'package:flutter_moodic/domain/repository/post_repository.dart';
 
 class FetchCommentsUseCase {
   final PostRepository repository;

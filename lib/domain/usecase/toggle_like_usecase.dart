@@ -1,4 +1,4 @@
-import '../repositories/post_repository.dart';
+import '../repository/post_repository.dart';
 
 class ToggleLikeUseCase {
   final PostRepository repository;
