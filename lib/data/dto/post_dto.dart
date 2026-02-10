@@ -44,7 +44,9 @@ class PostDto {
       mood: json['mood'] as String,
       content: json['content'] as String,
       music: MusicDto.fromJson(json['music'] as Map<String, dynamic>),
-      imageUrls: json['imageUrls'] as List<String>,
+      imageUrls: (json['imageUrls'] as List? ?? [])
+          .map((e) => e.toString())
+          .toList(),
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
       createdAt: json['createdAt'] as Timestamp,
@@ -78,7 +80,7 @@ class PostDto {
       mood: mood,
       content: content,
       music: music.toEntity(),
-      imageUrls: [],
+      imageUrls: imageUrls,
       likeCount: likeCount,
       commentCount: commentCount,
       isLikedByMe: isLikedByMe,

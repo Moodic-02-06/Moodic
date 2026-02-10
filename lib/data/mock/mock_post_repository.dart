@@ -30,6 +30,12 @@ class MockPostRepository implements PostRepository {
   );
 
   @override
+  Future<List<String>> uploadImages(String postId, List<String> paths) {
+    // 목 데이터라 실제 구현은 필요 없음
+    return Future.value([]);
+  }
+
+  @override
   Future<void> addComment(String postId, String userId, String content) async {
     // 목 데이터라 실제 구현은 필요 없음
   }
