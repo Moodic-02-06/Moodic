@@ -1,0 +1,79 @@
+import 'package:flutter/material.dart';
+
+class TempProfile extends StatefulWidget {
+  const TempProfile({super.key});
+
+  @override
+  State<TempProfile> createState() => _TempProfileState();
+}
+
+class _TempProfileState extends State<TempProfile> {
+  bool _isSwitched = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("임시 프로필")),
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            children: [
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: Stack(
+                  children: [
+                    // 랜덤 이미지 들어감
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(100),
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 12),
+              Text("닉네임", style: TextStyle(color: Colors.white)),
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(12),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '홍길동',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              SizedBox(height: 12),
+              Text("2~12자의 한글, 영문, 숫자만 사용가능 합니다"),
+              SizedBox(height: 12),
+              Container(width: double.infinity, height: 1, color: Colors.grey),
+              Spacer(),
+              Text(
+                "간단하게 입력 후\n프로필에서 수정 가능합니다.",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Spacer(),
+              SizedBox(width: double.infinity, height: 50),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

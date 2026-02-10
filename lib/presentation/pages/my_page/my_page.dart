@@ -19,6 +19,7 @@ class MyPage extends StatelessWidget {
           children: [
             Row(
               children: [
+                // 프로필 이미지 받아와서 넣어주는곳
                 Container(
                   width: 100,
                   height: 100,
@@ -31,14 +32,27 @@ class MyPage extends StatelessWidget {
                 // 닉네임,소개
                 Column(
                   children: [
-                    Text("Maenggo"), Text("반갑습니다"),
+                    Text(
+                      "Maenggo",
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                    Text(
+                      "반갑습니다",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                     //
                   ],
                 ),
               ],
             ),
             SizedBox(height: 12),
-            SizedBox(width: double.infinity, child: Text("이달의 감정 리포트")),
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                "이달의 감정 리포트",
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
             //감정 그래프
             Container(
               width: double.infinity,
@@ -55,8 +69,14 @@ class MyPage extends StatelessWidget {
                   Container(width: 34, height: 120, color: Colors.orange),
                   Container(width: 34, height: 80, color: Colors.yellow),
                   Container(width: 34, height: 140, color: Colors.green),
-                  Container(width: 34, height: 80, color: Colors.blue),
-                  Container(width: 34, height: 60, color: Colors.pink),
+                  Container(
+                    alignment: AlignmentGeometry.center,
+                    width: 34,
+                    height: 80,
+                    color: Colors.blue,
+                    child: Text('🤔'),
+                  ),
+                  Container(width: 34, height: 140, color: Colors.green),
                 ],
               ),
               //
@@ -65,6 +85,8 @@ class MyPage extends StatelessWidget {
             GridView.builder(
               // 그리드뷰 높이를 자식만큼 줄여서 높이값을 지정해줌
               shrinkWrap: true,
+              // 스크롤이 안되게함 // 전체 스크롤만 가능하게 변경됨
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
