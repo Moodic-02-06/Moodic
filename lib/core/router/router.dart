@@ -3,6 +3,8 @@ import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
+import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
+import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/custom_bottom_nav_bar.dart';
@@ -17,7 +19,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   ref.listen(
     userProvider,
-    (_, __) => refreshNotifier.value = !refreshNotifier.value,
+    (_, _) => refreshNotifier.value = !refreshNotifier.value,
   );
 
   return GoRouter(
@@ -56,24 +58,34 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      // 1. 바텀 네비게이션이 있는 쉘 (appRouter에 있던 내용 이동)
+      // 1. 바텀 네비게이션이 있는 쉘
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return Scaffold(
             body: navigationShell,
             bottomNavigationBar: CustomBottomNavBar(
-              currentIndex: navigationShell.currentIndex,
+              currentIndex: navigationShell.currentIndex <= 1
+                  ? navigationShell.currentIndex
+                  : navigationShell.currentIndex + 1,
               onTap: (index) {
                 if (index == 2) {
+                  // 중앙 버튼은 페이지 이동만
                   context.push(AppRoutes.WritePage.absolutePath);
                 } else {
-                  navigationShell.goBranch(index);
+                  // index 0, 1은 그대로 0, 1번 브랜치
+                  // index 3, 4는 한 칸씩 당겨서 2, 3번 브랜치
+                  int branchIndex = index;
+                  if (index > 2) {
+                    branchIndex = index - 1;
+                  }
+                  navigationShell.goBranch(branchIndex);
                 }
               },
             ),
           );
         },
         branches: [
+          // Home
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -83,7 +95,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // ... 나머지 브랜치들(Search, Favorite, MyPage) 그대로 복사
+          // Search
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.SearchPage.path,
+                name: AppRoutes.SearchPage.name,
+                builder: (context, state) => const SizedBox(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.FavoritePage.path,
+                name: AppRoutes.FavoritePage.name,
+                builder: (context, state) => const SizedBox(),
+              ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -109,7 +139,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.LoginPage.name,
         builder: (context, state) => const LoginPage(),
       ),
-      // SplashPage와 자기소개(tem) 페이지도 여기에 추가하세요!
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.SplashPage.path,
+        name: AppRoutes.SplashPage.name,
+        builder: (context, state) => const SplashPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.TempProfile.path,
+        name: AppRoutes.TempProfile.name,
+        builder: (context, state) => const TempProfile(),
+      ),
     ],
   );
 });

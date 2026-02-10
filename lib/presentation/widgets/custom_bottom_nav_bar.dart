@@ -61,7 +61,8 @@ class CustomBottomNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem({required int index, required IconData icon}) {
-    // ✅ GoRouter의 navigationShell.currentIndex와 비교하여 색상 변경
+    // GoRouter의 navigationShell.currentIndex와 비교하여 색상 변경
+
     final isSelected = currentIndex == index;
     return IconButton(
       onPressed: () => onTap(index),
