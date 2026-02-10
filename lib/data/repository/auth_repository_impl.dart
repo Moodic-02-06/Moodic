@@ -1,5 +1,6 @@
 import 'package:flutter_moodic/data/data_source/auth_remote_data_source.dart';
 import 'package:flutter_moodic/domain/repository/auth_repository.dart';
+import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -22,6 +23,12 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() async {
     await _dataSource.signOut();
   }
+
+  @override
+  UserEntity? get currentUser => _dataSource.currentUser;
+
+  @override
+  Stream<UserEntity?> get authStateChanges => _dataSource.authStateChanges;
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_moodic/domain/entity/user_entity.dart';
-import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_view_model.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,18 +8,11 @@ class LoginPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<UserEntity?>(loginViewModelProvider, (previous, next) {
-      if (next != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return HomePage();
-            },
-          ),
-        );
-      }
-    });
+    // ref.listen<UserEntity?>(loginViewModelProvider, (previous, next) {
+    //   if (next != null) {
+    //     // Router가 AuthState 변화를 감지하여 자동으로 리다이렉트하므로 수동 이동 불필요
+    //   }
+    // });
 
     ref.watch(loginViewModelProvider);
     final user = ref.read(loginViewModelProvider.notifier);

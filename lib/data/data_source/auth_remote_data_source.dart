@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk_talk.dart';
+import 'package:kakao_flutter_sdk/kakao_flutter_sdk_talk.dart' hide User;
+import 'package:flutter_moodic/domain/entity/user_entity.dart';
 
 class AuthRemoteDataSource {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -32,7 +33,10 @@ class AuthRemoteDataSource {
       );
 
       // 문서 아이디
-      return userCredential.user?.uid;
+      final User? user = userCredential.user;
+      if (user == null) return null;
+
+      return user.uid;
     } catch (e) {
       return null;
     }
@@ -72,5 +76,28 @@ class AuthRemoteDataSource {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
+  }
+
+  UserEntity? get currentUser {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+    return UserEntity(
+      uid: user.uid,
+      nickname: user.displayName ?? '익명',
+      profileImage: user.photoURL,
+      bio: '',
+    );
+  }
+
+  Stream<UserEntity?> get authStateChanges {
+    return _auth.authStateChanges().map((user) {
+      if (user == null) return null;
+      return UserEntity(
+        uid: user.uid,
+        nickname: user.displayName ?? '익명',
+        profileImage: user.photoURL,
+        bio: '',
+      );
+    });
   }
 }

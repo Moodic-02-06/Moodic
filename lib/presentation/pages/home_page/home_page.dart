@@ -4,7 +4,6 @@ import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_post_card.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
-import 'package:flutter_moodic/presentation/widgets/custom_bottom_nav_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomePage extends ConsumerWidget {
@@ -27,10 +26,7 @@ class HomePage extends ConsumerWidget {
         centerTitle: true,
         title: Image.asset('assets/images/logo.png', width: 70),
       ),
-      bottomNavigationBar: CustomBottomNavBar(
-        currentIndex: 0,
-        onTap: (index) {},
-      ),
+
       body: homeState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : homeState.errorMessage != null

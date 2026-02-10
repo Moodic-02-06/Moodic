@@ -157,9 +157,7 @@ class HomeFeedCard extends ConsumerWidget {
           Row(
             children: [
               _ActionItem(
-                icon: !post.isLikedByMe
-                    ? Icons.favorite
-                    : Icons.favorite_border,
+                icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
                 count: post.likeCount.toString(),
               ),
               const SizedBox(width: 25),

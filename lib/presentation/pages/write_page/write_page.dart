@@ -7,6 +7,7 @@ import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_select
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WritePage extends ConsumerWidget {
@@ -16,6 +17,7 @@ class WritePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final writeState = ref.watch(writeViewModelProvider);
     final selectedMusic = ref.watch(selectedMusicProvider);
+    final userAsync = ref.watch(userProvider);
     final bool isReady =
         selectedMusic != null && writeState.content.trim().isNotEmpty;
 
@@ -67,13 +69,19 @@ class WritePage extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: isReady
+              onPressed:
+                  isReady && userAsync.hasValue && userAsync.value != null
                   ? () async {
+                      final user = userAsync.value!;
                       try {
                         // 저장 로직 실행
                         await ref
                             .read(writeViewModelProvider.notifier)
-                            .createPost('user_123', 'Moodic 유저', '');
+                            .createPost(
+                              user.uid,
+                              user.nickname,
+                              user.profileImage ?? '',
+                            );
 
                         if (context.mounted) {
                           Navigator.pop(context);
@@ -87,7 +95,16 @@ class WritePage extends ConsumerWidget {
                       }
                     }
                   : null,
-              child: Text('완료하기', style: AppTextStyles.bodyPrimary16w600),
+              child: userAsync.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text('완료하기', style: AppTextStyles.bodyPrimary16w600),
             ),
           ),
         ),

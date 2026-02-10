@@ -61,8 +61,8 @@ class WriteViewModel extends Notifier<WriteState> {
 
   Future<void> createPost(
     String userId,
-    String userName,
-    String userImageUrl,
+    String nickname,
+    String profileImage,
   ) async {
     // 1. 데이터 검증 (필수 항목 체크)
     final selectedMusic = ref.read(selectedMusicProvider);
@@ -88,8 +88,8 @@ class WriteViewModel extends Notifier<WriteState> {
       final post = Post(
         postId: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: userId,
-        userName: userName,
-        userImageUrl: userImageUrl,
+        userName: nickname,
+        userImageUrl: profileImage,
         mood: state.mood.label,
         content: state.content,
         music: selectedMusic,
