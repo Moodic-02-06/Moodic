@@ -1,7 +1,7 @@
-import 'package:flutter_moodic/data/mock/mock_post_repository.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/usecase/fetch_feeds_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/toggle_like_usecase.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/post_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum FeedSortType { latest, mostLiked }
@@ -35,14 +35,6 @@ class HomeState {
 }
 
 class HomeViewModel extends Notifier<HomeState> {
-  final FetchFeedsUseCase fetchFeedsUseCase;
-  final ToggleLikeUseCase toggleLikeUseCase;
-
-  HomeViewModel({
-    required this.fetchFeedsUseCase,
-    required this.toggleLikeUseCase,
-  });
-
   @override
   HomeState build() => HomeState(feeds: []);
 
@@ -53,9 +45,13 @@ class HomeViewModel extends Notifier<HomeState> {
     );
 
     try {
+      // build() 외부에서 의존성을 가져올 때는 ref.read를 사용합니다.
+      final repository = ref.read(postRepositoryProvider);
+      final fetchFeedsUseCase = FetchFeedsUseCase(repository);
+
       var fetchedFeeds = await fetchFeedsUseCase.call(limit: 50);
 
-      // 정렬
+      // 정렬 로직
       if ((newSort ?? state.sortType) == FeedSortType.mostLiked) {
         fetchedFeeds.sort((a, b) => b.likeCount.compareTo(a.likeCount));
       } else {
@@ -70,6 +66,10 @@ class HomeViewModel extends Notifier<HomeState> {
 
   Future<void> toggleLike(Post post, String userId) async {
     final isCurrentlyLiked = post.isLikedByMe;
+
+    final repository = ref.read(postRepositoryProvider);
+    final toggleLikeUseCase = ToggleLikeUseCase(repository);
+
     await toggleLikeUseCase.call(post.postId, userId, isCurrentlyLiked);
 
     final updatedFeeds = state.feeds.map((p) {
@@ -86,13 +86,6 @@ class HomeViewModel extends Notifier<HomeState> {
   }
 }
 
-final homeViewModelProvider = NotifierProvider<HomeViewModel, HomeState>(() {
-  final repository = MockPostRepository();
-  final fetchFeedsUseCase = FetchFeedsUseCase(repository);
-  final toggleLikeUseCase = ToggleLikeUseCase(repository);
-
-  return HomeViewModel(
-    fetchFeedsUseCase: fetchFeedsUseCase,
-    toggleLikeUseCase: toggleLikeUseCase,
-  );
-});
+final homeViewModelProvider = NotifierProvider<HomeViewModel, HomeState>(
+  () => HomeViewModel(),
+);

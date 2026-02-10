@@ -5,9 +5,12 @@ import 'music_dto.dart';
 class PostDto {
   final String postId;
   final String userId;
+  final String userName;
+  final String userImageUrl;
   final String mood;
   final String content;
   final MusicDto music;
+  final List<String> imageUrls;
   final int likeCount;
   final int commentCount;
   final Timestamp createdAt;
@@ -16,9 +19,12 @@ class PostDto {
   PostDto({
     required this.postId,
     required this.userId,
+    required this.userName,
+    required this.userImageUrl,
     required this.mood,
     required this.content,
     required this.music,
+    required this.imageUrls,
     required this.likeCount,
     required this.commentCount,
     required this.createdAt,
@@ -33,9 +39,14 @@ class PostDto {
     return PostDto(
       postId: id,
       userId: json['userId'] as String,
+      userName: json['userName'] as String,
+      userImageUrl: json['userImageUrl'] as String,
       mood: json['mood'] as String,
       content: json['content'] as String,
       music: MusicDto.fromJson(json['music'] as Map<String, dynamic>),
+      imageUrls: (json['imageUrls'] as List? ?? [])
+          .map((e) => e.toString())
+          .toList(),
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
       createdAt: json['createdAt'] as Timestamp,
@@ -46,9 +57,12 @@ class PostDto {
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
+      'userName': userName,
+      'userImageUrl': userImageUrl,
       'mood': mood,
       'content': content,
       'music': music.toJson(),
+      'imageUrls': imageUrls,
       'likeCount': likeCount,
       'commentCount': commentCount,
       'createdAt': createdAt,
@@ -61,9 +75,12 @@ class PostDto {
     return Post(
       postId: postId,
       userId: userId,
+      userName: userName,
+      userImageUrl: userImageUrl,
       mood: mood,
       content: content,
       music: music.toEntity(),
+      imageUrls: imageUrls,
       likeCount: likeCount,
       commentCount: commentCount,
       isLikedByMe: isLikedByMe,

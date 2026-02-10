@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_theme.dart';
 import 'package:flutter_moodic/firebase_options.dart';
-import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 
@@ -22,6 +21,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(theme: AppTheme.darkTheme, home: DetailPage());
+    return MaterialApp(theme: AppTheme.darkTheme, home: LoginPage());
   }
 }

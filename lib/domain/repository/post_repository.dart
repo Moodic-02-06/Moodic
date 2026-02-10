@@ -5,6 +5,9 @@ abstract class PostRepository {
   /// 피드 최신 20개 가져오기
   Future<List<Post>> fetchFeeds({int limit = 20});
 
+  /// 이미지 업로드
+  Future<List<String>> uploadImages(String userId, List<String> images);
+
   /// 특정 포스트 가져오기 (상세화면)
   Future<Post> fetchPostById(String postId);
 
