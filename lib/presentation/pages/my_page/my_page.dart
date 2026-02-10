@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/widgets/emotion_graph.dart';
 
 class MyPage extends StatelessWidget {
   const MyPage({super.key});
@@ -54,33 +55,7 @@ class MyPage extends StatelessWidget {
               ),
             ),
             //감정 그래프
-            Container(
-              width: double.infinity,
-              height: 171,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.purple,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(width: 34, height: 90, color: Colors.red),
-                  Container(width: 34, height: 120, color: Colors.orange),
-                  Container(width: 34, height: 80, color: Colors.yellow),
-                  Container(width: 34, height: 140, color: Colors.green),
-                  Container(
-                    alignment: AlignmentGeometry.center,
-                    width: 34,
-                    height: 80,
-                    color: Colors.blue,
-                    child: Text('🤔'),
-                  ),
-                  Container(width: 34, height: 140, color: Colors.green),
-                ],
-              ),
-              //
-            ),
+            EmotionGraph(),
             SizedBox(height: 12),
             GridView.builder(
               // 그리드뷰 높이를 자식만큼 줄여서 높이값을 지정해줌
