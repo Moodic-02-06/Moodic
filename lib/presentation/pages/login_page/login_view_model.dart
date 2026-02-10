@@ -24,7 +24,12 @@ class LoginViewModel extends Notifier<UserEntity?> {
 
       if (existingUser == null) {
         // 신규 유저 저장
-        final newUser = UserEntity(uid: uid);
+        final newUser = UserEntity(
+          uid: uid,
+          nickname: '',
+          profileImage: '',
+          bio: '',
+        );
         await userRepo.saveUser(newUser);
         state = newUser; // 상태 업데이트
       } else {
@@ -48,7 +53,12 @@ class LoginViewModel extends Notifier<UserEntity?> {
 
       if (existingUser == null) {
         // 신규 유저 저장
-        final newUser = UserEntity(uid: uid);
+        final newUser = UserEntity(
+          uid: uid,
+          nickname: '',
+          profileImage: '',
+          bio: '',
+        );
         await userRepo.saveUser(newUser);
         state = newUser; // 상태 업데이트
       } else {

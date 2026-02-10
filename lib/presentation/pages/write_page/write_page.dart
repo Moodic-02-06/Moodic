@@ -6,6 +6,7 @@ import 'package:flutter_moodic/presentation/pages/write_page/widgets/image_uploa
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_selector_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WritePage extends ConsumerWidget {
@@ -13,6 +14,11 @@ class WritePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final writeState = ref.watch(writeViewModelProvider);
+    final selectedMusic = ref.watch(selectedMusicProvider);
+    final bool isReady =
+        selectedMusic != null && writeState.content.trim().isNotEmpty;
+
     return Scaffold(
       backgroundColor: AppColors.primary900,
       appBar: AppBar(
@@ -43,13 +49,52 @@ class WritePage extends ConsumerWidget {
           StoryInputSection(),
         ],
       ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: AppColors.primary900,
+          border: Border(
+            top: BorderSide(color: AppColors.primary700, width: 1),
+          ),
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onPressed: isReady
+                  ? () async {
+                      try {
+                        // 저장 로직 실행
+                        await ref
+                            .read(writeViewModelProvider.notifier)
+                            .createPost('user_123', 'Moodic 유저', '');
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(e.toString())));
+                        }
+                      }
+                    }
+                  : null,
+              child: Text('완료하기', style: AppTextStyles.bodyPrimary16w600),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
-
-//////////////////////////////////////////////////
-/// 2️⃣ 음악 선택 섹션
-//////////////////////////////////////////////////
 
 class MusicSelectSection extends StatelessWidget {
   const MusicSelectSection({super.key});

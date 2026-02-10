@@ -1,4 +1,4 @@
-import 'package:flutter_moodic/domain/repositories/music_repository.dart';
+import 'package:flutter_moodic/domain/repository/music_repository.dart';
 import 'package:flutter_moodic/domain/usecase/search_music_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,41 +7,21 @@ import 'package:flutter_moodic/data/repository/music_repository_impl.dart';
 
 import 'package:flutter_moodic/domain/entity/music.dart';
 
-/// ================================
-/// DataSource
-/// ================================
-
 final musicRemoteDataSourceProvider = Provider<ItunesApi>((ref) {
   return ItunesApi();
 });
-
-/// ================================
-/// Repository
-/// ================================
 
 final musicRepositoryProvider = Provider<MusicRepository>((ref) {
   return MusicRepositoryImpl(ref.read(musicRemoteDataSourceProvider));
 });
 
-/// ================================
-/// UseCase
-/// ================================
-
 final searchMusicUseCaseProvider = Provider<SearchMusicUseCase>((ref) {
   return SearchMusicUseCase(ref.read(musicRepositoryProvider));
 });
 
-/// ================================
-/// AsyncNotifier Provider
-/// ================================
-
 final musicProvider = AsyncNotifierProvider<MusicNotifier, List<Music>>(
   MusicNotifier.new,
 );
-
-/// ================================
-/// Notifier
-/// ================================
 
 class MusicNotifier extends AsyncNotifier<List<Music>> {
   late final SearchMusicUseCase _useCase;

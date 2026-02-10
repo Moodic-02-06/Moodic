@@ -22,14 +22,19 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<void> updateUser(UserEntity user) async {
-    final dto = UserDto(uid: user.uid);
+    final dto = UserDto(uid: user.uid, nickname: '', profileImage: '', bio: '');
     await _dataSource.updateUser(dto);
   }
 
   @override
   Future<void> saveUser(UserEntity user) async {
     // 뷰모델에서 받은 유저 정보를 DTO로 포장해서 소스로 이동
-    final userDto = UserDto(uid: user.uid);
+    final userDto = UserDto(
+      uid: user.uid,
+      nickname: '',
+      profileImage: '',
+      bio: '',
+    );
     await _dataSource.saveUser(userDto);
   }
 }

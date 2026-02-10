@@ -1,7 +1,7 @@
 import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/music.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
-import 'package:flutter_moodic/domain/repositories/post_repository.dart';
+import 'package:flutter_moodic/domain/repository/post_repository.dart';
 
 class MockPostRepository implements PostRepository {
   final List<Post> _mockPosts = List.generate(
@@ -9,6 +9,8 @@ class MockPostRepository implements PostRepository {
     (index) => Post(
       postId: 'post_$index',
       userId: 'user_$index',
+      userName: '사용자 이름 $index',
+      userImageUrl: 'https://example.com/user_$index.jpg',
       mood: '행복',
       content: '목 데이터 예시 글 $index',
       music: Music(
@@ -19,12 +21,19 @@ class MockPostRepository implements PostRepository {
         artwork: '',
         trackUrl: '',
       ),
+      imageUrls: [],
       likeCount: index * 3,
       commentCount: index,
       createdAt: DateTime.now().subtract(Duration(hours: index)),
       updatedAt: DateTime.now().subtract(Duration(hours: index)),
     ),
   );
+
+  @override
+  Future<List<String>> uploadImages(String postId, List<String> paths) {
+    // 목 데이터라 실제 구현은 필요 없음
+    return Future.value([]);
+  }
 
   @override
   Future<void> addComment(String postId, String userId, String content) async {

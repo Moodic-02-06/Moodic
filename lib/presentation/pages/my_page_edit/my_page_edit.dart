@@ -20,11 +20,37 @@ class _MyPageEditState extends State<MyPageEdit> {
           width: double.infinity,
           child: Column(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: Container(width: 100, height: 100, color: Colors.grey),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Align(
+                      alignment: AlignmentGeometry.bottomRight,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(100),
+                          color: Colors.green,
+                        ),
+                        child: Center(
+                          child: Icon(Icons.camera_alt, color: Colors.black),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Icon(Icons.camera_alt),
+
               SizedBox(height: 12),
               Text("닉네임", style: TextStyle(color: Colors.white)),
               SizedBox(height: 12),

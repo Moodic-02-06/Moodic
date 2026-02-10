@@ -8,51 +8,102 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  // 초기 데이터 개수 (원하는 만큼 늘려보세요)
-  List<int> items = List.generate(20, (index) => index);
-  bool isLoading = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 25, // 동그라미의 크기 (반지름)
-                backgroundColor: Colors.grey[300],
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 25, // 동그라미의 크기 (반지름)
+                  backgroundColor: Colors.grey[300],
+                ),
+                Column(children: [Text('현더'), Text('1분전')]),
+                Spacer(),
+                Icon(Icons.more_vert),
+              ],
+            ),
+            SizedBox(height: 30),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 50, // 동그라미의 크기 (반지름)
+                  backgroundColor: Colors.grey[300],
+                ),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('총몽'),
+                    Row(
+                      children: [
+                        Text('현서(HYUNSEO)'),
+                        SizedBox(width: 130),
+                        Icon(Icons.play_arrow),
+                      ],
+                    ),
+
+                    SizedBox(height: 30),
+                    Row(
+                      children: [
+                        SizedBox(width: 20),
+                        Container(
+                          width: 110,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        SizedBox(width: 15),
+                        Container(
+                          width: 110,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Center(
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 340,
+                height: 200,
               ),
-              Column(children: [Text('현더'), Text('1분전')]),
-              Spacer(),
-              Icon(Icons.abc),
-            ],
-          ),
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 50, // 동그라미의 크기 (반지름)
-                backgroundColor: Colors.grey[300],
+            ),
+
+            Container(
+              width: 60,
+              height: 25,
+              decoration: BoxDecoration(
+                color: Colors.amber,
+                borderRadius: BorderRadius.circular(30),
               ),
-              Column(children: [Text('총몽'), Text('현서(HYUNSEO)')]),
-              Spacer(),
-              Icon(Icons.abc),
-            ],
-          ),
-          Row(
-            children: [
-              SizedBox(width: 100),
-              Container(width: 120, height: 40, color: Colors.amber),
-              SizedBox(width: 10),
-              Container(width: 120, height: 40, color: Colors.amber),
-            ],
-          ),
-          SizedBox(height: 200),
-          Container(width: 60, height: 25, color: Colors.amber),
-          Text('오늘 기분'),
-          Row(children: [Icon(Icons.abc), Icon(Icons.abc)]),
-        ],
+            ),
+            Text('오늘 기분'),
+            Row(
+              children: [
+                Icon(Icons.favorite, color: Colors.red, size: 40),
+                Text('12'),
+                SizedBox(width: 10),
+                Icon(Icons.chat_bubble_outline, size: 40),
+                Text('12'),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

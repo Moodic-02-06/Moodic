@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/music.dart';
-import 'package:flutter_moodic/presentation/music_search_page/widgets/music_search_item.dart';
 import 'package:flutter_moodic/presentation/provider/music_provider.dart';
 import 'package:flutter_moodic/presentation/provider/search_debounce_provider.dart';
 import 'package:flutter_moodic/presentation/provider/search_keyword_provider.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
+import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -154,7 +154,18 @@ class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
                         itemBuilder: (context, index) {
                           final music = musics[index];
                           final isPlaying = _currentlyPlayingId == music.id;
-                          return MusicSearchItem(
+                          // return MusicSearchItem(
+                          //   music: music,
+                          //   isPlaying: isPlaying,
+                          //   onPlayPressed: () => _togglePlay(music),
+                          //   onSelect: () {
+                          //     ref
+                          //         .read(selectedMusicProvider.notifier)
+                          //         .select(music);
+                          //     Navigator.pop(context);
+                          //   },
+                          // );
+                          return MusicDisplayCard(
                             music: music,
                             isPlaying: isPlaying,
                             onPlayPressed: () => _togglePlay(music),
@@ -261,7 +272,7 @@ class _SearchInputState extends ConsumerState<SearchInput> {
                   )
                 : null,
             filled: true,
-            fillColor: Colors.transparent, // Uses container color
+            fillColor: Colors.transparent,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
