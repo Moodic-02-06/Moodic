@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/core/theme/app_color.dart';
+import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/emotion_graph.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/widgets/grid_view.dart';
+import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
 
 class MyPage extends StatelessWidget {
   const MyPage({super.key});
@@ -8,9 +12,23 @@ class MyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("프로필"),
+        centerTitle: true,
+        title: Text(
+          "프로필",
+          style: AppTextStyles.titlePrimary20w600.copyWith(
+            color: AppColors.text900,
+          ),
+        ),
         actions: [
-          Icon(Icons.edit),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyPageEdit()),
+              );
+            },
+            icon: Icon(Icons.edit, color: AppColors.gray500),
+          ),
           //
         ],
       ),
@@ -21,25 +39,27 @@ class MyPage extends StatelessWidget {
             Row(
               children: [
                 // 프로필 이미지 받아와서 넣어주는곳
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Container(width: 90, height: 90, color: Colors.grey),
                 ),
                 SizedBox(width: 12),
                 // 닉네임,소개
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Maenggo",
-                      style: TextStyle(color: Colors.white, fontSize: 24),
+                      style: AppTextStyles.titlePrimary20w600.copyWith(
+                        color: AppColors.text900,
+                      ),
                     ),
+                    SizedBox(height: 4),
                     Text(
                       "반갑습니다",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+                      style: AppTextStyles.bodyPrimary16w600.copyWith(
+                        color: AppColors.text900,
+                      ),
                     ),
                     //
                   ],
@@ -51,34 +71,15 @@ class MyPage extends StatelessWidget {
               width: double.infinity,
               child: Text(
                 "이달의 감정 리포트",
-                style: TextStyle(color: Colors.white, fontSize: 24),
+                style: AppTextStyles.titleSecondary18w500.copyWith(
+                  color: AppColors.gray500,
+                ),
               ),
             ),
             //감정 그래프
             EmotionGraph(),
             SizedBox(height: 12),
-            GridView.builder(
-              // 그리드뷰 높이를 자식만큼 줄여서 높이값을 지정해줌
-              shrinkWrap: true,
-              // 스크롤이 안되게함 // 전체 스크롤만 가능하게 변경됨
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                crossAxisCount: 2,
-              ),
-              itemCount: 12,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey,
-                  ),
-                );
-              },
-            ),
+            MyPageGridView(),
           ],
         ),
       ),

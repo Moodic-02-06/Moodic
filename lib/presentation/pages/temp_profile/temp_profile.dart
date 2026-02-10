@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/core/theme/app_color.dart';
+import 'package:flutter_moodic/core/theme/fonts.dart';
 
 class TempProfile extends StatefulWidget {
   const TempProfile({super.key});
@@ -19,14 +21,14 @@ class _TempProfileState extends State<TempProfile> {
           child: Column(
             children: [
               SizedBox(
-                width: 100,
-                height: 100,
+                width: 90,
+                height: 90,
                 child: Stack(
                   children: [
                     // 랜덤 이미지 들어감
                     Container(
-                      width: 100,
-                      height: 100,
+                      width: 90,
+                      height: 90,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(100),
                         color: Colors.grey,
@@ -43,17 +45,24 @@ class _TempProfileState extends State<TempProfile> {
                 padding: EdgeInsets.all(12),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey,
+                  color: AppColors.primary600,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '홍길동',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.black),
+                  style: AppTextStyles.bodyPrimary16w600.copyWith(
+                    color: AppColors.text900,
+                  ),
                 ),
               ),
               SizedBox(height: 12),
-              Text("2~12자의 한글, 영문, 숫자만 사용가능 합니다"),
+              Text(
+                "2~12자의 한글, 영문, 숫자만 사용가능 합니다",
+                style: AppTextStyles.labelStatus12w500.copyWith(
+                  color: AppColors.text900,
+                ),
+              ),
               SizedBox(height: 12),
               Container(width: double.infinity, height: 1, color: Colors.grey),
               Spacer(),
