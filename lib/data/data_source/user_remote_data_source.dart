@@ -33,7 +33,7 @@ class UserRemoteDataSource {
     docRef.set(userDto.toJson());
   }
 
-  //생성
+  //저장
   Future<void> saveUser(UserDto userDto) async {
     final collectionRef = _firestore.collection("user");
 
