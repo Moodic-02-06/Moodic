@@ -8,8 +8,6 @@ class TempProfile extends StatefulWidget {
 }
 
 class _TempProfileState extends State<TempProfile> {
-  bool _isSwitched = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
