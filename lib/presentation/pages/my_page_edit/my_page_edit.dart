@@ -20,13 +20,39 @@ class _MyPageEditState extends State<MyPageEdit> {
           width: double.infinity,
           child: Column(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: Container(width: 100, height: 100, color: Colors.grey),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Align(
+                      alignment: AlignmentGeometry.bottomRight,
+                      child: Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(100),
+                          color: Colors.green,
+                        ),
+                        child: Center(
+                          child: Icon(Icons.camera_alt, color: Colors.black),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Icon(Icons.camera_alt),
+
               SizedBox(height: 12),
-              Text("닉네임"),
+              Text("닉네임", style: TextStyle(color: Colors.white)),
               SizedBox(height: 12),
               Container(
                 padding: EdgeInsets.all(12),
@@ -35,17 +61,21 @@ class _MyPageEditState extends State<MyPageEdit> {
                   color: Colors.grey,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text('홍길동', textAlign: TextAlign.center),
+                child: Text(
+                  '홍길동',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
               SizedBox(height: 12),
               Text(
                 "2~12자의 한글, 영문, 숫자만 사용가능 합니다",
-                style: TextStyle(fontSize: 10),
+                style: TextStyle(fontSize: 10, color: Colors.white),
               ),
               SizedBox(height: 12),
               Container(width: double.infinity, height: 1, color: Colors.grey),
               SizedBox(height: 12),
-              Text("소개"),
+              Text("소개", style: TextStyle(color: Colors.white)),
               SizedBox(height: 12),
               Container(
                 padding: EdgeInsets.all(24),
@@ -64,7 +94,11 @@ class _MyPageEditState extends State<MyPageEdit> {
                       color: Colors.grey,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text("알림", textAlign: TextAlign.center),
+                    child: Text(
+                      "알림",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                   Spacer(),
                   //토글버튼
