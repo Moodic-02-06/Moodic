@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
@@ -144,6 +145,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.LoginPage.path,
         name: AppRoutes.LoginPage.name,
         builder: (context, state) => const LoginPage(),
+      ),
+
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.DetailPage.absolutePath, // '/detail/:id'
+        name: AppRoutes.DetailPage.name,
+        builder: (context, state) {
+          // URL 파라미터에서 id 추출
+          final postId = state.pathParameters['id']!;
+
+          // TODO: postId로 DetailPage 생성
+          return DetailPage(
+            // postId: postId
+          ); // DetailPage 생성자에 전달
+        },
       ),
 
       // TODO: splash 페이지 추가
