@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_post_card.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
@@ -92,6 +93,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
             )
+
           : RefreshIndicator(
               onRefresh: () => homeVM.loadFeeds(),
               child: ListView.separated(
@@ -100,14 +102,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                 separatorBuilder: (context, index) {
                   return const SizedBox(height: 16);
                 },
-                itemBuilder: (context, index) {
-                  final post = homeState.feeds[index];
-                  return HomeFeedCard(
-                    post: post,
-                    onLikeToggle: (userId) => homeVM.toggleLike(post, userId),
-                  );
-                },
+               itemBuilder: (context, index) {
+                final post = homeState.feeds[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return DetailPage();
+                        },
+                      ),
+                    );
+                  },
               ),
+
             ),
     );
   }
