@@ -4,6 +4,9 @@ import 'package:flutter_moodic/core/theme/app_theme.dart';
 import 'package:flutter_moodic/firebase_options.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
+import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
 
@@ -20,6 +23,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(theme: AppTheme.darkTheme, home: LoginPage());
+    return MaterialApp(theme: AppTheme.darkTheme, home: MyPage());
   }
 }
