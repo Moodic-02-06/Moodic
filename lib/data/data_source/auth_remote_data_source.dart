@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_moodic/data/dto/user_dto.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -124,7 +125,7 @@ class AuthRemoteDataSource {
       final doc = await _firestore.collection('user').doc(uid).get();
       return doc.exists;
     } catch (e) {
-      print("❌ 데이터소스 - 계정 확인 실패: $e");
+      debugPrint("데이터소스 - 계정 확인 실패: $e");
       return false;
     }
   }

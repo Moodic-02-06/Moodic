@@ -4,8 +4,10 @@ import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/player_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
+import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeFeedCard extends ConsumerWidget {
@@ -67,7 +69,51 @@ class HomeFeedCard extends ConsumerWidget {
                   ),
                 ],
               ),
-              Icon(Icons.more_vert, size: 18, color: AppColors.gray500),
+              GestureDetector(
+                onTap: () {
+                  // 1. 현재 유저 정보 가져오기 (ref 사용)
+                  final currentUser = ref.read(userProvider).value;
+                  final bool isMyPost = currentUser?.uid == post.userId;
+
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor:
+                        Colors.transparent, // 배경 투명하게 (그래야 위젯 곡선이 보임)
+                    isScrollControlled: true,
+                    builder: (context) {
+                      return PostOptionsBottomSheet(
+                        isMyPost: isMyPost,
+                        onEdit: () {
+                          Navigator.pop(context);
+                          // TODO: 수정 페이지로 이동 로직 (post 데이터 전달)
+                        },
+                        onDelete: () {
+                          Navigator.pop(context);
+                          // TODO: 삭제 확인 다이얼로그 띄우기 및 삭제 로직
+                        },
+                        onReport: () {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('신고가 접수되었습니다.')),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+                child: const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Icon(
+                      Icons.more_vert,
+                      size: 18,
+                      color: AppColors.gray500,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
 
@@ -115,7 +161,7 @@ class HomeFeedCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MoodBadge(moodLabel: post.mood),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 post.content,
                 style: AppTextStyles.bodySecondary14w500.copyWith(
@@ -130,12 +176,12 @@ class HomeFeedCard extends ConsumerWidget {
           // ================= 좋아요 / 댓글 =================
           Row(
             children: [
-              _ActionItem(
+              _FeedItem(
                 icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
                 count: post.likeCount.toString(),
               ),
               const SizedBox(width: 25),
-              _ActionItem(
+              _FeedItem(
                 icon: Icons.chat_bubble_outline,
                 count: post.commentCount.toString(),
               ),
@@ -147,11 +193,11 @@ class HomeFeedCard extends ConsumerWidget {
   }
 }
 
-class _ActionItem extends StatelessWidget {
+class _FeedItem extends StatelessWidget {
   final IconData icon;
   final String count;
 
-  const _ActionItem({required this.icon, required this.count});
+  const _FeedItem({required this.icon, required this.count});
 
   @override
   Widget build(BuildContext context) {

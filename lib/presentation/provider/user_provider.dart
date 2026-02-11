@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_moodic/data/repository/auth_repository_impl.dart';
@@ -10,37 +11,40 @@ final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
 
 final userProvider = StreamProvider<UserEntity?>((ref) {
   final useCase = ref.watch(getCurrentUserUseCaseProvider);
+  final authRepo = ref.read(authRepositoryProvider); // 미리 읽어두기
 
   return useCase.authStateChanges.asyncMap((user) async {
-    // 1. 로그아웃 상태일 때
     if (user == null) {
-      print('<<<< 🔒 유저 로그아웃 상태 >>>>');
+      debugPrint('<<<< 🔒 유저 로그아웃 상태 >>>>');
       return null;
     }
 
     try {
-      // 2. 서버에 실제로 계정이 존재하는지 체크 (계정 삭제 대응)
-      final exists = await ref
-          .read(authRepositoryProvider)
-          .checkUserExists(user.uid);
+      // 1. 실제 존재 여부 검증
+      final exists = await authRepo.checkUserExists(user.uid);
 
       if (!exists) {
-        print('⚠️ 계정 삭제 감지: 강제 로그아웃 진행');
-        await ref.read(authRepositoryProvider).signOut();
+        debugPrint('⚠️ 계정 삭제 감지: 세션 종료');
+        await authRepo.signOut();
         return null;
       }
 
-      // 3. 정상 로그인 상태일 때 로그 출력
-      print('<<<< 🔓 유저 로그인 상태 유지 >>>>');
-      print('UID: ${user.uid}');
-      print('닉네임: ${user.nickname}');
-      print('처음인가요?: ${user.isFirst}');
-      print('<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>');
+      // 2. 정상 로그인 정보 출력 (디버깅용)
+      _logUserInfo(user);
 
       return user;
     } catch (e) {
-      print('❌ 유저 인증 확인 중 에러: $e');
+      debugPrint('❌ 인증 검증 중 오류: $e');
       return null;
     }
   });
 });
+
+// 로그 출력 로직만 따로 빼서 깔끔하게 관리
+void _logUserInfo(UserEntity user) {
+  debugPrint('<<<< 🔓 유저 로그인 상태 유지 >>>>');
+  debugPrint(
+    '닉네임: ${user.nickname} | 처음인가요: ${user.isFirst} | UID: ${user.uid}',
+  );
+  debugPrint('<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>');
+}

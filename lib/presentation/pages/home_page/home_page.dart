@@ -41,7 +41,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Text(
                 '오류가 발생했습니다.\n${homeState.errorMessage}',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.red, fontSize: 16),
+                style: TextStyle(color: AppColors.stateError, fontSize: 16),
               ),
             )
           : homeState.feeds.isEmpty

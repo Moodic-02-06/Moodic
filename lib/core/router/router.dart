@@ -3,7 +3,6 @@ import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
-import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
@@ -146,12 +145,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: AppRoutes.LoginPage.name,
         builder: (context, state) => const LoginPage(),
       ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: AppRoutes.SplashPage.path,
-        name: AppRoutes.SplashPage.name,
-        builder: (context, state) => const SplashPage(),
-      ),
+
+      // TODO: splash 페이지 추가
+      // GoRoute(
+      //   parentNavigatorKey: _rootNavigatorKey,
+      //   path: AppRoutes.SplashPage.path,
+      //   name: AppRoutes.SplashPage.name,
+      //   builder: (context, state) => const SplashPage(),
+      // ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.TempProfile.path,

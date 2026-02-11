@@ -15,6 +15,7 @@ class _TempProfileState extends State<TempProfile> {
     return Scaffold(
       appBar: AppBar(title: Text("임시 프로필")),
 
+      // TODO: 경로 수정하기
       bottomNavigationBar: PrimaryBottomButton(
         label: '완료하기',
         isLoading: false,
