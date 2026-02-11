@@ -29,6 +29,7 @@ class LoginViewModel extends Notifier<UserEntity?> {
           nickname: '',
           profileImage: '',
           bio: '',
+          isFirst: true,
         );
         await userRepo.saveUser(newUser);
         state = newUser; // 상태 업데이트
@@ -58,6 +59,7 @@ class LoginViewModel extends Notifier<UserEntity?> {
           nickname: '',
           profileImage: '',
           bio: '',
+          isFirst: true,
         );
         await userRepo.saveUser(newUser);
         state = newUser; // 상태 업데이트

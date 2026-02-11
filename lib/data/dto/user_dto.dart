@@ -6,15 +6,16 @@ class UserDto extends UserEntity {
     required super.nickname,
     required super.profileImage,
     required super.bio,
+    required super.isFirst,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
     return UserDto(
       uid: json['uid'] as String? ?? '',
-      // 핵심: 서버에 데이터가 없어도 빈 문자열을 넣어 required를 만족시킴
       nickname: json['nickname'] as String? ?? '닉네임 없음',
       profileImage: json['profileImage'] as String? ?? '',
       bio: json['bio'] as String? ?? '',
+      isFirst: json['isFirst'] as bool? ?? true,
     );
   }
 
@@ -24,6 +25,7 @@ class UserDto extends UserEntity {
       'nickname': nickname,
       'profileImage': profileImage,
       'bio': bio,
+      'isFirst': isFirst,
     };
   }
 }

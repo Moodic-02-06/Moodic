@@ -12,18 +12,11 @@ class LoginPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<UserEntity?>(loginViewModelProvider, (previous, next) {
-      if (next != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) {
-              return HomePage();
-            },
-          ),
-        );
-      }
-    });
+    // ref.listen<UserEntity?>(loginViewModelProvider, (previous, next) {
+    //   if (next != null) {
+    //     // Router가 AuthState 변화를 감지하여 자동으로 리다이렉트하므로 수동 이동 불필요
+    //   }
+    // });
 
     ref.watch(loginViewModelProvider);
     final user = ref.read(loginViewModelProvider.notifier);

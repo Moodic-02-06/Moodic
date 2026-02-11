@@ -9,7 +9,7 @@ class MockPostRepository implements PostRepository {
     (index) => Post(
       postId: 'post_$index',
       userId: 'user_$index',
-      userName: '사용자 이름 $index',
+      userNickname: '사용자 이름 $index',
       userImageUrl: 'https://example.com/user_$index.jpg',
       mood: '행복',
       content: '목 데이터 예시 글 $index',

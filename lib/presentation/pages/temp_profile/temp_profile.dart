@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/presentation/widgets/primary_bottom_button.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 
@@ -14,6 +16,16 @@ class _TempProfileState extends State<TempProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("임시 프로필")),
+
+      // TODO: 경로 수정하기
+      bottomNavigationBar: PrimaryBottomButton(
+        label: '완료하기',
+        isLoading: false,
+        onPressed: () {
+          context.go('/?tempPass=true');
+        },
+      ),
+
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: SizedBox(

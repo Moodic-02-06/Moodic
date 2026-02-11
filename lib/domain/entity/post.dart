@@ -3,8 +3,8 @@ import 'music.dart';
 class Post {
   final String postId;
   final String userId;
-  final String userName; // 추가
-  final String userImageUrl; // 추가
+  final String userNickname;
+  final String userImageUrl;
   final String mood;
   final String content;
   final Music music;
@@ -18,7 +18,7 @@ class Post {
   Post({
     required this.postId,
     required this.userId,
-    required this.userName,
+    required this.userNickname,
     required this.userImageUrl,
     required this.mood,
     required this.content,
@@ -34,7 +34,7 @@ class Post {
   Post copyWith({
     String? postId,
     String? userId,
-    String? userName,
+    String? userNickname,
     String? userImageUrl,
     String? mood,
     String? content,
@@ -49,7 +49,7 @@ class Post {
     return Post(
       postId: postId ?? this.postId,
       userId: userId ?? this.userId,
-      userName: userName ?? this.userName,
+      userNickname: userNickname ?? this.userNickname,
       userImageUrl: userImageUrl ?? this.userImageUrl,
       mood: mood ?? this.mood,
       content: content ?? this.content,

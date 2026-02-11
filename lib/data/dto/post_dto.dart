@@ -5,7 +5,7 @@ import 'music_dto.dart';
 class PostDto {
   final String postId;
   final String userId;
-  final String userName;
+  final String userNickname;
   final String userImageUrl;
   final String mood;
   final String content;
@@ -19,7 +19,7 @@ class PostDto {
   PostDto({
     required this.postId,
     required this.userId,
-    required this.userName,
+    required this.userNickname,
     required this.userImageUrl,
     required this.mood,
     required this.content,
@@ -38,12 +38,12 @@ class PostDto {
   }) {
     return PostDto(
       postId: id,
-      userId: json['userId'] as String,
-      userName: json['userName'] as String,
-      userImageUrl: json['userImageUrl'] as String,
-      mood: json['mood'] as String,
-      content: json['content'] as String,
-      music: MusicDto.fromJson(json['music'] as Map<String, dynamic>),
+      userId: json['userId'] as String? ?? '',
+      userNickname: json['userNickname'] as String? ?? '익명',
+      userImageUrl: json['userImageUrl'] as String? ?? '',
+      mood: json['mood'] as String? ?? '',
+      content: json['content'] as String? ?? '',
+      music: MusicDto.fromJson(json['music'] as Map<String, dynamic>? ?? {}),
       imageUrls: (json['imageUrls'] as List? ?? [])
           .map((e) => e.toString())
           .toList(),
@@ -57,7 +57,7 @@ class PostDto {
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,
-      'userName': userName,
+      'userNickname': userNickname,
       'userImageUrl': userImageUrl,
       'mood': mood,
       'content': content,
@@ -75,7 +75,7 @@ class PostDto {
     return Post(
       postId: postId,
       userId: userId,
-      userName: userName,
+      userNickname: userNickname,
       userImageUrl: userImageUrl,
       mood: mood,
       content: content,

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/usecase/fetch_feeds_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/toggle_like_usecase.dart';
@@ -41,11 +42,12 @@ class HomeViewModel extends Notifier<HomeState> {
   Future<void> loadFeeds({FeedSortType? newSort}) async {
     state = state.copyWith(
       isLoading: true,
+      errorMessage: null,
       sortType: newSort ?? state.sortType,
     );
 
     try {
-      // build() 외부에서 의존성을 가져올 때는 ref.read를 사용합니다.
+      // build() 외부에서 의존성을 가져올 때는 ref.read를 사용
       final repository = ref.read(postRepositoryProvider);
       final fetchFeedsUseCase = FetchFeedsUseCase(repository);
 
@@ -60,6 +62,7 @@ class HomeViewModel extends Notifier<HomeState> {
 
       state = state.copyWith(feeds: fetchedFeeds, isLoading: false);
     } catch (e) {
+      debugPrint('Feed Load Error: $e');
       state = state.copyWith(errorMessage: e.toString(), isLoading: false);
     }
   }
