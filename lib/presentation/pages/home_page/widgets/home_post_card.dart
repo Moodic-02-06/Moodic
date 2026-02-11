@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
-import 'package:flutter_moodic/domain/entity/mood_type.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/player_view_model.dart';
+import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,9 +20,6 @@ class HomeFeedCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final moodData = MoodType.values.firstWhere(
-      (m) => m.label == post.mood || m.name == post.mood,
-    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -54,7 +51,7 @@ class HomeFeedCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        post.userName,
+                        post.userNickname,
                         style: AppTextStyles.bodyPrimary16w600.copyWith(
                           color: AppColors.text900,
                         ),
@@ -117,30 +114,7 @@ class HomeFeedCard extends ConsumerWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: moodData.color.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(23),
-                  border: Border.all(color: moodData.color),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(moodData.emoji),
-                    const SizedBox(width: 6),
-                    Text(
-                      post.mood,
-                      style: AppTextStyles.bodySecondary14w500.copyWith(
-                        color: AppColors.text900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              MoodBadge(moodLabel: post.mood),
               const SizedBox(height: 10),
               Text(
                 post.content,

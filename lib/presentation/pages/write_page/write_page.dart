@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
-import 'package:flutter_moodic/presentation/music_search_page/music_search_page.dart';
+import 'package:flutter_moodic/presentation/pages/music_search_page/music_search_page.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/image_upload_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_selector_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/widgets/primary_bottom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WritePage extends ConsumerWidget {
@@ -51,63 +52,31 @@ class WritePage extends ConsumerWidget {
           StoryInputSection(),
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        decoration: BoxDecoration(
-          color: AppColors.primary900,
-          border: Border(
-            top: BorderSide(color: AppColors.primary700, width: 1),
-          ),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              onPressed:
-                  isReady && userAsync.hasValue && userAsync.value != null
-                  ? () async {
-                      final user = userAsync.value!;
-                      try {
-                        // 저장 로직 실행
-                        await ref
-                            .read(writeViewModelProvider.notifier)
-                            .createPost(
-                              user.uid,
-                              user.nickname,
-                              user.profileImage ?? '',
-                            );
+      bottomNavigationBar: PrimaryBottomButton(
+        label: '완료하기',
+        isLoading: writeState.isLoading,
 
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(e.toString())));
-                        }
-                      }
-                    }
-                  : null,
-              child: userAsync.isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Text('완료하기', style: AppTextStyles.bodyPrimary16w600),
-            ),
-          ),
-        ),
+        onPressed: (isReady && userAsync.hasValue && userAsync.value != null)
+            ? () async {
+                final user = userAsync.value!;
+                try {
+                  await ref
+                      .read(writeViewModelProvider.notifier)
+                      .createPost(
+                        user.uid,
+                        user.nickname,
+                        user.profileImage ?? '',
+                      );
+                  if (context.mounted) Navigator.pop(context);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(e.toString())));
+                  }
+                }
+              }
+            : null,
       ),
     );
   }

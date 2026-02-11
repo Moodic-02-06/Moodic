@@ -3,10 +3,7 @@ import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/music.dart';
 
-//////////////////////////////////////////////////
 /// 검색 결과 아이템
-//////////////////////////////////////////////////
-
 class MusicSearchItem extends StatelessWidget {
   final Music music;
   final bool isPlaying;

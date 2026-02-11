@@ -3,11 +3,13 @@ class UserEntity {
   final String nickname;
   final String? profileImage;
   final String? bio;
+  final bool isFirst;
 
   UserEntity({
     required this.uid,
     required this.nickname,
     required this.profileImage,
     required this.bio,
+    this.isFirst = false,
   });
 }

@@ -190,10 +190,7 @@ class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
   }
 }
 
-//////////////////////////////////////////////////
 /// 검색 입력창
-//////////////////////////////////////////////////
-
 class SearchInput extends ConsumerStatefulWidget {
   final void Function(String) onSearch;
 

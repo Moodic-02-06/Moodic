@@ -26,6 +26,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.HomePage.absolutePath,
     navigatorKey: _rootNavigatorKey,
     refreshListenable: refreshNotifier,
+
     redirect: (context, state) {
       if (userState.isLoading) return null;
 
@@ -36,23 +37,29 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == AppRoutes.LoginPage.absolutePath;
       final isSplash =
           state.matchedLocation == AppRoutes.SplashPage.absolutePath;
+      final isTempProfile =
+          state.matchedLocation == AppRoutes.TempProfile.absolutePath;
 
-      // 로그인 안 됨 -> 로그인 페이지로
+      // 1. 로그인 안 됨
       if (!isLoggedIn) {
+        // 현재 위치가 로그인/스플래시가 아니면 로그인 페이지로 강제 이동
         if (!isLoggingIn && !isSplash) return AppRoutes.LoginPage.absolutePath;
         return null;
       }
 
-      // 로그인 됨 -> 스플래시나 로그인 페이지에 있다면 홈/자기소개로
-      if (isLoggedIn && (isLoggingIn || isSplash)) {
-        // 닉네임이 비어있는지 확인하여 처음 온 유저인지 판단
-        // (UserEntity의 nickname이 빈 문자열("")로 들어온다고 가정할 때)
-        final bool isFirstTime = user.nickname.isEmpty;
-
-        if (isFirstTime) {
-          return AppRoutes.TempProfile.absolutePath; // 자기소개(닉네임 설정) 페이지로
+      // 2. 로그인 됨
+      if (isLoggedIn) {
+        // 처음 방문한 유저(isFirst == true)인 경우
+        if (user.isFirst) {
+          // 이미 자기소개 페이지에 있다면 그대로 두고, 아니면 이동
+          if (!isTempProfile) return AppRoutes.TempProfile.absolutePath;
+          return null;
         }
-        return AppRoutes.HomePage.absolutePath; // 닉네임이 있으면 홈으로
+
+        // 처음 방문이 아닌데 스플래시나 로그인 페이지에 머물러 있다면 홈으로
+        if (isLoggingIn || isSplash) {
+          return AppRoutes.HomePage.absolutePath;
+        }
       }
 
       return null;

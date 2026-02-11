@@ -16,7 +16,7 @@ class PostRepositoryImpl implements PostRepository {
   /// 피드 최신 20개 가져오기
   @override
   Future<List<Post>> fetchFeeds({int limit = 20}) async {
-    final currentUserId = 'CURRENT_USER_ID';
+    final currentUserId = '';
     final dtos = await dataSource.fetchFeeds(
       limit: limit,
       currentUserId: currentUserId,
@@ -78,7 +78,7 @@ class PostRepositoryImpl implements PostRepository {
     final dto = PostDto(
       postId: post.postId,
       userId: post.userId,
-      userName: post.userName,
+      userNickname: post.userNickname,
       userImageUrl: post.userImageUrl,
       mood: post.mood,
       content: post.content,
@@ -99,7 +99,7 @@ class PostRepositoryImpl implements PostRepository {
     final dto = PostDto(
       postId: post.postId,
       userId: post.userId,
-      userName: post.userName,
+      userNickname: post.userNickname,
       userImageUrl: post.userImageUrl,
       mood: post.mood,
       content: post.content,

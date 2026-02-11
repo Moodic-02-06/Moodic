@@ -14,4 +14,7 @@ abstract class AuthRepository {
   UserEntity? get currentUser;
 
   Stream<UserEntity?> get authStateChanges;
+
+  // ✅ 추가: 유저가 서버(DB)에 실제로 존재하는지 확인
+  Future<bool> checkUserExists(String uid);
 }

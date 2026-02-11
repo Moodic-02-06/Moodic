@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_moodic/data/dto/user_dto.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk_talk.dart' hide User;
@@ -7,6 +9,7 @@ import 'package:flutter_moodic/domain/entity/user_entity.dart';
 class AuthRemoteDataSource {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<String?> signInWithGoogle() async {
     try {
@@ -89,15 +92,40 @@ class AuthRemoteDataSource {
     );
   }
 
+  /// 인증 상태 및 유저 데이터를 실시간으로 감시하는 스트림
   Stream<UserEntity?> get authStateChanges {
-    return _auth.authStateChanges().map((user) {
-      if (user == null) return null;
-      return UserEntity(
-        uid: user.uid,
-        nickname: user.displayName ?? '익명',
-        profileImage: user.photoURL,
-        bio: '',
-      );
+    return _auth.authStateChanges().asyncExpand((user) {
+      if (user == null) return Stream.value(null);
+
+      // 유저의 Firestore 문서를 실시간 감시하여 데이터가 바뀔 때마다 스트림 발행
+      return FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.uid)
+          .snapshots()
+          .map((doc) {
+            if (doc.exists && doc.data() != null) {
+              return UserDto.fromJson(doc.data()!);
+            }
+
+            // Firestore에 문서가 없는 신규 유저를 위한 초기 객체 반환
+            return UserEntity(
+              uid: user.uid,
+              nickname: user.displayName ?? '익명',
+              profileImage: user.photoURL,
+              bio: '',
+              isFirst: true,
+            );
+          });
     });
+  }
+
+  Future<bool> checkUserExists(String uid) async {
+    try {
+      final doc = await _firestore.collection('user').doc(uid).get();
+      return doc.exists;
+    } catch (e) {
+      print("❌ 데이터소스 - 계정 확인 실패: $e");
+      return false;
+    }
   }
 }

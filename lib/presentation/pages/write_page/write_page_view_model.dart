@@ -10,22 +10,26 @@ class WriteState {
   final String content;
   final MoodType mood;
   final List<String> imageUrls;
+  final bool isLoading;
 
   WriteState({
     required this.content,
     required this.mood,
     required this.imageUrls,
+    this.isLoading = false,
   });
 
   WriteState copyWith({
     String? content,
     MoodType? mood,
     List<String>? imageUrls,
+    bool? isLoading,
   }) {
     return WriteState(
       content: content ?? this.content,
       mood: mood ?? this.mood,
       imageUrls: imageUrls ?? this.imageUrls,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }
@@ -69,6 +73,11 @@ class WriteViewModel extends Notifier<WriteState> {
     if (selectedMusic == null) throw Exception('음악을 선택해주세요.');
     if (state.content.trim().isEmpty) throw Exception('내용을 입력해주세요.');
 
+    // 이미 로딩 중이면 중복 실행 방지
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true);
+
     try {
       // 2. 이미지 업로드 (로컬 경로 -> Firebase Storage URL)
       List<String> firebaseImageUrls = [];
@@ -88,7 +97,7 @@ class WriteViewModel extends Notifier<WriteState> {
       final post = Post(
         postId: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: userId,
-        userName: nickname,
+        userNickname: nickname,
         userImageUrl: profileImage,
         mood: state.mood.label,
         content: state.content,
@@ -105,14 +114,18 @@ class WriteViewModel extends Notifier<WriteState> {
 
       if (!ref.mounted) return;
 
-      ref.invalidate(homeViewModelProvider);
+      // 직접 로드 호출
+      ref.read(homeViewModelProvider.notifier).loadFeeds();
 
       ref.read(selectedMusicProvider.notifier).clear();
+      // 작업 완료 후 초기화 (isLoading도 false로 돌아감)
       state = build();
 
       debugPrint("글 작성이 완료되었습니다!");
     } catch (e) {
       if (!ref.mounted) return;
+
+      state = state.copyWith(isLoading: false);
 
       debugPrint("글 작성 중 에러 발생: $e");
       rethrow;
