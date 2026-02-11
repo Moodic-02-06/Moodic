@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
-import 'package:flutter_moodic/domain/entity/user_entity.dart';
-import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_view_model.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

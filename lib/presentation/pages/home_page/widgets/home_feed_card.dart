@@ -12,13 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeFeedCard extends ConsumerWidget {
   final Post post;
-  final void Function(String postId) onLikeToggle;
 
-  const HomeFeedCard({
-    super.key,
-    required this.post,
-    required this.onLikeToggle,
-  });
+  const HomeFeedCard({super.key, required this.post});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,14 +34,16 @@ class HomeFeedCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(26),
-                    child: Image.network(
-                      'https://picsum.photos/36',
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
-                    ),
+                  CircleAvatar(
+                    backgroundColor: AppColors.gray300,
+
+                    backgroundImage: post.userImageUrl.isNotEmpty
+                        ? NetworkImage(post.userImageUrl)
+                        : null,
+
+                    child: post.userImageUrl.isEmpty
+                        ? Icon(Icons.person, color: AppColors.gray100, size: 24)
+                        : null,
                   ),
                   const SizedBox(width: 8),
                   Column(
