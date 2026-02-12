@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/domain/entity/mood_type.dart';
+import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 
 class MyPageGridView extends StatelessWidget {
   const MyPageGridView({super.key});
@@ -11,9 +13,9 @@ class MyPageGridView extends StatelessWidget {
       // 스크롤이 안되게함 // 전체 스크롤만 가능하게 변경됨
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        crossAxisCount: 2,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+        crossAxisCount: 3,
       ),
       itemCount: 12,
       itemBuilder: (context, index) {
@@ -21,8 +23,15 @@ class MyPageGridView extends StatelessWidget {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(6),
             color: Colors.grey,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Align(
+              alignment: Alignment.topLeft, // 📍 오른쪽 아래로 정렬
+              child: MoodBadge(moodLabel: MoodType.happy.label),
+            ),
           ),
         );
       },
