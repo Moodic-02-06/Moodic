@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
-import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
+
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_feed_card.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
