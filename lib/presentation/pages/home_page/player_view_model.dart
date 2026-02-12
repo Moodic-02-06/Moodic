@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
-// 2. 실제 소리를 내는 기계(AudioPlayer)를 따로 관리
 final _audioPlayerProvider = Provider<AudioPlayer>((ref) {
   final player = AudioPlayer();
-  ref.onDispose(() => player.dispose()); // 앱 종료 시 메모리 해제
+  ref.onDispose(() => player.dispose());
   return player;
 });
 
@@ -51,10 +50,9 @@ class PlayerViewModel extends Notifier<PlayerState> {
     if (previewUrl == null || previewUrl.isEmpty) return;
 
     try {
-      // 로딩이 시작되자마자 UI부터 '재생 중' 상태로 바꿈
       state = PlayerState(playingPostId: postId, isPlaying: true);
 
-      await player.stop(); // 이전 곡 확실히 정지
+      await player.stop();
       await player.setUrl(previewUrl);
       await player.play();
     } catch (e) {

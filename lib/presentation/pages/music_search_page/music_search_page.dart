@@ -154,17 +154,6 @@ class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
                         itemBuilder: (context, index) {
                           final music = musics[index];
                           final isPlaying = _currentlyPlayingId == music.id;
-                          // return MusicSearchItem(
-                          //   music: music,
-                          //   isPlaying: isPlaying,
-                          //   onPlayPressed: () => _togglePlay(music),
-                          //   onSelect: () {
-                          //     ref
-                          //         .read(selectedMusicProvider.notifier)
-                          //         .select(music);
-                          //     Navigator.pop(context);
-                          //   },
-                          // );
                           return MusicDisplayCard(
                             music: music,
                             isPlaying: isPlaying,

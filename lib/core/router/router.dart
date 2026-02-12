@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
@@ -150,16 +151,21 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: AppRoutes.DetailPage.absolutePath, // '/detail/:id'
+        path: AppRoutes.DetailPage.absolutePath,
         name: AppRoutes.DetailPage.name,
         builder: (context, state) {
-          // URL 파라미터에서 id 추출
-          final postId = state.pathParameters['id']!;
+          final post = state.extra as Post?;
 
-          // TODO: postId로 DetailPage 생성
-          return DetailPage(
-            // postId: postId
-          ); // DetailPage 생성자에 전달
+          // 만약 데이터가 없다면 (새로고침, 에러 등) 예외 처리
+          if (post == null) {
+            // 리스트 페이지로 튕겨내거나, 에러 화면을 보여줌
+            return const Scaffold(
+              body: Center(child: Text("데이터를 불러올 수 없습니다. 다시 시도해주세요.")),
+            );
+          }
+
+          // 데이터가 있을 때만 정상적으로 전달
+          return DetailPage(post: post);
         },
       ),
 

@@ -7,8 +7,8 @@ class MusicDisplayCard extends StatelessWidget {
   final Music music;
   final bool isPlaying;
   final VoidCallback onPlayPressed;
-  final VoidCallback? onSelect; // 선택 사항으로 변경
-  final bool showAddButton; // 추가 버튼 노출 여부
+  final VoidCallback? onSelect;
+  final bool showAddButton;
   final Color? backgroundColor;
 
   const MusicDisplayCard({
@@ -17,7 +17,7 @@ class MusicDisplayCard extends StatelessWidget {
     required this.isPlaying,
     required this.onPlayPressed,
     this.onSelect,
-    this.showAddButton = false, // 기본값은 버튼 안 보임
+    this.showAddButton = false,
     this.backgroundColor,
   });
 
@@ -36,7 +36,7 @@ class MusicDisplayCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16), // 위 컨테이너와 일치
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onSelect,
           borderRadius: BorderRadius.circular(16),
@@ -47,6 +47,7 @@ class MusicDisplayCard extends StatelessWidget {
                 _buildAlbumArt(),
                 const SizedBox(width: 16),
                 _buildInfo(),
+                const SizedBox(width: 8),
                 _buildActions(),
               ],
             ),
