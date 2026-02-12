@@ -15,20 +15,19 @@ class PostRepositoryImpl implements PostRepository {
 
   /// 피드 최신 20개 가져오기
   @override
-  Future<List<Post>> fetchFeeds({int limit = 20}) async {
-    final currentUserId = '';
+  @override
+  Future<List<Post>> fetchFeeds({int limit = 20, String? userId}) async {
     final dtos = await dataSource.fetchFeeds(
       limit: limit,
-      currentUserId: currentUserId,
+      currentUserId: userId,
     );
     return dtos.map((dto) => dto.toEntity()).toList();
   }
 
   /// 특정 포스트 가져오기 (상세화면)
   @override
-  Future<Post> fetchPostById(String postId) async {
-    final currentUserId = 'CURRENT_USER_ID';
-    final dto = await dataSource.fetchPostById(postId, currentUserId);
+  Future<Post> fetchPostById(String postId, String? userId) async {
+    final dto = await dataSource.fetchPostById(postId, userId);
     return dto.toEntity();
   }
 
@@ -98,6 +97,7 @@ class PostRepositoryImpl implements PostRepository {
       imageUrls: post.imageUrls,
       likeCount: post.likeCount,
       commentCount: post.commentCount,
+      isLikedByMe: post.isLikedByMe,
       createdAt: Timestamp.fromDate(post.createdAt),
       updatedAt: Timestamp.fromDate(post.updatedAt),
     );
@@ -119,6 +119,7 @@ class PostRepositoryImpl implements PostRepository {
       imageUrls: post.imageUrls,
       likeCount: post.likeCount,
       commentCount: post.commentCount,
+      isLikedByMe: post.isLikedByMe,
       createdAt: Timestamp.fromDate(post.createdAt),
       updatedAt: Timestamp.fromDate(post.updatedAt),
     );

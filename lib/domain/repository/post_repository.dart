@@ -3,13 +3,14 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 
 abstract class PostRepository {
   /// 피드 최신 20개 가져오기
-  Future<List<Post>> fetchFeeds({int limit = 20});
+  /// 피드 최신 20개 가져오기
+  Future<List<Post>> fetchFeeds({int limit = 20, String? userId});
 
   /// 이미지 업로드
   Future<List<String>> uploadImages(String userId, List<String> images);
 
   /// 특정 포스트 가져오기 (상세화면)
-  Future<Post> fetchPostById(String postId);
+  Future<Post> fetchPostById(String postId, String? userId);
 
   /// 좋아요 토글
   Future<void> toggleLike(String postId, String userId, bool isCurrentlyLiked);

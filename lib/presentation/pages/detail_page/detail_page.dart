@@ -12,7 +12,6 @@ import 'package:flutter_moodic/presentation/provider/global_music_player_provide
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
@@ -78,43 +77,48 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       appBar: AppBar(),
       body: Padding(
         padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildUserHeader(
-                name: post.userNickname,
-                time: DateFormatter.formatRelativeTime(post.createdAt),
-                imageUrl: post.userImageUrl,
-              ),
-              SizedBox(height: 16),
-              _buildMusicCard(),
-              SizedBox(height: 24),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(detailViewModelProvider(widget.post.postId));
+          },
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildUserHeader(
+                  name: post.userNickname,
+                  time: DateFormatter.formatRelativeTime(post.createdAt),
+                  imageUrl: post.userImageUrl,
+                ),
+                SizedBox(height: 16),
+                _buildMusicCard(),
+                SizedBox(height: 24),
 
-              if (post.imageUrls.isNotEmpty) _imageCarousel(),
-              MoodBadge(moodLabel: post.mood),
-              SizedBox(height: 12),
-              Text(
-                post.content,
-                style: AppTextStyles.bodyPrimary16w500.copyWith(
-                  color: AppColors.gray900,
+                if (post.imageUrls.isNotEmpty) _imageCarousel(),
+                MoodBadge(moodLabel: post.mood),
+                SizedBox(height: 12),
+                Text(
+                  post.content,
+                  style: AppTextStyles.bodyPrimary16w500.copyWith(
+                    color: AppColors.gray900,
+                  ),
                 ),
-              ),
-              SizedBox(height: 12),
-              _buildInteractionBar(post.likeCount, post.commentCount),
-              const Divider(color: AppColors.gray100, height: 32),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 120.0),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: comments.length,
-                  itemBuilder: (context, index) {
-                    return _buildCommentItem(comments[index]);
-                  },
+                SizedBox(height: 12),
+                _buildInteractionBar(post),
+                const Divider(color: AppColors.gray100, height: 32),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 120.0),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: comments.length,
+                    itemBuilder: (context, index) {
+                      return _buildCommentItem(comments[index]);
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -449,22 +453,39 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   }
 
   // 좋아요, 댓글 아이콘
-  Widget _buildInteractionBar(int likes, int comments) {
+  Widget _buildInteractionBar(Post post) {
     return Row(
       children: [
         GestureDetector(
           onTap: () {
-            print("좋아요 클릭됨");
+            // 1. 유저 정보 가져오기
+            final currentUser = ref.read(userProvider).value;
+
+            if (currentUser != null) {
+              // 2. ViewModel의 toggleLike 호출
+              ref
+                  .read(detailViewModelProvider(post.postId).notifier)
+                  .toggleLike(currentUser);
+            } else {
+              // 로그인 안 된 경우 안내 (선택 사항)
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('로그인이 필요한 서비스입니다.')));
+            }
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.favorite_border, color: AppColors.gray500, size: 28),
+                Icon(
+                  post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+                  color: post.isLikedByMe ? Colors.red : AppColors.gray500,
+                  size: 28,
+                ),
                 const SizedBox(width: 6),
                 Text(
-                  '$likes',
+                  '${post.likeCount}',
                   style: AppTextStyles.bodyPrimary16w600.copyWith(
                     color: AppColors.gray500,
                   ),
@@ -487,7 +508,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               ),
               const SizedBox(width: 6),
               Text(
-                '$comments',
+                '${post.commentCount}',
                 style: AppTextStyles.bodyPrimary16w600.copyWith(
                   color: AppColors.gray500,
                 ),

@@ -17,49 +17,45 @@ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
   final userState = ref.watch(userProvider);
-  final refreshNotifier = ValueNotifier<bool>(false);
-
-  ref.listen(
-    userProvider,
-    (_, _) => refreshNotifier.value = !refreshNotifier.value,
-  );
 
   return GoRouter(
     initialLocation: AppRoutes.SplashPage.absolutePath,
     navigatorKey: _rootNavigatorKey,
-    refreshListenable: refreshNotifier,
 
     redirect: (context, state) {
-      if (userState.isLoading) return null;
+      final location = state.matchedLocation;
+      final isSplash = location == AppRoutes.SplashPage.absolutePath;
+      final isLoggingIn = location == AppRoutes.LoginPage.absolutePath;
+      final isTempProfile = location == AppRoutes.TempProfile.absolutePath;
+
+      // 1. [로딩 처리 최적화]
+      if (userState.isLoading || userState.isRefreshing) {
+        if (isSplash) return null;
+        return null;
+      }
 
       final user = userState.value;
       final isLoggedIn = user != null;
 
-      final isLoggingIn =
-          state.matchedLocation == AppRoutes.LoginPage.absolutePath;
-      final isSplash =
-          state.matchedLocation == AppRoutes.SplashPage.absolutePath;
-      final isTempProfile =
-          state.matchedLocation == AppRoutes.TempProfile.absolutePath;
-
-      // 1. 로그인 안 됨
+      // 2. 비로그인 상태 처리
       if (!isLoggedIn) {
-        // 현재 위치가 로그인/스플래시가 아니면 로그인 페이지로 강제 이동
-        if (!isLoggingIn && !isSplash) return AppRoutes.LoginPage.absolutePath;
-        return null;
+        // 로그인이 안 됐는데 로그인 페이지나 스플래시가 아니면 로그인으로 보냄
+        if (isLoggingIn || isSplash) return null;
+        return AppRoutes.LoginPage.absolutePath;
       }
 
-      // 2. 로그인 됨
+      // 3. 로그인 상태 처리
       if (isLoggedIn) {
-        // 처음 방문한 유저(isFirst == true)인 경우
+        // [처음 방문 유저]
         if (user.isFirst) {
-          // 이미 자기소개 페이지에 있다면 그대로 두고, 아니면 이동
-          if (!isTempProfile) return AppRoutes.TempProfile.absolutePath;
-          return null;
+          // 이미 임시 프로필 페이지라면 가만히 있고, 아니면 이동
+          if (isTempProfile) return null;
+          return AppRoutes.TempProfile.absolutePath;
         }
 
-        // 처음 방문이 아닌데 스플래시나 로그인 페이지에 머물러 있다면 홈으로
-        if (isLoggingIn || isSplash) {
+        // [기존 유저]
+        // 스플래시, 로그인, 임시프로필 페이지에 머물러 있다면 홈으로 보냄
+        if (isSplash || isLoggingIn || isTempProfile) {
           return AppRoutes.HomePage.absolutePath;
         }
       }

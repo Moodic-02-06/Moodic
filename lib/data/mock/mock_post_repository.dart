@@ -53,12 +53,12 @@ class MockPostRepository implements PostRepository {
   Future<void> deletePost(String postId) async {}
 
   @override
-  Future<List<Post>> fetchFeeds({int limit = 20}) async {
+  Future<List<Post>> fetchFeeds({int limit = 20, String? userId}) async {
     return _mockPosts.take(limit).toList();
   }
 
   @override
-  Future<Post> fetchPostById(String postId) async {
+  Future<Post> fetchPostById(String postId, String? userId) async {
     return _mockPosts.firstWhere((p) => p.postId == postId);
   }
 

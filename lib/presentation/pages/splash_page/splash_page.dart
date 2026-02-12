@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class SplashPage extends StatefulWidget {
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
+  double _opacity = 0.0;
+
   @override
   void initState() {
     super.initState();
 
-    // 2초 뒤에 실행하라고 예약하는 부분
-    Future.delayed(Duration(seconds: 3), () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _opacity = 1.0;
+      });
+    });
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        // 화면이 아직 떠있는지 확인 (안전장치)
-        context.go(AppRoutes.LoginPage.path); // 로그인 페이지로 이동
+        context.go(AppRoutes.HomePage.absolutePath);
       }
     });
   }
@@ -34,15 +39,18 @@ class _SplashPageState extends State<SplashPage> {
             Expanded(
               flex: 14,
               child: Center(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  width: double.infinity,
-                  height: 600,
+                child: AnimatedOpacity(
+                  opacity: _opacity,
+                  duration: const Duration(seconds: 1),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: double.infinity,
+                    height: 600,
+                  ),
                 ),
               ),
             ),
-
-            Expanded(flex: 5, child: Column(children: [])),
+            const Spacer(flex: 5),
           ],
         ),
       ),

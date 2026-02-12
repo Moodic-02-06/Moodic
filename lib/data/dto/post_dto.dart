@@ -13,6 +13,7 @@ class PostDto {
   final List<String> imageUrls;
   final int likeCount;
   final int commentCount;
+  final bool isLikedByMe;
   final Timestamp createdAt;
   final Timestamp updatedAt;
 
@@ -27,6 +28,7 @@ class PostDto {
     required this.imageUrls,
     required this.likeCount,
     required this.commentCount,
+    required this.isLikedByMe,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -49,6 +51,7 @@ class PostDto {
           .toList(),
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
+      isLikedByMe: isLikedByMe,
       createdAt: json['createdAt'] as Timestamp,
       updatedAt: json['updatedAt'] as Timestamp,
     );
@@ -65,13 +68,14 @@ class PostDto {
       'imageUrls': imageUrls,
       'likeCount': likeCount,
       'commentCount': commentCount,
+      'isLikedByMe': isLikedByMe,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
   }
 
   // DTO → Entity 변환
-  Post toEntity({bool isLikedByMe = false}) {
+  Post toEntity() {
     return Post(
       postId: postId,
       userId: userId,
