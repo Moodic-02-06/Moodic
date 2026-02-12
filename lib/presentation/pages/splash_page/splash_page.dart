@@ -16,7 +16,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
 
     // 2초 뒤에 실행하라고 예약하는 부분
-    Future.delayed(Duration(seconds: 2), () {
+    Future.delayed(Duration(seconds: 3), () {
       if (mounted) {
         // 화면이 아직 떠있는지 확인 (안전장치)
         context.go(AppRoutes.LoginPage.path); // 로그인 페이지로 이동
