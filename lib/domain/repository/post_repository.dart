@@ -9,7 +9,7 @@ abstract class PostRepository {
   Future<List<String>> uploadImages(String userId, List<String> images);
 
   /// 특정 포스트 가져오기 (상세화면)
-  Future<Post> fetchPostById(String postId);
+  Future<Post> fetchPostById(String postId, String? userId);
 
   /// 좋아요 토글
   Future<void> toggleLike(String postId, String userId, bool isCurrentlyLiked);

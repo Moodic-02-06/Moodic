@@ -58,7 +58,7 @@ class MockPostRepository implements PostRepository {
   }
 
   @override
-  Future<Post> fetchPostById(String postId) async {
+  Future<Post> fetchPostById(String postId, String? userId) async {
     return _mockPosts.firstWhere((p) => p.postId == postId);
   }
 
