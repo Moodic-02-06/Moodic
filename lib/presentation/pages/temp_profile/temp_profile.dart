@@ -1,119 +1,206 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_moodic/presentation/widgets/primary_bottom_button.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
+import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/widgets/primary_bottom_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TempProfile extends StatefulWidget {
+class TempProfile extends ConsumerStatefulWidget {
   const TempProfile({super.key});
 
   @override
-  State<TempProfile> createState() => _TempProfileState();
+  ConsumerState<TempProfile> createState() => _TempProfileState();
 }
 
-class _TempProfileState extends State<TempProfile> {
+class _TempProfileState extends ConsumerState<TempProfile> {
+  late final TextEditingController _nicknameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nicknameController = TextEditingController();
+
+    Future.microtask(() {
+      final initialState = ref.read(tempProfileViewModelProvider);
+      _nicknameController.text = initialState.nickname;
+    });
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("임시 프로필"), centerTitle: true),
+    final state = ref.watch(tempProfileViewModelProvider);
+    final viewModel = ref.read(tempProfileViewModelProvider.notifier);
+    final userAsync = ref.watch(userProvider);
+    final uid = userAsync.value?.uid ?? '';
 
-      bottomNavigationBar: PrimaryBottomButton(
-        label: '완료하기',
-        isLoading: false,
-        onPressed: () {
-          context.go('/?tempPass=true');
-        },
+    ref.listen(tempProfileViewModelProvider, (previous, next) {
+      if (next.error != null && previous?.error != next.error) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.error!)));
+      }
+    });
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("프로필 설정"),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      resizeToAvoidBottomInset: false,
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: SizedBox(
-          width: double.infinity,
+      bottomNavigationBar: PrimaryBottomButton(
+        label: '시작하기',
+        isLoading: state.isLoading,
+        onPressed: state.nickname.length < 2
+            ? null
+            : () async {
+                await viewModel.completeProfile(uid);
+              },
+      ),
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              SizedBox(
-                width: 90,
-                height: 90,
-                child: Stack(
-                  children: [
-                    // 랜덤 이미지 들어감
-                    Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(100),
-                        color: Colors.grey,
+              const SizedBox(height: 40),
+
+              // 프로필 이미지 섹션
+              Center(
+                child: GestureDetector(
+                  onTap: viewModel.pickImage,
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.secondary500.withValues(
+                                alpha: 0.5,
+                              ),
+                              blurRadius: 15,
+                              offset: const Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 60,
+                          backgroundColor: AppColors.primary600,
+                          backgroundImage: state.profileImage != null
+                              ? (state.profileImage!.startsWith('http')
+                                    ? NetworkImage(state.profileImage!)
+                                          as ImageProvider
+                                    : FileImage(File(state.profileImage!)))
+                              : null,
+                          child: state.profileImage == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 64,
+                                  color: AppColors.gray400,
+                                )
+                              : null,
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: () {},
+                      Positioned(
+                        bottom: 0,
+                        right: 4,
                         child: Container(
-                          width: 30,
-                          height: 30,
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: AppColors.secondary500,
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary700.withValues(
+                                  alpha: 0.5,
+                                ),
+                                blurRadius: 15,
+                                offset: const Offset(0, 0),
+                              ),
+                            ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.camera_alt,
-                            size: 24,
+                            size: 20,
                             color: Colors.black,
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [Text("닉네임", style: TextStyle(color: Colors.white))],
-              ),
-              SizedBox(height: 4),
-              Container(
-                padding: EdgeInsets.all(6),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primary600,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: '닉네임을 입력하세요',
-                      hintStyle: TextStyle(color: AppColors.gray500),
-                    ),
+                    ],
                   ),
                 ),
               ),
-              SizedBox(height: 12),
-              Text(
-                "2~12자의 한글, 영문, 숫자만 사용가능 합니다",
-                style: AppTextStyles.labelStatus12w500.copyWith(
-                  color: AppColors.text900,
-                ),
-              ),
-              SizedBox(height: 12),
 
-              Spacer(),
-              Text(
-                "간단하게 입력 후\n프로필에서 수정 가능합니다.",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+              const SizedBox(height: 40),
+
+              // 입력 섹션
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "닉네임",
+                    style: AppTextStyles.bodyPrimary16w600.copyWith(
+                      color: AppColors.text900,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary600,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TextField(
+                      controller: _nicknameController,
+                      onChanged: viewModel.onNicknameChanged,
+                      textAlign: TextAlign.center,
+                      maxLength: 12,
+                      style: AppTextStyles.bodyPrimary16w600.copyWith(
+                        color: AppColors.text900,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "사용하실 닉네임을 입력하세요",
+                        hintStyle: AppTextStyles.bodySecondary14w500.copyWith(
+                          color: AppColors.gray500,
+                        ),
+                        border: InputBorder.none,
+                        counterText: "",
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "• 2~12자의 한글, 영문, 숫자만 사용 가능합니다.",
+                    style: AppTextStyles.labelStatus12w500.copyWith(
+                      color: AppColors.gray500,
+                    ),
+                  ),
+                ],
               ),
-              Spacer(),
-              SizedBox(width: double.infinity, height: 50),
+
+              const SizedBox(height: 60),
+
+              Text(
+                "반가워요! 🥰\n나중에 언제든지 수정할 수 있으니\n편하게 입력해 주세요.",
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyPrimary16w500.copyWith(
+                  color: AppColors.gray400,
+                  height: 1.6,
+                ),
+              ),
             ],
           ),
         ),

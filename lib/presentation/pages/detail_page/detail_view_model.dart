@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
 import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
@@ -87,6 +88,11 @@ class DetailViewModel extends Notifier<DetailState> {
       ),
     );
 
+    // 홈 피드와 동기화
+    ref
+        .read(homeViewModelProvider.notifier)
+        .syncCommentCount(postId, (previousPost?.commentCount ?? 0) + 1);
+
     try {
       // 실제 DB 저장
       await ref
@@ -111,17 +117,17 @@ class DetailViewModel extends Notifier<DetailState> {
     }
   }
 
+  // DetailViewModel의 toggleLike 함수 수정
   Future<void> toggleLike(UserEntity user) async {
     final currentPost = state.post;
     if (currentPost == null) return;
-
-    final previousPost = currentPost;
 
     final newIsLiked = !currentPost.isLikedByMe;
     final newLikeCount = newIsLiked
         ? currentPost.likeCount + 1
         : currentPost.likeCount - 1;
 
+    // 1. 디테일 페이지 UI 선반영
     state = state.copyWith(
       post: currentPost.copyWith(
         isLikedByMe: newIsLiked,
@@ -129,13 +135,26 @@ class DetailViewModel extends Notifier<DetailState> {
       ),
     );
 
+    // 2. 홈 피드 리스트도 즉시 동기화
+    ref
+        .read(homeViewModelProvider.notifier)
+        .syncLikeStatus(postId, newIsLiked, newLikeCount);
+
     try {
+      // 3. 실제 DB 저장 (UseCase 호출)
       await ref
           .read(toggleLikeUseCaseProvider)
           .call(currentPost.postId, user.uid, currentPost.isLikedByMe);
     } catch (e) {
-      state = state.copyWith(post: previousPost);
-      debugPrint('좋아요 실패로 복구됨: $e');
+      // 4. 실패 시 롤백 (홈과 디테일 모두 원래대로)
+      state = state.copyWith(post: currentPost);
+      ref
+          .read(homeViewModelProvider.notifier)
+          .syncLikeStatus(
+            postId,
+            currentPost.isLikedByMe,
+            currentPost.likeCount,
+          );
     }
   }
 

@@ -28,4 +28,14 @@ class UserDto extends UserEntity {
       'isFirst': isFirst,
     };
   }
+
+  UserEntity toEntity() {
+    return UserEntity(
+      uid: uid,
+      nickname: nickname,
+      profileImage: profileImage,
+      bio: bio,
+      isFirst: isFirst,
+    );
+  }
 }

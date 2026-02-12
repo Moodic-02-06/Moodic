@@ -6,7 +6,7 @@ class FetchFeedsUseCase {
 
   FetchFeedsUseCase(this.repository);
 
-  Future<List<Post>> call({int limit = 20}) async {
-    return await repository.fetchFeeds(limit: limit);
+  Future<List<Post>> call({int limit = 20, String? userId}) async {
+    return await repository.fetchFeeds(limit: limit, userId: userId);
   }
 }

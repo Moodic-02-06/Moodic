@@ -15,11 +15,11 @@ class PostRepositoryImpl implements PostRepository {
 
   /// 피드 최신 20개 가져오기
   @override
-  Future<List<Post>> fetchFeeds({int limit = 20}) async {
-    final currentUserId = '';
+  @override
+  Future<List<Post>> fetchFeeds({int limit = 20, String? userId}) async {
     final dtos = await dataSource.fetchFeeds(
       limit: limit,
-      currentUserId: currentUserId,
+      currentUserId: userId,
     );
     return dtos.map((dto) => dto.toEntity()).toList();
   }

@@ -3,6 +3,7 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/usecase/fetch_feeds_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/toggle_like_usecase.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/post_repository_provider.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum FeedSortType { latest, mostLiked }
@@ -51,7 +52,13 @@ class HomeViewModel extends Notifier<HomeState> {
       final repository = ref.read(postRepositoryProvider);
       final fetchFeedsUseCase = FetchFeedsUseCase(repository);
 
-      var fetchedFeeds = await fetchFeedsUseCase.call(limit: 50);
+      // 현재 로그인한 유저 정보 가져오기
+      final currentUser = ref.read(userProvider).value;
+
+      var fetchedFeeds = await fetchFeedsUseCase.call(
+        limit: 50,
+        userId: currentUser?.uid,
+      );
 
       // 정렬 로직
       if ((newSort ?? state.sortType) == FeedSortType.mostLiked) {
@@ -67,25 +74,26 @@ class HomeViewModel extends Notifier<HomeState> {
     }
   }
 
-  Future<void> toggleLike(Post post, String userId) async {
-    final isCurrentlyLiked = post.isLikedByMe;
+  void syncLikeStatus(String postId, bool isLiked, int likeCount) {
+    state = state.copyWith(
+      feeds: state.feeds.map((p) {
+        if (p.postId == postId) {
+          return p.copyWith(isLikedByMe: isLiked, likeCount: likeCount);
+        }
+        return p;
+      }).toList(),
+    );
+  }
 
-    final repository = ref.read(postRepositoryProvider);
-    final toggleLikeUseCase = ToggleLikeUseCase(repository);
-
-    await toggleLikeUseCase.call(post.postId, userId, isCurrentlyLiked);
-
-    final updatedFeeds = state.feeds.map((p) {
-      if (p.postId == post.postId) {
-        return p.copyWith(
-          likeCount: isCurrentlyLiked ? p.likeCount - 1 : p.likeCount + 1,
-          isLikedByMe: !isCurrentlyLiked,
-        );
-      }
-      return p;
-    }).toList();
-
-    state = state.copyWith(feeds: updatedFeeds);
+  void syncCommentCount(String postId, int newCount) {
+    state = state.copyWith(
+      feeds: state.feeds.map((p) {
+        if (p.postId == postId) {
+          return p.copyWith(commentCount: newCount);
+        }
+        return p;
+      }).toList(),
+    );
   }
 }
 

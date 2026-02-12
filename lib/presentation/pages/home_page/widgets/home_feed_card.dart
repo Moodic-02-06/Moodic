@@ -174,6 +174,7 @@ class HomeFeedCard extends ConsumerWidget {
           Row(
             children: [
               _FeedItem(
+                // post.isLikedByMe 값에 따라 아이콘 형상을 결정합니다.
                 icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
                 count: post.likeCount.toString(),
               ),
