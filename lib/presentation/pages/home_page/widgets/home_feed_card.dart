@@ -68,14 +68,13 @@ class HomeFeedCard extends ConsumerWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  // 1. 현재 유저 정보 가져오기 (ref 사용)
+                  //  현재 유저 정보 가져오기 (ref 사용)
                   final currentUser = ref.read(userProvider).value;
                   final bool isMyPost = currentUser?.uid == post.userId;
 
                   showModalBottomSheet(
                     context: context,
-                    backgroundColor:
-                        Colors.transparent, // 배경 투명하게 (그래야 위젯 곡선이 보임)
+                    backgroundColor: Colors.transparent,
                     isScrollControlled: true,
                     builder: (context) {
                       return PostOptionsBottomSheet(
@@ -154,18 +153,16 @@ class HomeFeedCard extends ConsumerWidget {
           const SizedBox(height: 12),
 
           // ================= 감정 + 텍스트 =================
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MoodBadge(moodLabel: post.mood),
-              const SizedBox(height: 12),
-              Text(
-                post.content,
-                style: AppTextStyles.bodySecondary14w500.copyWith(
-                  color: AppColors.text900,
-                ),
-              ),
-            ],
+          MoodBadge(moodLabel: post.mood),
+          const SizedBox(height: 12),
+          Text(
+            post.content,
+            style: AppTextStyles.bodySecondary14w500.copyWith(
+              color: AppColors.text900,
+            ),
+            // TODO: 텍스트 줄 수 제한 튜터님께 물어보기
+            maxLines: 7,
+            overflow: TextOverflow.ellipsis,
           ),
 
           const SizedBox(height: 12),

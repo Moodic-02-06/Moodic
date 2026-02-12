@@ -159,7 +159,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (post == null) {
             // 리스트 페이지로 튕겨내거나, 에러 화면을 보여줌
             return const Scaffold(
-              body: Center(child: Text("데이터를 불러올 수 없습니다.\n다시 시도해주세요.")),
+              body: Center(child: Text("데이터를 불러올 수 없습니다. 다시 시도해주세요.")),
             );
           }
 

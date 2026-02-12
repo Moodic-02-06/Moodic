@@ -6,7 +6,9 @@ import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
 import 'package:flutter_moodic/core/utils/music_link_utils.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/player_view_model.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPage extends StatefulWidget {
@@ -44,7 +46,7 @@ class _DetailPageState extends State<DetailPage> {
                 Column(
                   children: [
                     SizedBox(
-                      height: 250, // 슬라이더 전체 높이
+                      height: 300,
                       child: PageView.builder(
                         itemCount: widget.post.imageUrls.length,
                         onPageChanged: (index) {
@@ -54,8 +56,7 @@ class _DetailPageState extends State<DetailPage> {
                         },
                         itemBuilder: (context, index) {
                           final url = widget.post.imageUrls[index];
-                          if (url.isEmpty)
-                            return const SizedBox.shrink(); // 주소가 없으면 빈 공간 처리
+                          if (url.isEmpty) return const SizedBox();
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(
@@ -67,12 +68,22 @@ class _DetailPageState extends State<DetailPage> {
                                 url,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                // 로딩 중이거나 에러 발생 시 처리 (추가하면 좋음)
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                      color: AppColors.gray300,
-                                      child: const Icon(Icons.error),
-                                    ),
+
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    },
+
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: AppColors.gray300,
+                                    child: const Icon(Icons.error),
+                                  );
+                                },
                               ),
                             ),
                           );
@@ -85,15 +96,16 @@ class _DetailPageState extends State<DetailPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         widget.post.imageUrls.length,
-                        (index) => Container(
+                        (index) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           width: _currentPage == index ? 12 : 8,
                           height: 8,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
                             color: _currentPage == index
-                                ? AppColors.primary600
-                                : AppColors.gray300,
+                                ? AppColors.gray300
+                                : AppColors.primary600,
                           ),
                         ),
                       ),
@@ -102,7 +114,12 @@ class _DetailPageState extends State<DetailPage> {
                 ),
               MoodBadge(moodLabel: widget.post.mood),
               SizedBox(height: 12),
-              Text(widget.post.content),
+              Text(
+                widget.post.content,
+                style: AppTextStyles.bodyPrimary16w500.copyWith(
+                  color: AppColors.gray900,
+                ),
+              ),
               SizedBox(height: 12),
               _buildInteractionBar(
                 widget.post.likeCount,
@@ -183,31 +200,59 @@ class _DetailPageState extends State<DetailPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.post.music.title,
-                        style: AppTextStyles.bodyPrimary16w600.copyWith(
-                          color: AppColors.gray900,
-                          overflow: TextOverflow.ellipsis,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.post.music.title,
+                          maxLines: 1,
+                          style: AppTextStyles.bodyPrimary16w600.copyWith(
+                            color: AppColors.gray900,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      Text(
-                        widget.post.music.artist,
-                        style: AppTextStyles.bodySecondary14w500.copyWith(
-                          color: AppColors.text600,
-                          overflow: TextOverflow.ellipsis,
+                        Text(
+                          widget.post.music.artist,
+                          maxLines: 1,
+                          style: AppTextStyles.bodySecondary14w500.copyWith(
+                            color: AppColors.text600,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
 
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.play_arrow),
-                    iconSize: 28,
-                    color: AppColors.gray500,
+                  SizedBox(width: 8),
+
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final playerState = ref.watch(playerViewModelProvider);
+                      final isCurrentPlaying =
+                          playerState.playingPostId == widget.post.postId &&
+                          playerState.isPlaying;
+
+                      return IconButton(
+                        onPressed: () {
+                          ref
+                              .read(playerViewModelProvider.notifier)
+                              .togglePlay(
+                                widget.post.postId,
+                                widget.post.music.previewUrl,
+                              );
+                        },
+                        icon: Icon(
+                          isCurrentPlaying
+                              ? Icons.pause_circle_filled
+                              : Icons.play_arrow,
+                        ),
+                        iconSize: 32,
+                        color: isCurrentPlaying
+                            ? AppColors.primary500
+                            : AppColors.gray500,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -246,20 +291,20 @@ class _DetailPageState extends State<DetailPage> {
   Widget _buildMusicTag({
     required String label,
     required String url,
-    String? fallbackUrl, // 👉 추가
+    String? fallbackUrl,
   }) {
     return Expanded(
       child: GestureDetector(
         onTap: () async {
           final Uri uri = Uri.parse(url);
 
-          // 1️⃣ 앱 딥링크 먼저 시도
+          // 1 앱 딥링크 먼저 시도
           if (await canLaunchUrl(uri)) {
             await launchUrl(uri);
             return;
           }
 
-          // 2️⃣ 실패하면 웹 링크로 fallback
+          // 2 실패하면 웹 링크로 fallback
           if (fallbackUrl != null) {
             final webUri = Uri.parse(fallbackUrl);
 
@@ -268,7 +313,7 @@ class _DetailPageState extends State<DetailPage> {
             }
           }
 
-          // 3️⃣ 전부 실패
+          // 3 전부 실패
           if (!mounted) return;
 
           ScaffoldMessenger.of(
