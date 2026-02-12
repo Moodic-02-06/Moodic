@@ -3,7 +3,7 @@ import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
-import 'package:flutter_moodic/presentation/pages/home_page/player_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
@@ -35,12 +35,11 @@ class HomeFeedCard extends ConsumerWidget {
               Row(
                 children: [
                   CircleAvatar(
+                    radius: 20,
                     backgroundColor: AppColors.gray300,
-
                     backgroundImage: post.userImageUrl.isNotEmpty
                         ? NetworkImage(post.userImageUrl)
                         : null,
-
                     child: post.userImageUrl.isEmpty
                         ? Icon(Icons.person, color: AppColors.gray100, size: 24)
                         : null,
@@ -97,14 +96,15 @@ class HomeFeedCard extends ConsumerWidget {
                     },
                   );
                 },
-                child: const SizedBox(
+                child: Container(
                   width: 32,
                   height: 32,
+                  decoration: BoxDecoration(color: Colors.transparent),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: Icon(
                       Icons.more_vert,
-                      size: 18,
+                      size: 20,
                       color: AppColors.gray500,
                     ),
                   ),
@@ -118,17 +118,16 @@ class HomeFeedCard extends ConsumerWidget {
           // ================= 콘텐츠 카드 =================
           Consumer(
             builder: (context, ref, child) {
-              final playerState = ref.watch(playerViewModelProvider);
+              final globalState = ref.watch(globalMusicPlayerProvider);
               final isCurrentPlaying =
-                  playerState.playingPostId == post.postId &&
-                  playerState.isPlaying;
+                  globalState.playingId == post.postId && globalState.isPlaying;
 
               return MusicDisplayCard(
                 music: post.music,
                 isPlaying: isCurrentPlaying,
                 onPlayPressed: () {
                   ref
-                      .read(playerViewModelProvider.notifier)
+                      .read(globalMusicPlayerProvider.notifier)
                       .togglePlay(post.postId, post.music.previewUrl);
                 },
                 backgroundColor: AppColors.primary900,
@@ -140,17 +139,21 @@ class HomeFeedCard extends ConsumerWidget {
 
           // ================= 메인 이미지 =================
           if (post.imageUrls.isNotEmpty) //  이미지가 있을 때만 렌더링하도록 처리
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                post.imageUrls.first,
-                width: double.infinity,
-                height: 240,
-                fit: BoxFit.cover,
-              ),
-            ),
+            Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    post.imageUrls.first,
+                    width: double.infinity,
+                    height: 240,
+                    fit: BoxFit.cover,
+                  ),
+                ),
 
-          const SizedBox(height: 12),
+                const SizedBox(height: 12),
+              ],
+            ),
 
           // ================= 감정 + 텍스트 =================
           MoodBadge(moodLabel: post.mood),

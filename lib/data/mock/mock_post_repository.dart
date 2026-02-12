@@ -36,7 +36,13 @@ class MockPostRepository implements PostRepository {
   }
 
   @override
-  Future<void> addComment(String postId, String userId, String content) async {
+  Future<void> addComment(
+    String postId,
+    String userId,
+    String content,
+    String nickname,
+    String profileImageUrl,
+  ) async {
     // 목 데이터라 실제 구현은 필요 없음
   }
 
@@ -74,6 +80,8 @@ class MockPostRepository implements PostRepository {
         commentId: 'comment_${postId}_$index',
         postId: postId,
         userId: 'user_$index',
+        userNickname: '사용자 이름 $index',
+        userImageUrl: 'https://example.com/user_$index.jpg',
         content: '목 댓글 $index',
         createdAt: DateTime.now().subtract(Duration(minutes: index * 5)),
       ),
