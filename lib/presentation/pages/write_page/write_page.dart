@@ -8,6 +8,7 @@ import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
 import 'package:flutter_moodic/presentation/widgets/primary_bottom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -145,6 +146,76 @@ class MusicSearchBar extends StatelessWidget {
   }
 }
 
+// class SelectedMusicCard extends ConsumerWidget {
+//   const SelectedMusicCard({super.key});
+
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final music = ref.watch(selectedMusicProvider);
+
+//     if (music == null) {
+//       return const SizedBox();
+//     }
+
+//     return Container(
+//       padding: const EdgeInsets.all(12),
+//       decoration: BoxDecoration(
+//         color: AppColors.primary700,
+//         borderRadius: BorderRadius.circular(12),
+//         border: Border.all(color: AppColors.primary600),
+//       ),
+//       child: Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//         children: [
+//           Row(
+//             children: [
+//               CircleAvatar(
+//                 radius: 22,
+//                 backgroundColor: AppColors.primary600,
+//                 backgroundImage: music.artwork.isNotEmpty
+//                     ? NetworkImage(music.artwork)
+//                     : null,
+//                 child: music.artwork.isEmpty
+//                     ? const Icon(Icons.music_note_outlined, color: Colors.white)
+//                     : null,
+//               ),
+
+//               const SizedBox(width: 12),
+
+//               Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   Text(
+//                     music.title,
+//                     style: AppTextStyles.bodyPrimary16w600.copyWith(
+//                       color: AppColors.gray700,
+//                     ),
+//                   ),
+
+//                   Text(
+//                     music.artist,
+//                     style: AppTextStyles.labelStatus12w500.copyWith(
+//                       color: AppColors.text600,
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+
+//           /// 삭제 버튼
+//           GestureDetector(
+//             onTap: () {
+//               ref.read(selectedMusicProvider.notifier).clear();
+//             },
+//             child: const Icon(Icons.close, color: AppColors.gray300),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
 class SelectedMusicCard extends ConsumerWidget {
   const SelectedMusicCard({super.key});
 
@@ -155,62 +226,14 @@ class SelectedMusicCard extends ConsumerWidget {
     if (music == null) {
       return const SizedBox();
     }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.primary700,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary600),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.primary600,
-                backgroundImage: music.artwork.isNotEmpty
-                    ? NetworkImage(music.artwork)
-                    : null,
-                child: music.artwork.isEmpty
-                    ? const Icon(Icons.music_note_outlined, color: Colors.white)
-                    : null,
-              ),
-
-              const SizedBox(width: 12),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    music.title,
-                    style: AppTextStyles.bodyPrimary16w600.copyWith(
-                      color: AppColors.gray700,
-                    ),
-                  ),
-
-                  Text(
-                    music.artist,
-                    style: AppTextStyles.labelStatus12w500.copyWith(
-                      color: AppColors.text600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          /// 삭제 버튼
-          GestureDetector(
-            onTap: () {
-              ref.read(selectedMusicProvider.notifier).clear();
-            },
-            child: const Icon(Icons.close, color: AppColors.gray300),
-          ),
-        ],
-      ),
+    return MusicDisplayCard(
+      music: music,
+      isPlaying: false,
+      showDeleteButton: true,
+      onDelete: () {
+        ref.read(selectedMusicProvider.notifier).clear();
+      },
+      onSelect: null,
     );
   }
 }

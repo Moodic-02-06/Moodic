@@ -51,8 +51,20 @@ class PostRepositoryImpl implements PostRepository {
 
   /// 댓글 추가
   @override
-  Future<void> addComment(String postId, String userId, String content) {
-    return dataSource.addComment(postId, userId, content);
+  Future<void> addComment(
+    String postId,
+    String userId,
+    String content,
+    String userNickname,
+    String userImageUrl,
+  ) {
+    return dataSource.addComment(
+      postId,
+      userId,
+      content,
+      userNickname,
+      userImageUrl,
+    );
   }
 
   /// 이미지 업로드

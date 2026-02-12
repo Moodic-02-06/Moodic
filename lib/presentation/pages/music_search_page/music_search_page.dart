@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/music.dart';
+import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/music_provider.dart';
 import 'package:flutter_moodic/presentation/provider/search_debounce_provider.dart';
 import 'package:flutter_moodic/presentation/provider/search_keyword_provider.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart';
 
 class MusicSearchPage extends ConsumerStatefulWidget {
   const MusicSearchPage({super.key});
@@ -18,9 +18,6 @@ class MusicSearchPage extends ConsumerStatefulWidget {
 }
 
 class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
-  final AudioPlayer _player = AudioPlayer(); // 페이지 전체 공유
-  String? _currentlyPlayingId; // 현재 재생 중인 곡 ID
-
   @override
   void initState() {
     super.initState();
@@ -28,62 +25,21 @@ class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
       ref.read(musicProvider.notifier).clear();
       ref.read(searchKeywordProvider.notifier).clear();
     });
-
-    _player.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed) {
-        if (mounted) {
-          setState(() {
-            _currentlyPlayingId = null;
-          });
-          _player.stop();
-          _player.seek(Duration.zero);
-        }
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _player.dispose();
-    super.dispose();
   }
 
   Future<void> _togglePlay(Music music) async {
-    final isSameMusic = _currentlyPlayingId == music.id;
-
-    if (isSameMusic) {
-      await _player.stop();
-      if (mounted) {
-        setState(() {
-          _currentlyPlayingId = null;
-        });
-      }
-    } else {
-      setState(() {
-        _currentlyPlayingId = music.id;
-      });
-
-      try {
-        await _player.setUrl(music.previewUrl);
-        await _player.play();
-      } catch (e) {
-        debugPrint('Audio Play Error: $e');
-        if (mounted) {
-          setState(() {
-            _currentlyPlayingId = null;
-          });
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('미리듣기 재생에 실패했습니다.')));
-        }
-      }
-    }
+    await ref
+        .read(globalMusicPlayerProvider.notifier)
+        .togglePlay(music.id, music.previewUrl);
   }
 
   @override
   Widget build(BuildContext context) {
     // Debounce 활성화
     ref.watch(searchDebounceProvider);
+
+    // 전역 플레이어 상태 구독
+    final globalMusicState = ref.watch(globalMusicPlayerProvider);
 
     return Scaffold(
       backgroundColor: AppColors.primary900,
@@ -153,7 +109,11 @@ class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
                         },
                         itemBuilder: (context, index) {
                           final music = musics[index];
-                          final isPlaying = _currentlyPlayingId == music.id;
+                          // 전역 상태와 비교하여 재생 여부 확인
+                          final isPlaying =
+                              globalMusicState.playingId == music.id &&
+                              globalMusicState.isPlaying;
+
                           return MusicDisplayCard(
                             music: music,
                             isPlaying: isPlaying,
@@ -183,7 +143,6 @@ class _MusicSearchPageState extends ConsumerState<MusicSearchPage> {
 class SearchInput extends ConsumerStatefulWidget {
   final void Function(String) onSearch;
 
-  // super.key 사용 → 경고 없음d
   const SearchInput({super.key, required this.onSearch});
 
   @override

@@ -5,25 +5,73 @@ import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
 import 'package:flutter_moodic/core/utils/music_link_utils.dart';
+import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
-import 'package:flutter_moodic/presentation/pages/home_page/player_view_model.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DetailPage extends StatefulWidget {
+class DetailPage extends ConsumerStatefulWidget {
   final Post post;
 
   const DetailPage({super.key, required this.post});
 
   @override
-  State<DetailPage> createState() => _DetailPageState();
+  ConsumerState<DetailPage> createState() => _DetailPageState();
 }
 
-class _DetailPageState extends State<DetailPage> {
+class _DetailPageState extends ConsumerState<DetailPage> {
   int _currentPage = 0;
+  final TextEditingController _commentController = TextEditingController();
+
+  void _submitComment() {
+    final content = _commentController.text.trim();
+    final currentUser = ref.read(userProvider).value;
+
+    // 예외 케이스 먼저 쳐내기
+    if (content.isEmpty) return;
+
+    if (currentUser == null) {
+      debugPrint('--- [UI] 유저 정보가 없어서 중단됨');
+      return;
+    }
+
+    // 핵심 로직 실행
+    ref
+        .read(detailViewModelProvider(widget.post.postId).notifier)
+        .addComment(content, currentUser);
+
+    // 후속 작업 (UI 정리)
+    _commentController.clear();
+    FocusScope.of(context).unfocus();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final detailState = ref.watch(detailViewModelProvider(widget.post.postId));
+
+    if (detailState.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (detailState.error != null) {
+      return Scaffold(body: Center(child: Text('에러 발생: ${detailState.error}')));
+    }
+
+    // 데이터가 있을 때 (post가 null이 아닐 때)
+    final post = detailState.post ?? widget.post;
+    final comments = detailState.comments;
+
     return Scaffold(
       bottomSheet: _buildCommentInputField(),
       resizeToAvoidBottomInset: true,
@@ -35,105 +83,34 @@ class _DetailPageState extends State<DetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildUserHeader(
-                widget.post.userNickname,
-                DateFormatter.formatRelativeTime(widget.post.createdAt),
+                name: post.userNickname,
+                time: DateFormatter.formatRelativeTime(post.createdAt),
+                imageUrl: post.userImageUrl,
               ),
               SizedBox(height: 16),
               _buildMusicCard(),
               SizedBox(height: 24),
 
-              if (widget.post.imageUrls.isNotEmpty)
-                Column(
-                  children: [
-                    SizedBox(
-                      height: 300,
-                      child: PageView.builder(
-                        itemCount: widget.post.imageUrls.length,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentPage = index;
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          final url = widget.post.imageUrls[index];
-                          if (url.isEmpty) return const SizedBox();
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                url,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: AppColors.gray300,
-                                    child: const Icon(Icons.error),
-                                  );
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        widget.post.imageUrls.length,
-                        (index) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: _currentPage == index ? 12 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: _currentPage == index
-                                ? AppColors.gray300
-                                : AppColors.primary600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              MoodBadge(moodLabel: widget.post.mood),
+              if (post.imageUrls.isNotEmpty) _imageCarousel(),
+              MoodBadge(moodLabel: post.mood),
               SizedBox(height: 12),
               Text(
-                widget.post.content,
+                post.content,
                 style: AppTextStyles.bodyPrimary16w500.copyWith(
                   color: AppColors.gray900,
                 ),
               ),
               SizedBox(height: 12),
-              _buildInteractionBar(
-                widget.post.likeCount,
-                widget.post.commentCount,
-              ),
-              const Divider(color: Color(0xFF1E293B), height: 32),
+              _buildInteractionBar(post.likeCount, post.commentCount),
+              const Divider(color: AppColors.gray100, height: 32),
               Padding(
                 padding: const EdgeInsets.only(bottom: 120.0),
                 child: ListView.builder(
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  itemCount: 30, // 댓글 개수만큼 반복
+                  itemCount: comments.length,
                   itemBuilder: (context, index) {
-                    return _buildCommentItem('현더', 'ㅋㅋㅋ', '1분전');
+                    return _buildCommentItem(comments[index]);
                   },
                 ),
               ),
@@ -145,18 +122,18 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   // 사용자 헤더
-  Widget _buildUserHeader(String name, String time) {
+  Widget _buildUserHeader({
+    required String imageUrl,
+    required String name,
+    required String time,
+  }) {
     return Row(
       children: [
         CircleAvatar(
           radius: 20,
           backgroundColor: AppColors.gray300,
-
-          backgroundImage: widget.post.userImageUrl.isNotEmpty
-              ? NetworkImage(widget.post.userImageUrl)
-              : null,
-
-          child: widget.post.userImageUrl.isEmpty
+          backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+          child: imageUrl.isEmpty
               ? Icon(Icons.person, color: AppColors.gray100, size: 24)
               : null,
         ),
@@ -179,111 +156,163 @@ class _DetailPageState extends State<DetailPage> {
           ],
         ),
         Spacer(),
-        Icon(Icons.more_vert, color: AppColors.gray500),
+        Icon(Icons.more_vert, size: 20, color: AppColors.gray500),
       ],
     );
   }
 
+  // 음악 카드
   Widget _buildMusicCard() {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 42,
-          backgroundImage: NetworkImage(widget.post.music.artwork),
-        ),
-        const SizedBox(width: 14),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Consumer(
+      builder: (context, ref, child) {
+        final playerState = ref.watch(globalMusicPlayerProvider);
+        final isPlaying =
+            playerState.playingId == widget.post.postId &&
+            playerState.isPlaying;
+        return Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isPlaying
+                  ? AppColors.secondary500.withValues(alpha: 0.5)
+                  : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: widget.post.music.artwork.isNotEmpty
+                        ? Image.network(
+                            widget.post.music.artwork,
+                            width: 84,
+                            height: 84,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: 84,
+                            height: 84,
+                            color: AppColors.primary600,
+                            child: const Icon(
+                              Icons.music_note_rounded,
+                              color: AppColors.gray500,
+                            ),
+                          ),
+                  ),
+                  if (isPlaying)
+                    Container(
+                      width: 84,
+                      height: 84,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.equalizer,
+                        color: AppColors.secondary500,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 14),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          widget.post.music.title,
-                          maxLines: 1,
-                          style: AppTextStyles.bodyPrimary16w600.copyWith(
-                            color: AppColors.gray900,
-                            overflow: TextOverflow.ellipsis,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.post.music.title,
+                                maxLines: 1,
+                                style: AppTextStyles.bodyPrimary16w600.copyWith(
+                                  color: AppColors.gray900,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                widget.post.music.artist,
+                                maxLines: 1,
+                                style: AppTextStyles.bodySecondary14w500
+                                    .copyWith(
+                                      color: AppColors.text600,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          widget.post.music.artist,
-                          maxLines: 1,
-                          style: AppTextStyles.bodySecondary14w500.copyWith(
-                            color: AppColors.text600,
-                            overflow: TextOverflow.ellipsis,
+
+                        SizedBox(width: 8),
+
+                        IconButton(
+                          onPressed: () {
+                            ref
+                                .read(globalMusicPlayerProvider.notifier)
+                                .togglePlay(
+                                  widget.post.postId,
+                                  widget.post.music.previewUrl,
+                                );
+                          },
+                          style: IconButton.styleFrom(
+                            backgroundColor: isPlaying
+                                ? AppColors.secondary500
+                                : AppColors.gray100,
+                            padding: const EdgeInsets.all(8),
+                          ),
+                          icon: Icon(
+                            isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            color: isPlaying
+                                ? AppColors.primary900
+                                : AppColors.gray400,
+                            size: 20,
                           ),
                         ),
                       ],
                     ),
-                  ),
 
-                  SizedBox(width: 8),
+                    const SizedBox(height: 10),
 
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final playerState = ref.watch(playerViewModelProvider);
-                      final isCurrentPlaying =
-                          playerState.playingPostId == widget.post.postId &&
-                          playerState.isPlaying;
-
-                      return IconButton(
-                        onPressed: () {
-                          ref
-                              .read(playerViewModelProvider.notifier)
-                              .togglePlay(
-                                widget.post.postId,
-                                widget.post.music.previewUrl,
-                              );
-                        },
-                        icon: Icon(
-                          isCurrentPlaying
-                              ? Icons.pause_circle_filled
-                              : Icons.play_arrow,
+                    Row(
+                      children: [
+                        _buildMusicTag(
+                          label: 'Spotify',
+                          url: buildSpotifySearchUrl(
+                            widget.post.music.artist,
+                            widget.post.music.title,
+                          ),
                         ),
-                        iconSize: 32,
-                        color: isCurrentPlaying
-                            ? AppColors.primary500
-                            : AppColors.gray500,
-                      );
-                    },
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 10),
+                        const SizedBox(width: 8),
 
-              Row(
-                children: [
-                  _buildMusicTag(
-                    label: 'Spotify',
-                    url: buildSpotifySearchUrl(
-                      widget.post.music.artist,
-                      widget.post.music.title,
+                        _buildMusicTag(
+                          label: 'YouTube',
+                          url: buildYoutubeMusicSearchUrl(
+                            widget.post.music.artist,
+                            widget.post.music.title,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  _buildMusicTag(
-                    label: 'YouTube',
-                    url: buildYoutubeMusicSearchUrl(
-                      widget.post.music.artist,
-                      widget.post.music.title,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -351,6 +380,74 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
+  // 이미지 캐러셀
+  Widget _imageCarousel() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 300,
+          child: PageView.builder(
+            itemCount: widget.post.imageUrls.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final url = widget.post.imageUrls[index];
+              if (url.isEmpty) return const SizedBox();
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+
+                      return const Center(child: CircularProgressIndicator());
+                    },
+
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.gray300,
+                        child: const Icon(Icons.error),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            widget.post.imageUrls.length,
+            (index) => AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == index ? 12 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: _currentPage == index
+                    ? AppColors.gray300
+                    : AppColors.primary600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // 좋아요, 댓글 아이콘
   Widget _buildInteractionBar(int likes, int comments) {
     return Row(
@@ -403,15 +500,21 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   // 댓글 아이템
-  Widget _buildCommentItem(String name, String content, String time) {
+  Widget _buildCommentItem(Comment comment) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
-            radius: 20,
-            backgroundImage: NetworkImage('https://picsum.photos/84'),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.gray300,
+            backgroundImage: comment.userImageUrl.isNotEmpty
+                ? NetworkImage(comment.userImageUrl)
+                : null,
+            child: comment.userImageUrl.isEmpty
+                ? Icon(Icons.person, color: AppColors.gray100, size: 24)
+                : null,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -421,14 +524,14 @@ class _DetailPageState extends State<DetailPage> {
                 Row(
                   children: [
                     Text(
-                      name,
+                      comment.userNickname,
                       style: AppTextStyles.labelStatus12w500.copyWith(
                         color: AppColors.gray900,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      time,
+                      DateFormatter.formatRelativeTime(comment.createdAt),
                       style: AppTextStyles.labelStatus12w500.copyWith(
                         color: AppColors.text600,
                       ),
@@ -437,7 +540,7 @@ class _DetailPageState extends State<DetailPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  content,
+                  comment.content,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ],
@@ -450,20 +553,26 @@ class _DetailPageState extends State<DetailPage> {
 
   Widget _buildCommentInputField() {
     return Container(
-      color: const Color(0xFF0A0A14),
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 12,
         bottom: MediaQuery.of(context).padding.bottom + 10,
       ),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.gray100)),
+        color: AppColors.primary900,
+      ),
       child: TextField(
+        controller: _commentController,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: '따뜻한 한마디를 남겨주세요',
-          hintStyle: const TextStyle(color: Color(0xFF64748B)),
+          hintStyle: AppTextStyles.bodySecondary14w500.copyWith(
+            color: AppColors.gray500,
+          ),
           filled: true,
-          fillColor: const Color(0xFF1E1E30),
+          fillColor: AppColors.primary600,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 12,
@@ -472,7 +581,10 @@ class _DetailPageState extends State<DetailPage> {
             borderRadius: BorderRadius.circular(30),
             borderSide: BorderSide.none,
           ),
-          suffixIcon: const Icon(Icons.send, color: Color(0xFF64748B)),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.send, color: AppColors.gray400),
+            onPressed: _submitComment,
+          ),
         ),
       ),
     );

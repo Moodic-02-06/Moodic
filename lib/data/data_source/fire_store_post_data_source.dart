@@ -46,6 +46,10 @@ class FirestorePostDataSource {
   Future<PostDto> fetchPostById(String postId, String? currentUserId) async {
     final doc = await _firestore.collection('feeds').doc(postId).get();
 
+    if (!doc.exists || doc.data() == null) {
+      throw Exception("해당 포스트를 찾을 수 없습니다.");
+    }
+
     final likedFeedIdSet = (currentUserId != null)
         ? (await _firestore
                   .collection('likes')
@@ -73,17 +77,19 @@ class FirestorePostDataSource {
     final likeDocRef = _firestore.collection('likes').doc('${postId}_$userId');
     final feedDocRef = _firestore.collection('feeds').doc(postId);
 
-    if (isCurrentlyLiked) {
-      await likeDocRef.delete();
-      await feedDocRef.update({'likeCount': FieldValue.increment(-1)});
-    } else {
-      await likeDocRef.set({
-        'feedId': postId,
-        'userId': userId,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-      await feedDocRef.update({'likeCount': FieldValue.increment(1)});
-    }
+    await _firestore.runTransaction((transaction) async {
+      if (isCurrentlyLiked) {
+        transaction.delete(likeDocRef);
+        transaction.update(feedDocRef, {'likeCount': FieldValue.increment(-1)});
+      } else {
+        transaction.set(likeDocRef, {
+          'feedId': postId,
+          'userId': userId,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        transaction.update(feedDocRef, {'likeCount': FieldValue.increment(1)});
+      }
+    });
   }
 
   /// 댓글 조회
@@ -100,17 +106,30 @@ class FirestorePostDataSource {
   }
 
   /// 댓글 추가
-  Future<void> addComment(String postId, String userId, String content) async {
-    final commentRef = _firestore.collection('comments').doc();
-    await commentRef.set({
-      'feedId': postId,
-      'userId': userId,
-      'content': content,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+  Future<void> addComment(
+    String postId,
+    String userId,
+    String content,
+    String userNickname,
+    String userImageUrl,
+  ) async {
+    // runTransaction을 사용하여 두 작업을 하나로 묶음
+    await _firestore.runTransaction((transaction) async {
+      final commentRef = _firestore.collection('comments').doc();
+      final feedDocRef = _firestore.collection('feeds').doc(postId);
 
-    await _firestore.collection('feeds').doc(postId).update({
-      'commentCount': FieldValue.increment(1),
+      // 1. 댓글 문서 생성 정보 설정
+      transaction.set(commentRef, {
+        'feedId': postId,
+        'userId': userId,
+        'userNickname': userNickname,
+        'userImageUrl': userImageUrl,
+        'content': content,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // 2. 해당 피드의 댓글 수 증가
+      transaction.update(feedDocRef, {'commentCount': FieldValue.increment(1)});
     });
   }
 

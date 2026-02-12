@@ -18,7 +18,13 @@ abstract class PostRepository {
   Future<List<Comment>> fetchComments(String postId);
 
   /// 댓글 추가
-  Future<void> addComment(String postId, String userId, String content);
+  Future<void> addComment(
+    String postId,
+    String userId,
+    String content,
+    String nickname,
+    String profileImageUrl,
+  );
 
   /// 포스트 작성
   Future<void> createPost(Post post);

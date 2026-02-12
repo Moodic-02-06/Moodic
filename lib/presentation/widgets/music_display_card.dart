@@ -6,18 +6,22 @@ import 'package:flutter_moodic/domain/entity/music.dart';
 class MusicDisplayCard extends StatelessWidget {
   final Music music;
   final bool isPlaying;
-  final VoidCallback onPlayPressed;
+  final VoidCallback? onPlayPressed;
   final VoidCallback? onSelect;
   final bool showAddButton;
+  final bool showDeleteButton;
+  final VoidCallback? onDelete;
   final Color? backgroundColor;
 
   const MusicDisplayCard({
     super.key,
     required this.music,
     required this.isPlaying,
-    required this.onPlayPressed,
+    this.onPlayPressed,
     this.onSelect,
     this.showAddButton = false,
+    this.showDeleteButton = false,
+    this.onDelete,
     this.backgroundColor,
   });
 
@@ -97,6 +101,7 @@ class MusicDisplayCard extends StatelessWidget {
   Widget _buildInfo() {
     return Expanded(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -125,22 +130,22 @@ class MusicDisplayCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 재생 버튼 (항상 노출)
-        IconButton(
-          onPressed: onPlayPressed,
-          style: IconButton.styleFrom(
-            backgroundColor: isPlaying
-                ? AppColors.secondary500
-                : AppColors.gray100,
-            padding: const EdgeInsets.all(8),
+        if (onPlayPressed != null)
+          IconButton(
+            onPressed: onPlayPressed,
+            style: IconButton.styleFrom(
+              backgroundColor: isPlaying
+                  ? AppColors.secondary500
+                  : AppColors.gray100,
+              padding: const EdgeInsets.all(8),
+            ),
+            icon: Icon(
+              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              color: isPlaying ? AppColors.primary900 : AppColors.gray400,
+              size: 20,
+            ),
           ),
-          icon: Icon(
-            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-            color: isPlaying ? AppColors.primary900 : AppColors.gray400,
-            size: 20,
-          ),
-        ),
-        // 추가 버튼 (조건부 노출)
+
         if (showAddButton) ...[
           const SizedBox(width: 8),
           IconButton(
@@ -151,6 +156,22 @@ class MusicDisplayCard extends StatelessWidget {
             ),
             icon: const Icon(
               Icons.add_circle_outline_rounded,
+              color: AppColors.gray400,
+              size: 24,
+            ),
+          ),
+        ],
+
+        if (showDeleteButton) ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onDelete,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.gray100,
+              padding: const EdgeInsets.all(8),
+            ),
+            icon: const Icon(
+              Icons.close_rounded,
               color: AppColors.gray400,
               size: 24,
             ),
