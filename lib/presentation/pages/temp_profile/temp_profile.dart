@@ -15,7 +15,7 @@ class _TempProfileState extends State<TempProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("임시 프로필")),
+      appBar: AppBar(title: Text("임시 프로필"), centerTitle: true),
 
       // TODO: 경로 수정하기
       bottomNavigationBar: PrimaryBottomButton(
@@ -25,7 +25,7 @@ class _TempProfileState extends State<TempProfile> {
           context.go('/?tempPass=true');
         },
       ),
-
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: SizedBox(
@@ -46,25 +46,51 @@ class _TempProfileState extends State<TempProfile> {
                         color: Colors.grey,
                       ),
                     ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary500,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
 
               SizedBox(height: 12),
-              Text("닉네임", style: TextStyle(color: Colors.white)),
-              SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [Text("닉네임", style: TextStyle(color: Colors.white))],
+              ),
+              SizedBox(height: 4),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(6),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.primary600,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  '홍길동',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyPrimary16w600.copyWith(
-                    color: AppColors.text900,
+                child: Center(
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '닉네임을 입력하세요',
+                      hintStyle: TextStyle(color: AppColors.gray500),
+                    ),
                   ),
                 ),
               ),
@@ -76,7 +102,7 @@ class _TempProfileState extends State<TempProfile> {
                 ),
               ),
               SizedBox(height: 12),
-              Container(width: double.infinity, height: 1, color: Colors.grey),
+
               Spacer(),
               Text(
                 "간단하게 입력 후\n프로필에서 수정 가능합니다.",
