@@ -4,7 +4,6 @@ import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/domain/entity/mood_type.dart';
-import 'package:flutter_moodic/presentation/pages/write_page/post_repository_provider.dart';
 
 class MyPageState {
   final String nickname;
@@ -62,10 +61,6 @@ class MyPageViewModel extends AsyncNotifier<MyPageState> {
   }
 }
 
-final myPageViewModelProvider = NotifierProvider<MyPageViewmodel, MyPageState>(
-  MyPageViewmodel.new,
-);
-
 /// 월별 감정 통계 Provider (Family로 userId 받음)
 final monthlyMoodsProvider = FutureProvider.family<Map<MoodType, int>, String>((
   ref,
@@ -97,6 +92,7 @@ final monthlyMoodsProvider = FutureProvider.family<Map<MoodType, int>, String>((
 
   return counts;
 });
+
 final myPageViewModelProvider =
     AsyncNotifierProvider<MyPageViewModel, MyPageState>(() {
       return MyPageViewModel();
