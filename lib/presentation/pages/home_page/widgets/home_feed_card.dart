@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
+import 'package:flutter_moodic/core/utils/dialog_util.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
 import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
 import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeFeedCard extends ConsumerWidget {
   final Post post;
@@ -80,12 +84,22 @@ class HomeFeedCard extends ConsumerWidget {
                       return PostOptionsBottomSheet(
                         isMyPost: isMyPost,
                         onEdit: () {
-                          Navigator.pop(context);
-                          // TODO: 수정 페이지로 이동 로직 (post 데이터 전달)
+                          ref
+                              .read(writeViewModelProvider.notifier)
+                              .initEdit(post);
+
+                          context.push('/write');
                         },
                         onDelete: () {
                           Navigator.pop(context);
-                          // TODO: 삭제 확인 다이얼로그 띄우기 및 삭제 로직
+                          DialogUtil.showDeleteDialog(
+                            context,
+                            onConfirm: () {
+                              ref
+                                  .read(homeViewModelProvider.notifier)
+                                  .deletePost(post.postId);
+                            },
+                          );
                         },
                         onReport: () {
                           Navigator.pop(context);
@@ -175,7 +189,7 @@ class HomeFeedCard extends ConsumerWidget {
           Row(
             children: [
               _FeedItem(
-                // post.isLikedByMe 값에 따라 아이콘 형상을 결정합니다.
+                // post.isLikedByMe 값에 따라 아이콘 형상을 결정
                 icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
                 count: post.likeCount.toString(),
               ),

@@ -8,11 +8,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// 텍스트 입력
 //////////////////////////////////////////////////
 
-class StoryInputSection extends ConsumerWidget {
+class StoryInputSection extends ConsumerStatefulWidget {
   const StoryInputSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StoryInputSection> createState() => _StoryInputSectionState();
+}
+
+class _StoryInputSectionState extends ConsumerState<StoryInputSection> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _controller.text = ref.read(writeViewModelProvider).content;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<String>(
+      writeViewModelProvider.select((state) => state.content),
+      (previous, next) {
+        if (_controller.text != next) {
+          _controller.text = next;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+        }
+      },
+    );
+
     final content = ref.watch(writeViewModelProvider.select((s) => s.content));
     const int maxLength = 280;
 
@@ -48,8 +74,8 @@ class StoryInputSection extends ConsumerWidget {
             style: AppTextStyles.bodyPrimary16w500.copyWith(
               color: AppColors.text900,
             ),
+            controller: _controller,
             decoration: const InputDecoration(
-              counterText: "", // 하단 기본 카운터 숨김 (커스텀 Stack 카운터 사용)
               border: InputBorder.none,
               hintText: '오늘의 이야기를 적어주세요..',
               hintStyle: TextStyle(color: AppColors.gray400),

@@ -11,6 +11,7 @@ void main() async {
   KakaoSdk.init(nativeAppKey: '71864507c21bfc33642fa3c40adefdc9');
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
