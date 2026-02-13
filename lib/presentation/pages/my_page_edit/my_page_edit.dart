@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -98,24 +99,32 @@ class _MyPageEditState extends State<MyPageEdit> {
               ),
               SizedBox(height: 12),
               Container(
-                padding: EdgeInsets.all(12),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.primary600,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  '홍길동',
+                child: TextField(
+                  maxLength: 12,
+                  // 한글,영문,숫자만 입력되게
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'[a-zA-Z0-9가-힣]'),
+                    ),
+                  ],
+                  controller: TextEditingController(text: ""),
+                  decoration: InputDecoration(
+                    hintText: "12자 이내로 한글,영문,숫자만 사용가능합니다",
+                    hintStyle: AppTextStyles.bodySecondary14w500.copyWith(
+                      color: AppColors.text600,
+                    ),
+                    border: InputBorder.none,
+                  ),
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyPrimary16w600.copyWith(
                     color: AppColors.text900,
                   ),
                 ),
-              ),
-              SizedBox(height: 12),
-              Text(
-                "2~12자의 한글, 영문, 숫자만 사용가능 합니다",
-                style: TextStyle(fontSize: 10, color: Colors.white),
               ),
               SizedBox(height: 12),
               Container(
@@ -132,11 +141,21 @@ class _MyPageEditState extends State<MyPageEdit> {
               ),
               SizedBox(height: 12),
               Container(
-                padding: EdgeInsets.all(24),
+                padding: EdgeInsets.all(12),
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.primary600,
                   borderRadius: BorderRadius.circular(12),
+                ),
+                child: TextField(
+                  maxLength: 100,
+                  maxLines: 3,
+                  controller: TextEditingController(text: ""),
+                  decoration: InputDecoration(border: InputBorder.none),
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyPrimary16w600.copyWith(
+                    color: AppColors.text900,
+                  ),
                 ),
               ),
               SizedBox(height: 12),
@@ -145,15 +164,13 @@ class _MyPageEditState extends State<MyPageEdit> {
                   Container(
                     padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _isSwitched
-                          ? AppColors.secondary500
-                          : AppColors.primary600,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       "알림",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.black),
+                      style: AppTextStyles.bodyPrimary16w600.copyWith(
+                        color: AppColors.text900,
+                      ),
                     ),
                   ),
                   Spacer(),

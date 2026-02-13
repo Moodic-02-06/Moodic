@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/widgets/emotion_graph.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/grid_view.dart';
 import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
@@ -71,7 +72,8 @@ class MyPage extends ConsumerWidget {
                 ),
               ],
             ),
-
+            SizedBox(height: 12),
+            EmotionGraph(),
             SizedBox(height: 12),
             MyPageGridView(),
           ],
