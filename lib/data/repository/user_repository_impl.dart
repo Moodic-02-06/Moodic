@@ -1,3 +1,5 @@
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_moodic/data/data_source/firebase_storage_data_source.dart';
 import 'package:flutter_moodic/data/data_source/user_remote_data_source.dart';
 import 'package:flutter_moodic/data/dto/user_dto.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
@@ -6,8 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource _dataSource;
+  final FirebaseStorageDataSource _storageDataSource;
 
-  UserRepositoryImpl(this._dataSource);
+  UserRepositoryImpl(this._dataSource, this._storageDataSource);
 
   @override
   Future<UserEntity?> getUser(String uid) async {
@@ -46,8 +49,20 @@ class UserRepositoryImpl implements UserRepository {
     );
     await _dataSource.saveUser(userDto);
   }
+
+  @override
+  Future<String> uploadProfileImage(String path, String userId) async {
+    return _storageDataSource.uploadImage(
+      path: path,
+      fileName:
+          'users/$userId/profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+  }
 }
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return UserRepositoryImpl(UserRemoteDataSource());
+  return UserRepositoryImpl(
+    UserRemoteDataSource(),
+    FirebaseStorageDataSource(FirebaseStorage.instance),
+  );
 });

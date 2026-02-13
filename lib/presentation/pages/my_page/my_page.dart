@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/widgets/emotion_graph.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/grid_view.dart';
 import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
@@ -43,6 +44,24 @@ class MyPage extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             child: Column(
               children: [
+                // 프로필 이미지 받아와서 넣어주는곳
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Container(
+                    width: 90,
+                    height: 90,
+                    color: Colors.grey,
+                    child:
+                        (user?.profileImage != null &&
+                            user!.profileImage!.isNotEmpty)
+                        ? Image.network(user.profileImage!, fit: BoxFit.cover)
+                        : null,
+                  ),
+                ),
+                SizedBox(width: 12),
+                // 닉네임,소개
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 Row(
                   children: [
                     // 프로필 이미지 받아와서 넣어주는곳
@@ -65,6 +84,17 @@ class MyPage extends ConsumerWidget {
                             )
                           : null,
                     ),
+                    SizedBox(height: 4),
+                    SizedBox(
+                      width: 200,
+                      child: Text(
+                        "${user?.bio}",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodyPrimary16w600.copyWith(
+                          color: AppColors.text900,
+                        ),
+                      ),
                     SizedBox(width: 12),
                     // 닉네임,소개
                     Column(
@@ -93,6 +123,24 @@ class MyPage extends ConsumerWidget {
                 MyPageGridView(),
               ],
             ),
+            SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                "${DateTime.now().year % 100}.${DateTime.now().month.toString().padLeft(2, '0')} 감정 그래프",
+                textAlign: TextAlign.left,
+                style: AppTextStyles.bodyPrimary16w500.copyWith(
+                  color: AppColors.gray900,
+                ),
+              ),
+            ),
+            SizedBox(height: 12),
+            EmotionGraph(),
+            SizedBox(height: 12),
+            MyPageGridView(),
+          ],
+        ),
+      ),
           ),
         );
       },

@@ -4,7 +4,6 @@ import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
-import 'package:flutter_moodic/presentation/provider/write_provider.dart';
 import 'package:image_picker/image_picker.dart';
 
 class TempProfileState {
@@ -83,10 +82,9 @@ class TempProfileViewModel extends Notifier<TempProfileState> {
       // 1. 이미지 업로드 (Write 패턴)
       if (state.profileImage != null &&
           !state.profileImage!.startsWith('http')) {
-        final uploadedUrls = await ref.read(uploadImagesUseCaseProvider)(uid, [
-          state.profileImage!,
-        ]);
-        firebaseImageUrl = uploadedUrls.first;
+        firebaseImageUrl = await ref
+            .read(userRepositoryProvider)
+            .uploadProfileImage(state.profileImage!, uid);
       }
 
       // 2. UserEntity 생성

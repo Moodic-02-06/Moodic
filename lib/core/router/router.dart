@@ -12,17 +12,23 @@ import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/custom_bottom_nav_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final userState = ref.watch(userProvider);
+  final notifier = GoRouterRefreshStream(
+    ref.watch(userProvider.future).asStream(),
+  );
 
   return GoRouter(
     initialLocation: AppRoutes.SplashPage.absolutePath,
     navigatorKey: _rootNavigatorKey,
+    refreshListenable: notifier,
 
     redirect: (context, state) {
+      // 리다이렉트 내부에서 최신 상태 조회
+      final userState = ref.read(userProvider);
       final location = state.matchedLocation;
       final isSplash = location == AppRoutes.SplashPage.absolutePath;
       final isLoggingIn = location == AppRoutes.LoginPage.absolutePath;
@@ -39,8 +45,22 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 2. 비로그인 상태 처리
       if (!isLoggedIn) {
-        // 로그인이 안 됐는데 로그인 페이지나 스플래시가 아니면 로그인으로 보냄
-        if (isLoggingIn || isSplash) return null;
+        final action = state.uri.queryParameters['action'];
+
+        // 스플래시 페이지인 경우
+        if (isSplash) {
+          // 로그아웃/탈퇴 액션 진행 중이면 스플래시 유지
+          if (action == 'logout' || action == 'delete') {
+            return null;
+          }
+          // 일반 진입이면 로그인 페이지로 이동
+          return AppRoutes.LoginPage.absolutePath;
+        }
+
+        // 로그인 페이지면 유지
+        if (isLoggingIn) return null;
+
+        // 그 외 모든 경로는 로그인 페이지로 리다이렉트
         return AppRoutes.LoginPage.absolutePath;
       }
 
@@ -56,6 +76,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         // [기존 유저]
         // 스플래시, 로그인, 임시프로필 페이지에 머물러 있다면 홈으로 보냄
         if (isSplash || isLoggingIn || isTempProfile) {
+          // 예외: 로그아웃/탈퇴 액션이 있는 경우 스플래시 접근 허용
+          // (로그인 된 상태에서도 스플래시로 가서 로그아웃을 진행해야 함)
+          final action = state.uri.queryParameters['action'];
+          if (isSplash && (action == 'logout' || action == 'delete')) {
+            return null;
+          }
+
           return AppRoutes.HomePage.absolutePath;
         }
       }
@@ -172,7 +199,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.SplashPage.path,
         name: AppRoutes.SplashPage.name,
-        builder: (context, state) => const SplashPage(),
+        builder: (context, state) {
+          final action = state.uri.queryParameters['action'];
+          return SplashPage(action: action);
+        },
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
@@ -183,3 +213,20 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}

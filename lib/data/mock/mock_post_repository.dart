@@ -4,6 +4,15 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/repository/post_repository.dart';
 
 class MockPostRepository implements PostRepository {
+  @override
+  Future<List<Post>> fetchPostsByMonth(
+    String userId,
+    int year,
+    int month,
+  ) async {
+    return [];
+  }
+
   final List<Post> _mockPosts = List.generate(
     5,
     (index) => Post(

@@ -129,4 +129,43 @@ class AuthRemoteDataSource {
       return false;
     }
   }
+
+  /// 회원 탈퇴: Firestore 데이터 삭제 + Firebase Auth 계정 삭제
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('로그인된 유저가 없습니다.');
+    }
+
+    try {
+      // 1. Google/Kakao 연결 해제 (선택사항이지만 권장)
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.disconnect();
+      }
+
+      // 2. Firestore 유저 데이터 삭제
+      // 2-1. 유저의 포스트 삭제
+      final postsSnapshot = await _firestore
+          .collection('feeds')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      for (final doc in postsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // 2-2. 유저 문서 삭제
+      await _firestore.collection('user').doc(user.uid).delete();
+
+      // 3. Firebase Auth 계정 삭제
+      // (재인증이 필요할 수 있음 - 오래된 세션일 경우 에러 발생 가능)
+      await user.delete();
+
+      // 4. 로그아웃 처리 (혹시 모를 잔여 세션 정리)
+      await _auth.signOut();
+    } catch (e) {
+      debugPrint("회원탈퇴 실패: $e");
+      throw Exception('회원탈퇴 중 오류가 발생했습니다: $e');
+    }
+  }
 }

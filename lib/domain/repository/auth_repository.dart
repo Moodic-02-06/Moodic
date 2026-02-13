@@ -17,4 +17,7 @@ abstract class AuthRepository {
 
   // ✅ 추가: 유저가 서버(DB)에 실제로 존재하는지 확인
   Future<bool> checkUserExists(String uid);
+
+  // 계정 삭제 (회원탈퇴)
+  Future<void> deleteAccount();
 }
