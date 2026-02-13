@@ -88,7 +88,7 @@ class HomeFeedCard extends ConsumerWidget {
                               .read(writeViewModelProvider.notifier)
                               .initEdit(post);
 
-                          context.push('/write');
+                          context.push('/write', extra: post);
                         },
                         onDelete: () {
                           Navigator.pop(context);
