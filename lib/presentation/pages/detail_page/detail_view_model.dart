@@ -117,7 +117,6 @@ class DetailViewModel extends Notifier<DetailState> {
     }
   }
 
-  // DetailViewModel의 toggleLike 함수 수정
   Future<void> toggleLike(UserEntity user) async {
     final currentPost = state.post;
     if (currentPost == null) return;
@@ -172,6 +171,19 @@ class DetailViewModel extends Notifier<DetailState> {
       state = state.copyWith(post: post, comments: comments, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
+    }
+  }
+
+  void clearPost() {
+    state = state.copyWith(post: null);
+  }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      await ref.read(deletePostUseCaseProvider).execute(postId);
+      clearPost();
+    } catch (e) {
+      debugPrint('게시글 삭제 실패: $e');
     }
   }
 }

@@ -136,7 +136,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.WritePage.path,
         name: AppRoutes.WritePage.name,
-        builder: (context, state) => const WritePage(),
+        builder: (context, state) {
+          final post = state.extra as Post?;
+          return WritePage(post: post);
+        },
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

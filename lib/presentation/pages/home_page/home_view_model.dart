@@ -3,6 +3,7 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/usecase/fetch_feeds_usecase.dart';
 
 import 'package:flutter_moodic/presentation/pages/write_page/post_repository_provider.dart';
+import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -69,8 +70,23 @@ class HomeViewModel extends Notifier<HomeState> {
 
       state = state.copyWith(feeds: fetchedFeeds, isLoading: false);
     } catch (e) {
-      debugPrint('Feed Load Error: $e');
+      debugPrint('피드 로드 실패: $e');
       state = state.copyWith(errorMessage: e.toString(), isLoading: false);
+    }
+  }
+
+  void removePost(String postId) {
+    state = state.copyWith(
+      feeds: state.feeds.where((p) => p.postId != postId).toList(),
+    );
+  }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      await ref.read(deletePostUseCaseProvider).execute(postId);
+      removePost(postId);
+    } catch (e) {
+      debugPrint('게시글 삭제 실패: $e');
     }
   }
 

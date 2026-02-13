@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/mood_type.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
+import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/write_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 
 class WriteState {
+  final String? postId;
   final String content;
   final MoodType mood;
   final List<String> imageUrls;
   final bool isLoading;
 
   WriteState({
+    this.postId,
     required this.content,
     required this.mood,
     required this.imageUrls,
@@ -20,12 +23,14 @@ class WriteState {
   });
 
   WriteState copyWith({
+    String? postId,
     String? content,
     MoodType? mood,
     List<String>? imageUrls,
     bool? isLoading,
   }) {
     return WriteState(
+      postId: postId ?? this.postId,
       content: content ?? this.content,
       mood: mood ?? this.mood,
       imageUrls: imageUrls ?? this.imageUrls,
@@ -35,9 +40,16 @@ class WriteState {
 }
 
 class WriteViewModel extends Notifier<WriteState> {
+  Post? _originPost;
+
   @override
   WriteState build() {
-    return WriteState(content: '', mood: MoodType.happy, imageUrls: []);
+    return WriteState(
+      postId: null,
+      content: '',
+      mood: MoodType.happy,
+      imageUrls: [],
+    );
   }
 
   void setContent(String content) {
@@ -55,6 +67,38 @@ class WriteViewModel extends Notifier<WriteState> {
     state = state.copyWith(imageUrls: updatedImages.take(10).toList());
   }
 
+  Future<List<String>> _uploadImagesIfNeeded(String userId) async {
+    // 새 이미지가 하나라도 있으면 업로드
+    if (state.imageUrls.any((e) => e.startsWith('/'))) {
+      return await ref.read(uploadImagesUseCaseProvider)(
+        userId,
+        state.imageUrls,
+      );
+    }
+
+    // 전부 기존 URL이면 그대로
+    return state.imageUrls;
+  }
+
+  void initEdit(Post post) {
+    _originPost = post;
+
+    ref.read(selectedMusicProvider.notifier).set(post.music);
+
+    state = WriteState(
+      postId: post.postId,
+      content: post.content,
+      mood: MoodType.fromLabel(post.mood),
+      imageUrls: post.imageUrls,
+    );
+  }
+
+  void initNewPost() {
+    _originPost = null;
+    ref.read(selectedMusicProvider.notifier).clear();
+    state = build();
+  }
+
   void removeImage(int index) {
     if (index < 0 || index >= state.imageUrls.length) return;
 
@@ -68,7 +112,7 @@ class WriteViewModel extends Notifier<WriteState> {
     String nickname,
     String profileImage,
   ) async {
-    // 1. 데이터 검증 (필수 항목 체크)
+    // 데이터 검증 (필수 항목 체크)
     final selectedMusic = ref.read(selectedMusicProvider);
     if (selectedMusic == null) throw Exception('음악을 선택해주세요.');
     if (state.content.trim().isEmpty) throw Exception('내용을 입력해주세요.');
@@ -79,21 +123,11 @@ class WriteViewModel extends Notifier<WriteState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      // 2. 이미지 업로드 (로컬 경로 -> Firebase Storage URL)
-      List<String> firebaseImageUrls = [];
+      final imageUrls = await _uploadImagesIfNeeded(userId);
 
-      if (state.imageUrls.isNotEmpty) {
-        // 2. 이미지 업로드 (UseCase 실행)
-        firebaseImageUrls = await ref.read(uploadImagesUseCaseProvider)(
-          userId,
-          state.imageUrls,
-        );
-      }
-
-      //  비동기 작업(Storage 업로드) 이후에 ViewModel이 해제되었는지 확인
       if (!ref.mounted) return;
 
-      // 3. Post 객체 생성
+      // Post 객체 생성
       final post = Post(
         postId: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: userId,
@@ -102,21 +136,20 @@ class WriteViewModel extends Notifier<WriteState> {
         mood: state.mood.label,
         content: state.content,
         music: selectedMusic,
-        imageUrls: firebaseImageUrls,
+        imageUrls: imageUrls,
         likeCount: 0,
         commentCount: 0,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      // 4. DB 저장 (UseCase 실행)
+      // DB 저장 (UseCase 실행)
       await ref.read(createPostUseCaseProvider)(post);
 
       if (!ref.mounted) return;
 
       // 직접 로드 호출
       ref.read(homeViewModelProvider.notifier).loadFeeds();
-
       ref.read(selectedMusicProvider.notifier).clear();
       // 작업 완료 후 초기화 (isLoading도 false로 돌아감)
       state = build();
@@ -130,6 +163,79 @@ class WriteViewModel extends Notifier<WriteState> {
       debugPrint("글 작성 중 에러 발생: $e");
       rethrow;
     }
+  }
+
+  Future<void> updatePost(
+    String userId,
+    String nickname,
+    String profileImage,
+  ) async {
+    final selectedMusic = ref.read(selectedMusicProvider);
+
+    if (selectedMusic == null) throw Exception('음악을 선택해주세요.');
+    if (state.content.trim().isEmpty) throw Exception('내용을 입력해주세요.');
+    if (state.postId == null) throw Exception('수정할 게시글을 찾을 수 없습니다.');
+    if (_originPost == null) {
+      throw Exception('원본 게시글 정보가 없습니다.');
+    }
+
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final imageUrls = await _uploadImagesIfNeeded(userId);
+
+      if (!ref.mounted) return;
+
+      final post = Post(
+        postId: state.postId!,
+        userId: userId,
+        userNickname: nickname,
+        userImageUrl: profileImage,
+        mood: state.mood.label,
+        content: state.content,
+        music: selectedMusic,
+        imageUrls: imageUrls,
+        likeCount: _originPost!.likeCount,
+        commentCount: _originPost!.commentCount,
+        isLikedByMe: _originPost!.isLikedByMe,
+        createdAt: _originPost!.createdAt,
+        updatedAt: DateTime.now(),
+      );
+
+      await ref.read(updatePostUseCaseProvider).call(post);
+
+      if (!ref.mounted) return;
+
+      ref.read(homeViewModelProvider.notifier).loadFeeds();
+
+      state = build();
+      _originPost = null;
+
+      debugPrint('글 수정 완료');
+    } catch (e) {
+      if (!ref.mounted) return;
+
+      state = state.copyWith(isLoading: false);
+
+      debugPrint('글 수정 실패: $e');
+      rethrow;
+    }
+  }
+
+  bool get isChanged {
+    if (_originPost == null) {
+      // 새 글
+      return state.content.isNotEmpty ||
+          state.imageUrls.isNotEmpty ||
+          state.mood != MoodType.happy;
+    }
+
+    // 수정 글
+    return state.content != _originPost!.content ||
+        state.imageUrls.join() != _originPost!.imageUrls.join() ||
+        state.mood != MoodType.fromLabel(_originPost!.mood);
   }
 }
 
