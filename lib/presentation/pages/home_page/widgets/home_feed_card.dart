@@ -27,6 +27,7 @@ class HomeFeedCard extends ConsumerWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
           // ================= 작성자 영역 =================
           Row(

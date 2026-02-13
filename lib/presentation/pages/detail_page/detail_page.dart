@@ -11,6 +11,7 @@ import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.
 import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
+import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -160,7 +161,47 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           ],
         ),
         Spacer(),
-        Icon(Icons.more_vert, size: 20, color: AppColors.gray500),
+        GestureDetector(
+          onTap: () {
+            //  현재 유저 정보 가져오기 (ref 사용)
+            final currentUser = ref.read(userProvider).value;
+            final bool isMyPost = currentUser?.uid == widget.post.userId;
+
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (context) {
+                return PostOptionsBottomSheet(
+                  isMyPost: isMyPost,
+                  onEdit: () {
+                    Navigator.pop(context);
+                    // TODO: 수정 페이지로 이동 로직 (post 데이터 전달)
+                  },
+                  onDelete: () {
+                    Navigator.pop(context);
+                    // TODO: 삭제 확인 다이얼로그 띄우기 및 삭제 로직
+                  },
+                  onReport: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('신고가 접수되었습니다.')),
+                    );
+                  },
+                );
+              },
+            );
+          },
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(color: Colors.transparent),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Icon(Icons.more_vert, size: 20, color: AppColors.gray500),
+            ),
+          ),
+        ),
       ],
     );
   }

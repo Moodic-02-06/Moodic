@@ -7,6 +7,7 @@ import 'package:flutter_moodic/presentation/pages/write_page/widgets/mood_select
 import 'package:flutter_moodic/presentation/pages/write_page/widgets/story_input_section.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
 import 'package:flutter_moodic/presentation/widgets/primary_bottom_button.dart';
@@ -222,14 +223,21 @@ class SelectedMusicCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final music = ref.watch(selectedMusicProvider);
+    final globalMusicState = ref.watch(globalMusicPlayerProvider);
 
     if (music == null) {
       return const SizedBox();
     }
     return MusicDisplayCard(
       music: music,
-      isPlaying: false,
+      isPlaying:
+          globalMusicState.playingId == music.id && globalMusicState.isPlaying,
       showDeleteButton: true,
+      onPlayPressed: () {
+        ref
+            .read(globalMusicPlayerProvider.notifier)
+            .togglePlay(music.id, music.previewUrl);
+      },
       onDelete: () {
         ref.read(selectedMusicProvider.notifier).clear();
       },
