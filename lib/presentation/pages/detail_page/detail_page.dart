@@ -4,14 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
+import 'package:flutter_moodic/core/utils/dialog_util.dart';
 import 'package:flutter_moodic/core/utils/music_link_utils.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.dart';
+import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
 import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
+import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
@@ -72,6 +76,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     final comments = detailState.comments;
 
     return Scaffold(
+      backgroundColor: AppColors.primary700,
       bottomSheet: _buildCommentInputField(),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(),
@@ -82,6 +87,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             ref.invalidate(detailViewModelProvider(widget.post.postId));
           },
           child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -160,7 +166,68 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           ],
         ),
         Spacer(),
-        Icon(Icons.more_vert, size: 20, color: AppColors.gray500),
+        GestureDetector(
+          onTap: () {
+            //  현재 유저 정보 가져오기 (ref 사용)
+            final currentUser = ref.read(userProvider).value;
+            final bool isMyPost = currentUser?.uid == widget.post.userId;
+
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (context) {
+                return PostOptionsBottomSheet(
+                  isMyPost: isMyPost,
+                  onEdit: () {
+                    Navigator.pop(context);
+                    ref
+                        .read(writeViewModelProvider.notifier)
+                        .initEdit(widget.post);
+
+                    context.push('/write', extra: widget.post);
+                  },
+                  onDelete: () {
+                    final postId = widget.post.postId;
+
+                    DialogUtil.showDeleteDialog(
+                      context,
+                      onConfirm: () async {
+                        await ref
+                            .read(detailViewModelProvider(postId).notifier)
+                            .deletePost(postId);
+
+                        if (!mounted) return;
+
+                        // Sheet
+                        Navigator.of(context, rootNavigator: true).pop();
+
+                        // Route
+                        context.pop();
+                      },
+                    );
+                  },
+
+                  onReport: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('신고가 접수되었습니다.')),
+                    );
+                  },
+                );
+              },
+            );
+          },
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(color: Colors.transparent),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Icon(Icons.more_vert, size: 20, color: AppColors.gray500),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -176,6 +243,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
         return Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
+            color: AppColors.primary900,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isPlaying
@@ -190,7 +258,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                 alignment: Alignment.center,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
+                    borderRadius: BorderRadius.circular(8),
                     child: widget.post.music.artwork.isNotEmpty
                         ? Image.network(
                             widget.post.music.artwork,

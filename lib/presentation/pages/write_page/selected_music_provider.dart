@@ -14,6 +14,10 @@ class SelectedMusicNotifier extends Notifier<Music?> {
   void clear() {
     state = null;
   }
+
+  void set(Music? music) {
+    state = music;
+  }
 }
 
 final selectedMusicProvider = NotifierProvider<SelectedMusicNotifier, Music?>(

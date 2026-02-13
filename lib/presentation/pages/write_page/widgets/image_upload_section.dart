@@ -95,7 +95,10 @@ class ImageUploadSection extends ConsumerWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       image: DecorationImage(
-                        image: FileImage(File(imageUrls[imageIndex])),
+                        image: imageUrls[imageIndex].startsWith('http')
+                            ? NetworkImage(imageUrls[imageIndex])
+                            : FileImage(File(imageUrls[imageIndex]))
+                                  as ImageProvider,
                         fit: BoxFit.cover,
                       ),
                     ),
