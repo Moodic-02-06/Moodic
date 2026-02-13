@@ -42,6 +42,37 @@ class FirestorePostDataSource {
         .toList();
   }
 
+  /// 월별 포스트 가져오기
+  Future<List<PostDto>> fetchPostsByMonth(
+    String userId,
+    int year,
+    int month,
+  ) async {
+    final startOfMonth = DateTime(year, month, 1);
+    final endOfMonth = DateTime(
+      year,
+      month + 1,
+      1,
+    ).subtract(const Duration(milliseconds: 1));
+
+    final snapshot = await _firestore
+        .collection('feeds')
+        .where('userId', isEqualTo: userId)
+        .where('createdAt', isGreaterThanOrEqualTo: startOfMonth)
+        .where('createdAt', isLessThanOrEqualTo: endOfMonth)
+        .get();
+
+    return snapshot.docs
+        .map(
+          (doc) => PostDto.fromJson(
+            doc.data(),
+            doc.id,
+            isLikedByMe: false, // 통계용이므로 좋아요 여부는 중요하지 않음
+          ),
+        )
+        .toList();
+  }
+
   /// 특정 포스트 가져오기
   Future<PostDto> fetchPostById(String postId, String? currentUserId) async {
     final doc = await _firestore.collection('feeds').doc(postId).get();

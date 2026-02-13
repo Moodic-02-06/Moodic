@@ -6,19 +6,102 @@ import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-class MyPageEdit extends StatefulWidget {
+import 'package:flutter_moodic/data/repository/user_repository_impl.dart';
+import 'package:flutter_moodic/domain/entity/user_entity.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+
+import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:go_router/go_router.dart';
+
+class MyPageEdit extends ConsumerStatefulWidget {
   const MyPageEdit({super.key});
 
   @override
-  State<MyPageEdit> createState() => _MyPageEditState();
+  ConsumerState<MyPageEdit> createState() => _MyPageEditState();
 }
 
-class _MyPageEditState extends State<MyPageEdit> {
+class _MyPageEditState extends ConsumerState<MyPageEdit> {
   bool _isSwitched = false;
   XFile? _xFile;
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _nicknameController;
+  late TextEditingController _bioController;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = ref.read(userProvider).value;
+    _nicknameController = TextEditingController(text: user?.nickname ?? "");
+    _bioController = TextEditingController(text: user?.bio ?? "");
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  void _onSave() {
+    final user = ref.read(userProvider).value;
+    // 이미지 유효성 검사 (새로 선택한 이미지도 없고, 기존 이미지도 없는 경우)
+    if (_xFile == null &&
+        (user?.profileImage == null || user!.profileImage!.isEmpty)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("첨부된 이미지가 없습니다")));
+      return;
+    }
+
+    // 폼 유효성 검사 (닉네임, 소개)
+    if (_formKey.currentState!.validate()) {
+      _saveProfile(user);
+    }
+  }
+
+  Future<void> _saveProfile(UserEntity? user) async {
+    if (user == null) return;
+
+    try {
+      String? imageUrl = user.profileImage;
+
+      // 1. 이미지가 변경되었다면 업로드
+      if (_xFile != null) {
+        imageUrl = await ref
+            .read(userRepositoryProvider)
+            .uploadProfileImage(_xFile!.path, user.uid);
+      }
+
+      // 2. 유저 정보 업데이트
+      final updatedUser = user.copyWith(
+        nickname: _nicknameController.text,
+        bio: _bioController.text,
+        profileImage: imageUrl,
+      );
+
+      await ref.read(userRepositoryProvider).updateUser(updatedUser);
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("프로필이 저장되었습니다")));
+        Navigator.pop(context);
+        // ref.refresh(userProvider); // StreamProvider라 자동 갱신됨
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("저장 실패: $e")));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider).value;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -30,9 +113,7 @@ class _MyPageEditState extends State<MyPageEdit> {
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: _onSave,
             icon: Icon(Icons.save, color: AppColors.gray500),
           ),
         ],
@@ -54,12 +135,21 @@ class _MyPageEditState extends State<MyPageEdit> {
                       child: Container(
                         width: 90,
                         height: 90,
-                        color: _xFile == null
+                        color:
+                            (_xFile == null &&
+                                (user?.profileImage == null ||
+                                    user!.profileImage!.isEmpty))
                             ? Colors.grey
                             : Colors.transparent,
-                        child: _xFile == null
-                            ? null
-                            : Image.file(File(_xFile!.path), fit: BoxFit.cover),
+                        child: _xFile != null
+                            ? Image.file(File(_xFile!.path), fit: BoxFit.cover)
+                            : (user?.profileImage != null &&
+                                  user!.profileImage!.isNotEmpty)
+                            ? Image.network(
+                                user.profileImage!,
+                                fit: BoxFit.cover,
+                              ) // 기존 이미지 (URL 가정)
+                            : null,
                       ),
                     ),
                     Align(
@@ -98,64 +188,95 @@ class _MyPageEditState extends State<MyPageEdit> {
                 ),
               ),
               SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primary600,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  maxLength: 12,
-                  // 한글,영문,숫자만 입력되게
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'[a-zA-Z0-9가-힣]'),
+              Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary600,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextFormField(
+                        maxLength: 12,
+                        // 한글,영문,숫자만 입력되게
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z0-9가-힣]'),
+                          ),
+                        ],
+                        controller: _nicknameController,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "닉네임이 작성되지 않았습니다";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          hintText: "12자 이내로 한글,영문,숫자만 사용가능합니다",
+                          hintStyle: AppTextStyles.bodySecondary14w500.copyWith(
+                            color: AppColors.text600,
+                          ),
+                          border: InputBorder.none,
+                          // 에러 스타일 커스텀이 필요하면 추가
+                          errorStyle: TextStyle(color: AppColors.stateError),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 12,
+                          ), // 패딩 조정
+                          counterText: "",
+                        ),
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyPrimary16w600.copyWith(
+                          color: AppColors.text900,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      height: 1,
+                      color: AppColors.primary600,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      "소개",
+                      style: AppTextStyles.bodyPrimary16w600.copyWith(
+                        color: AppColors.text900,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary600,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextFormField(
+                        maxLength: 80,
+                        maxLines: 2,
+                        controller: _bioController,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "소개 내용이 작성되지 않았습니다";
+                          }
+                          return null;
+                        },
+                        textInputAction: TextInputAction.newline,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          errorStyle: TextStyle(color: AppColors.stateError),
+                        ),
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyPrimary16w600.copyWith(
+                          color: AppColors.text900,
+                        ),
+                      ),
                     ),
                   ],
-                  controller: TextEditingController(text: ""),
-                  decoration: InputDecoration(
-                    hintText: "12자 이내로 한글,영문,숫자만 사용가능합니다",
-                    hintStyle: AppTextStyles.bodySecondary14w500.copyWith(
-                      color: AppColors.text600,
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyPrimary16w600.copyWith(
-                    color: AppColors.text900,
-                  ),
-                ),
-              ),
-              SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                height: 1,
-                color: AppColors.primary600,
-              ),
-              SizedBox(height: 12),
-              Text(
-                "소개",
-                style: AppTextStyles.bodyPrimary16w600.copyWith(
-                  color: AppColors.text900,
-                ),
-              ),
-              SizedBox(height: 12),
-              Container(
-                padding: EdgeInsets.all(12),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primary600,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  maxLength: 100,
-                  maxLines: 3,
-                  controller: TextEditingController(text: ""),
-                  decoration: InputDecoration(border: InputBorder.none),
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyPrimary16w600.copyWith(
-                    color: AppColors.text900,
-                  ),
                 ),
               ),
               SizedBox(height: 12),
@@ -207,8 +328,15 @@ class _MyPageEditState extends State<MyPageEdit> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
+                                onPressed: () async {
+                                  Navigator.pop(context); // 다이얼로그 닫기
+                                  // 스플래시로 이동하여 로그아웃 처리
+                                  if (context.mounted) {
+                                    context.goNamed(
+                                      AppRoutes.SplashPage.name,
+                                      queryParameters: {'action': 'logout'},
+                                    );
+                                  }
                                 },
                                 child: Text(
                                   "로그아웃",
@@ -232,7 +360,9 @@ class _MyPageEditState extends State<MyPageEdit> {
                         builder: (context) {
                           return AlertDialog(
                             title: Text("회원탈퇴"),
-                            content: Text("회원탈퇴 하시겠습니까?"),
+                            content: Text(
+                              "회원탈퇴 하시겠습니까?\n탈퇴 시 작성하신 게시글이 모두 삭제됩니다.",
+                            ),
                             actions: [
                               TextButton(
                                 onPressed: () {
@@ -244,8 +374,15 @@ class _MyPageEditState extends State<MyPageEdit> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
+                                onPressed: () async {
+                                  Navigator.pop(context); // 다이얼로그 닫기
+                                  // 스플래시로 이동하여 탈퇴 처리
+                                  if (context.mounted) {
+                                    context.goNamed(
+                                      AppRoutes.SplashPage.name,
+                                      queryParameters: {'action': 'delete'},
+                                    );
+                                  }
                                 },
                                 child: Text(
                                   "회원탈퇴",

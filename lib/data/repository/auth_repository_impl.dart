@@ -40,6 +40,12 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> checkUserExists(String uid) async {
     return await _dataSource.checkUserExists(uid);
   }
+
+  /// 회원 탈퇴
+  @override
+  Future<void> deleteAccount() async {
+    await _dataSource.deleteAccount();
+  }
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

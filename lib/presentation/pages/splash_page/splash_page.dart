@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:flutter_moodic/data/repository/auth_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
-  const SplashPage({super.key});
+  final String? action;
+  const SplashPage({super.key, this.action});
 
   @override
   ConsumerState<SplashPage> createState() => _SplashPageState();
@@ -22,11 +24,33 @@ class _SplashPageState extends ConsumerState<SplashPage> {
         _opacity = 1.0;
       });
     });
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go(AppRoutes.HomePage.absolutePath);
+
+    _processActionAndNavigate();
+  }
+
+  Future<void> _processActionAndNavigate() async {
+    // 1. 최소 대기 시간 (애니메이션 등)
+    final minDelay = Future.delayed(const Duration(seconds: 3));
+
+    // 2. 액션 실행 (로그아웃 / 탈퇴)
+    final authRepo = ref.read(authRepositoryProvider);
+    try {
+      if (widget.action == 'logout') {
+        await authRepo.signOut();
+      } else if (widget.action == 'delete') {
+        await authRepo.deleteAccount();
       }
-    });
+    } catch (e) {
+      debugPrint("스플래시 액션 실패: $e");
+    }
+
+    // 3. 작업 완료 및 최소 시간 대기 후 이동
+    await minDelay;
+
+    if (mounted) {
+      // 로그아웃 상태이므로 라우터가 LoginPage로 리다이렉트 처리함
+      context.go(AppRoutes.LoginPage.absolutePath);
+    }
   }
 
   @override

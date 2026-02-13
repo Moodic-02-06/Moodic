@@ -24,6 +24,17 @@ class PostRepositoryImpl implements PostRepository {
     return dtos.map((dto) => dto.toEntity()).toList();
   }
 
+  /// 월별 포스트 가져오기
+  @override
+  Future<List<Post>> fetchPostsByMonth(
+    String userId,
+    int year,
+    int month,
+  ) async {
+    final dtos = await dataSource.fetchPostsByMonth(userId, year, month);
+    return dtos.map((dto) => dto.toEntity()).toList();
+  }
+
   /// 특정 포스트 가져오기 (상세화면)
   @override
   Future<Post> fetchPostById(String postId, String? userId) async {

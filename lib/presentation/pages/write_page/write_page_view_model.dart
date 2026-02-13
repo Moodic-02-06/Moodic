@@ -5,6 +5,7 @@ import 'package:flutter_moodic/presentation/pages/write_page/selected_music_prov
 import 'package:flutter_moodic/presentation/provider/write_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 
 class WriteState {
   final String content;
@@ -116,6 +117,9 @@ class WriteViewModel extends Notifier<WriteState> {
 
       // 직접 로드 호출
       ref.read(homeViewModelProvider.notifier).loadFeeds();
+
+      // 마이페이지 감정 그래프 갱신
+      ref.invalidate(monthlyMoodsProvider(userId));
 
       ref.read(selectedMusicProvider.notifier).clear();
       // 작업 완료 후 초기화 (isLoading도 false로 돌아감)

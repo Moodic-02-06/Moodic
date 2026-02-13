@@ -6,4 +6,5 @@ abstract class UserRepository {
   Future<void> updateUser(UserEntity user);
   Future<void> deleteUser(String uid);
   Future<void> saveUser(UserEntity user);
+  Future<String> uploadProfileImage(String path, String userId);
 }
