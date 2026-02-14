@@ -43,13 +43,19 @@ class DialogUtil {
   static Future<void> showDeleteDialog(
     BuildContext context, {
     required VoidCallback onConfirm,
-  }) {
-    return showConfirmBoolDialog(
+    String title = '게시글 삭제',
+    String content = '정말로 삭제하시겠어요?\n삭제 후 복구할 수 없습니다.',
+  }) async {
+    final result = await showConfirmBoolDialog(
       context,
-      title: const Text('게시글 삭제'),
-      content: const Text('정말로 삭제하시겠어요?\n삭제 후 복구할 수 없습니다.'),
+      title: Text(title),
+      content: Text(content),
       confirmText: '삭제',
       confirmColor: AppColors.stateError,
     );
+
+    if (result) {
+      onConfirm();
+    }
   }
 }

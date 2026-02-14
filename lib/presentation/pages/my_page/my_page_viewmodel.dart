@@ -61,29 +61,24 @@ class MyPageViewModel extends AsyncNotifier<MyPageState> {
     final userState = ref.watch(userProvider);
     final repository = ref.read(postRepositoryProvider);
     final fetchFeedsUseCase = FetchFeedsUseCase(repository);
-    var fetchedFeeds = await fetchFeedsUseCase.call(
-      limit: 50,
-      userId: userState.value?.uid,
-    );
+    try {
+      var fetchedFeeds = await fetchFeedsUseCase.call(
+        limit: 50,
+        userId: userState.value?.uid,
+        authorId: userState.value?.uid,
+      );
 
-    // 기존의 낙관적 상태가 있다면 유지하고 싶을 수 있지만,
-    // userProvider가 갱신되면 build가 다시 호출되므로
-    // 최신 userState 값을 우선으로 하되, 업로드 중이 아닐 때만 덮어쓰도록 로직을 구성할 수도 있음.
-    // 하지만 여기서는 심플하게 userState를 따르도록 하고,
-    // saveProfile에서 state를 갱신할 때 userProvider 갱신으로 인한 리빌드를 고려해야 함.
-    // userProvider Stream이 갱신되면 build가 다시 호출되어 state가 초기화될 수 있음.
-    // 다만 AsyncNotifier의 state는 build 결과로 덮어씌워짐.
-
-    // 업로드 중(isUploading=true)일 때는 기존 상태를 유지하는 것이 좋을 수 있으나,
-    // build는 userProvider가 변경될 때마다 호출됨.
-    // 업로드가 완료되어 userProvider가 갱신되면 isUploading을 false로 풀어줘야 함.
-
-    return MyPageState(
-      nickname: userState.value?.nickname ?? "닉네임을 알수없음",
-      bio: userState.value?.bio,
-      profileimage: userState.value?.profileImage,
-      feeds: fetchedFeeds,
-    );
+      return MyPageState(
+        nickname: userState.value?.nickname ?? "닉네임을 알수없음",
+        bio: userState.value?.bio,
+        profileimage: userState.value?.profileImage,
+        feeds: fetchedFeeds,
+      );
+    } catch (e, stack) {
+      print("MyPageViewModel build error: $e");
+      print(stack);
+      rethrow;
+    }
   }
 
   /// 프로필 저장 (낙관적 업데이트 적용)

@@ -6,6 +6,7 @@ import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
@@ -103,6 +104,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   if (index > 2) {
                     branchIndex = index - 1;
                   }
+
+                  // 마이페이지(branchIndex 3)로 이동 시 데이터 새로고침
+                  if (branchIndex == 3) {
+                    ref.invalidate(myPageViewModelProvider);
+                  }
+
                   navigationShell.goBranch(branchIndex);
                 }
               },

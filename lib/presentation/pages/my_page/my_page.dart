@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/emotion_graph.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/grid_view.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/widgets/entity_grid_view.dart';
 import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -104,7 +103,14 @@ class MyPage extends ConsumerWidget {
                 SizedBox(height: 12),
                 EmotionGraph(),
                 SizedBox(height: 12),
-                MyPageGridView(),
+                // 디버깅용 로그
+                Builder(
+                  builder: (context) {
+                    print("MyPage build: feeds.length = ${data.feeds.length}");
+                    return SizedBox.shrink();
+                  },
+                ),
+                (data.feeds.isNotEmpty) ? MyPageGridView() : EntityGridView(),
               ],
             ),
           ),
