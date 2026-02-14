@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/data/repository/auth_repository_impl.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,12 +38,33 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     final authRepo = ref.read(authRepositoryProvider);
     try {
       if (widget.action == 'logout') {
-        await authRepo.signOut();
+        await authRepo.signOut().timeout(const Duration(seconds: 3));
       } else if (widget.action == 'delete') {
-        await authRepo.deleteAccount();
+        try {
+          // 회원탈퇴는 3초 제한
+          await authRepo.deleteAccount().timeout(const Duration(seconds: 3));
+        } catch (e) {
+          debugPrint("회원탈퇴 실패 (타임아웃 또는 에러): $e");
+          // 탈퇴 실패 시에도 로그아웃 처리하여 로그인 화면으로 이동 유도 (2초 제한)
+          try {
+            await authRepo.signOut().timeout(const Duration(seconds: 2));
+          } catch (e) {
+            // 로그아웃도 실패하면 무시하고 진행
+          }
+        }
       }
+
+      // 상태 갱신을 확실하게 하기 위해 provider invalidate
+      ref.invalidate(userProvider);
+      // 잠시 대기하여 스트림이 null을 방출하도록 유도
+      await Future.delayed(const Duration(milliseconds: 100));
     } catch (e) {
       debugPrint("스플래시 액션 실패: $e");
+    } finally {
+      // provider invalidate는 위에서 처리했으나, 혹시 모를 상황 대비
+      if (widget.action != null) {
+        ref.invalidate(userProvider);
+      }
     }
 
     // 3. 작업 완료 및 최소 시간 대기 후 이동
