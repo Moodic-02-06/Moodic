@@ -23,10 +23,11 @@ final userProvider = StreamProvider<UserEntity?>((ref) {
       // 1. 실제 존재 여부 검증
       final exists = await authRepo.checkUserExists(user.uid);
 
+      // exists가 false라면 (문서가 없다면) 신규 유저로 간주
+      // (기존에는 로그아웃 시켰으나, 재가입 시나리오를 위해 수정)
       if (!exists) {
-        debugPrint('⚠️ 계정 삭제 감지: 세션 종료');
-        await authRepo.signOut();
-        return null;
+        debugPrint('⚠️ 계정 정보 없음: 신규 회원으로 처리 (isFirst = true)');
+        return user.copyWith(isFirst: true);
       }
 
       // 2. 정상 로그인 정보 출력 (디버깅용)

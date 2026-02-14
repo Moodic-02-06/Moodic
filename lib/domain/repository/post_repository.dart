@@ -4,7 +4,11 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 abstract class PostRepository {
   /// 피드 최신 20개 가져오기
   /// 피드 최신 20개 가져오기
-  Future<List<Post>> fetchFeeds({int limit = 20, String? userId});
+  Future<List<Post>> fetchFeeds({
+    int limit = 20,
+    String? userId,
+    String? authorId,
+  });
 
   /// 월별 포스트 가져오기
   Future<List<Post>> fetchPostsByMonth(String userId, int year, int month);
@@ -38,4 +42,7 @@ abstract class PostRepository {
 
   /// 포스트 삭제
   Future<void> deletePost(String postId);
+
+  /// 댓글 삭제
+  Future<void> deleteComment(String postId, String commentId);
 }

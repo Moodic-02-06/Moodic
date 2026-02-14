@@ -11,9 +11,15 @@ class FirestorePostDataSource {
   Future<List<PostDto>> fetchFeeds({
     int limit = 20,
     String? currentUserId,
+    String? authorId,
   }) async {
-    final feedQuery = await _firestore
-        .collection('feeds')
+    Query query = _firestore.collection('feeds');
+
+    if (authorId != null) {
+      query = query.where('userId', isEqualTo: authorId);
+    }
+
+    final feedQuery = await query
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .get();
@@ -34,7 +40,7 @@ class FirestorePostDataSource {
     return feedQuery.docs
         .map(
           (doc) => PostDto.fromJson(
-            doc.data(),
+            doc.data() as Map<String, dynamic>,
             doc.id,
             isLikedByMe: likedFeedIdSet.contains(doc.id),
           ),
@@ -179,5 +185,18 @@ class FirestorePostDataSource {
   /// 포스트 삭제
   Future<void> deletePost(String postId) async {
     await _firestore.collection('feeds').doc(postId).delete();
+  }
+
+  /// 댓글 삭제
+  Future<void> deleteComment(String postId, String commentId) async {
+    await _firestore.runTransaction((transaction) async {
+      final commentRef = _firestore.collection('comments').doc(commentId);
+      final feedDocRef = _firestore.collection('feeds').doc(postId);
+
+      transaction.delete(commentRef);
+      transaction.update(feedDocRef, {
+        'commentCount': FieldValue.increment(-1),
+      });
+    });
   }
 }

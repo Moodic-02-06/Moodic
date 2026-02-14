@@ -15,10 +15,15 @@ class PostRepositoryImpl implements PostRepository {
 
   /// 피드 최신 20개 가져오기
   @override
-  Future<List<Post>> fetchFeeds({int limit = 20, String? userId}) async {
+  Future<List<Post>> fetchFeeds({
+    int limit = 20,
+    String? userId,
+    String? authorId,
+  }) async {
     final dtos = await dataSource.fetchFeeds(
       limit: limit,
       currentUserId: userId,
+      authorId: authorId,
     );
     return dtos.map((dto) => dto.toEntity()).toList();
   }
@@ -140,5 +145,11 @@ class PostRepositoryImpl implements PostRepository {
   @override
   Future<void> deletePost(String postId) async {
     return dataSource.deletePost(postId);
+  }
+
+  /// 댓글 삭제
+  @override
+  Future<void> deleteComment(String postId, String commentId) async {
+    return dataSource.deleteComment(postId, commentId);
   }
 }

@@ -186,6 +186,45 @@ class DetailViewModel extends Notifier<DetailState> {
       debugPrint('게시글 삭제 실패: $e');
     }
   }
+
+  Future<void> deleteComment(String commentId) async {
+    final previousComments = state.comments;
+    final previousPost = state.post;
+
+    // 1. UI 선반영 (Optimistic Update)
+    state = state.copyWith(
+      comments: state.comments.where((c) => c.commentId != commentId).toList(),
+      post: previousPost?.copyWith(
+        commentCount: (previousPost.commentCount) - 1,
+      ),
+    );
+
+    // 2. 홈 화면 동기화
+    ref
+        .read(homeViewModelProvider.notifier)
+        .syncCommentCount(postId, (previousPost?.commentCount ?? 0) - 1);
+
+    try {
+      // 3. 실제 DB 요청
+      await ref.read(postRepositoryProvider).deleteComment(postId, commentId);
+
+      // 4. 삭제 성공 후 최신 데이터 동기화 (새로고침)
+      await _load();
+    } catch (e) {
+      debugPrint('댓글 삭제 실패: $e');
+      // 5. 실패 시 롤백
+      state = state.copyWith(
+        comments: previousComments,
+        post: previousPost,
+        error: '댓글 삭제 실패',
+      );
+
+      // 홈 화면 롤백
+      ref
+          .read(homeViewModelProvider.notifier)
+          .syncCommentCount(postId, previousPost?.commentCount ?? 0);
+    }
+  }
 }
 
 final detailViewModelProvider =

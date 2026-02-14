@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
+import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
@@ -12,14 +14,16 @@ import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/custom_bottom_nav_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final notifier = GoRouterRefreshStream(
-    ref.watch(userProvider.future).asStream(),
-  );
+  final notifier = RouterNotifier();
+
+  // userProvider 상태 변화 감지 -> 라우터 갱신 알림
+  ref.listen<AsyncValue<UserEntity?>>(userProvider, (previous, next) {
+    notifier.notify();
+  });
 
   return GoRouter(
     initialLocation: AppRoutes.SplashPage.absolutePath,
@@ -45,16 +49,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 2. 비로그인 상태 처리
       if (!isLoggedIn) {
-        final action = state.uri.queryParameters['action'];
-
         // 스플래시 페이지인 경우
         if (isSplash) {
-          // 로그아웃/탈퇴 액션 진행 중이면 스플래시 유지
-          if (action == 'logout' || action == 'delete') {
-            return null;
-          }
-          // 일반 진입이면 로그인 페이지로 이동
-          return AppRoutes.LoginPage.absolutePath;
+          return null;
         }
 
         // 로그인 페이지면 유지
@@ -101,15 +98,18 @@ final routerProvider = Provider<GoRouter>((ref) {
                   : navigationShell.currentIndex + 1,
               onTap: (index) {
                 if (index == 2) {
-                  // 중앙 버튼은 페이지 이동만
                   context.push(AppRoutes.WritePage.absolutePath);
                 } else {
-                  // index 0, 1은 그대로 0, 1번 브랜치
-                  // index 3, 4는 한 칸씩 당겨서 2, 3번 브랜치
                   int branchIndex = index;
                   if (index > 2) {
                     branchIndex = index - 1;
                   }
+
+                  // 마이페이지(branchIndex 3)로 이동 시 데이터 새로고침
+                  if (branchIndex == 3) {
+                    ref.invalidate(myPageViewModelProvider);
+                  }
+
                   navigationShell.goBranch(branchIndex);
                 }
               },
@@ -214,19 +214,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
+class RouterNotifier extends ChangeNotifier {
+  void notify() {
     notifyListeners();
-    _subscription = stream.asBroadcastStream().listen(
-      (dynamic _) => notifyListeners(),
-    );
-  }
-
-  late final StreamSubscription<dynamic> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
   }
 }

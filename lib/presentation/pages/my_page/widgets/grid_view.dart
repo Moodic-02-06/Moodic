@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,34 +27,43 @@ class MyPageGridView extends ConsumerWidget {
       ),
       itemCount: myState.feeds.length,
       itemBuilder: (context, index) {
-        final String? artworkUrl = myState.feeds[index].music.artwork;
-        final String? mood = myState.feeds[index].mood;
-        return Container(
-          decoration: BoxDecoration(
-            image: (artworkUrl != null && artworkUrl.isNotEmpty)
-                ? DecorationImage(
-                    image: NetworkImage(artworkUrl),
-                    fit: BoxFit.cover,
-                  )
-                : null,
+        final post = myState.feeds[index];
+        final String? artworkUrl = post.music.artwork;
+        final String? mood = post.mood;
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DetailPage(post: post)),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              image: (artworkUrl != null && artworkUrl.isNotEmpty)
+                  ? DecorationImage(
+                      image: NetworkImage(artworkUrl),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
 
-            borderRadius: BorderRadius.circular(6),
-            color: Colors.grey,
-          ),
+              borderRadius: BorderRadius.circular(6),
+              color: Colors.grey,
+            ),
 
-          child: Stack(
-            children: [
-              if (artworkUrl == null) Icon(Icons.abc),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: (mood != null && mood.isNotEmpty)
-                      ? MoodBadge(moodLabel: mood.toString())
-                      : null,
+            child: Stack(
+              children: [
+                if (artworkUrl == null) Icon(Icons.abc),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: (mood != null && mood.isNotEmpty)
+                        ? MoodBadge(moodLabel: mood.toString())
+                        : null,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

@@ -62,7 +62,11 @@ class MockPostRepository implements PostRepository {
   Future<void> deletePost(String postId) async {}
 
   @override
-  Future<List<Post>> fetchFeeds({int limit = 20, String? userId}) async {
+  Future<List<Post>> fetchFeeds({
+    int limit = 20,
+    String? userId,
+    String? authorId,
+  }) async {
     return _mockPosts.take(limit).toList();
   }
 
@@ -96,4 +100,7 @@ class MockPostRepository implements PostRepository {
       ),
     );
   }
+
+  @override
+  Future<void> deleteComment(String postId, String commentId) async {}
 }
