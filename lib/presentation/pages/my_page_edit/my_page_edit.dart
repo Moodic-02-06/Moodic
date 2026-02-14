@@ -6,13 +6,12 @@ import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:flutter_moodic/data/repository/user_repository_impl.dart';
-import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 
 class MyPageEdit extends ConsumerStatefulWidget {
   const MyPageEdit({super.key});
@@ -45,7 +44,7 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
 
   /// 저장 버튼 클릭 시 호출
   /// 이미지 선택 여부와 폼 유효성(닉네임, 소개)을 검사한 후
-  /// 문제가 없으면 프로필 저장 로직(_saveProfile)을 실행합니다.
+  /// 문제가 없으면 프로필 저장 로직을 실행합니다.
   void _onSave() {
     final user = ref.read(userProvider).value;
     // 이미지 유효성 검사 (새로 선택한 이미지도 없고, 기존 이미지도 없는 경우)
@@ -58,49 +57,23 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
     }
 
     // 폼 유효성 검사 (닉네임, 소개)
-    if (_formKey.currentState!.validate()) {
-      _saveProfile(user);
-    }
-  }
+    if (_formKey.currentState!.validate() && user != null) {
+      // 뷰모델을 통해 저장 (낙관적 업데이트)
+      ref
+          .read(myPageViewModelProvider.notifier)
+          .saveProfile(
+            imageFile: _xFile != null ? File(_xFile!.path) : null,
+            nickname: _nicknameController.text,
+            bio: _bioController.text,
+            currentUser: user,
+          );
 
-  /// 실제 프로필 업데이트 로직
-  /// 1. 새 이미지가 선택된 경우 Firebase Storage에 업로드
-  /// 2. 업로드된 이미지 URL과 함께 유저 정보를 Firestore에 업데이트
-  /// 3. 성공 시 완료 메시지를 띄우고 이전 화면으로 복귀
-  Future<void> _saveProfile(UserEntity? user) async {
-    if (user == null) return;
-
-    try {
-      String? imageUrl = user.profileImage;
-
-      // 1. 이미지가 변경되었다면 업로드
-      if (_xFile != null) {
-        imageUrl = await ref
-            .read(userRepositoryProvider)
-            .uploadProfileImage(_xFile!.path, user.uid);
-      }
-
-      // 2. 유저 정보 업데이트
-      final updatedUser = user.copyWith(
-        nickname: _nicknameController.text,
-        bio: _bioController.text,
-        profileImage: imageUrl,
-      );
-
-      await ref.read(userRepositoryProvider).updateUser(updatedUser);
-
+      // 즉시 뒤로가기 및 메시지 표시
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("프로필이 저장되었습니다")));
         Navigator.pop(context);
-        // ref.refresh(userProvider); // StreamProvider라 자동 갱신됨
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("저장 실패: $e")));
       }
     }
   }

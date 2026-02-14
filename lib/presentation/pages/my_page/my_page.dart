@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
@@ -52,13 +54,18 @@ class MyPage extends ConsumerWidget {
                       radius: 50,
                       backgroundColor: AppColors.gray300,
                       backgroundImage:
-                          (data.profileimage != null &&
-                              data.profileimage!.isNotEmpty)
+                          (data.isUploading &&
+                              data.optimisticProfileImage != null)
+                          ? FileImage(data.optimisticProfileImage!)
+                                as ImageProvider
+                          : (data.profileimage != null &&
+                                data.profileimage!.isNotEmpty)
                           ? NetworkImage(data.profileimage!)
                           : null,
-                      child:
-                          (data.profileimage == null ||
-                              data.profileimage!.isEmpty)
+                      child: data.isUploading
+                          ? const CircularProgressIndicator()
+                          : (data.profileimage == null ||
+                                data.profileimage!.isEmpty)
                           ? Icon(
                               Icons.person,
                               color: AppColors.gray100,
