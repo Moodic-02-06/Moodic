@@ -154,6 +154,8 @@ class WriteViewModel extends Notifier<WriteState> {
 
       // 마이페이지 감정 그래프 갱신
       ref.invalidate(monthlyMoodsProvider(userId));
+      // 마이페이지 피드 목록 갱신
+      ref.invalidate(myPageFeedsProvider);
 
       ref.read(selectedMusicProvider.notifier).clear();
       // 작업 완료 후 초기화 (isLoading도 false로 돌아감)
@@ -214,6 +216,8 @@ class WriteViewModel extends Notifier<WriteState> {
       if (!ref.mounted) return;
 
       ref.read(homeViewModelProvider.notifier).loadFeeds();
+      // 마이페이지 피드 목록 갱신
+      ref.invalidate(myPageFeedsProvider);
 
       state = build();
       _originPost = null;

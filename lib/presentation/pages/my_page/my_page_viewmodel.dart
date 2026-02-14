@@ -55,30 +55,38 @@ class MyPageState {
   }
 }
 
+/// 마이페이지 피드 목록 Provider (UserUID 기반)
+/// UserUID가 변경되거나 invalidate 될 때만 새로고침됨.
+/// 프로필(닉네임, 이미지 등) 변경 시에는 Rebuild 되지 않음.
+final myPageFeedsProvider = FutureProvider.autoDispose<List<Post>>((ref) async {
+  // UserProvider의 전체 상태를 구독하지 않고, UID만 구독하여 최적화
+  final uid = ref.watch(userProvider.select((value) => value.value?.uid));
+
+  if (uid == null) return [];
+
+  final repository = ref.read(postRepositoryProvider);
+  final fetchFeedsUseCase = FetchFeedsUseCase(repository);
+
+  return await fetchFeedsUseCase.call(limit: 50, userId: uid, authorId: uid);
+});
+
 class MyPageViewModel extends AsyncNotifier<MyPageState> {
   @override
   Future<MyPageState> build() async {
     final userState = ref.watch(userProvider);
-    final repository = ref.read(postRepositoryProvider);
-    final fetchFeedsUseCase = FetchFeedsUseCase(repository);
-    try {
-      var fetchedFeeds = await fetchFeedsUseCase.call(
-        limit: 50,
-        userId: userState.value?.uid,
-        authorId: userState.value?.uid,
-      );
+    // 피드 Provider 구독 (값이 변경되면 MyPageViewModel도 Rebuild 됨)
+    final feedsAsync = ref.watch(myPageFeedsProvider);
 
-      return MyPageState(
-        nickname: userState.value?.nickname ?? "닉네임을 알수없음",
-        bio: userState.value?.bio,
-        profileimage: userState.value?.profileImage,
-        feeds: fetchedFeeds,
-      );
-    } catch (e, stack) {
-      print("MyPageViewModel build error: $e");
-      print(stack);
-      rethrow;
-    }
+    // 피드 로딩 중이거나 에러가 있어도, MyPage 자체는 보여주기 위해 빈 리스트 또는 기존 데이터 처리
+    // 여기서는 feedsAsync.value를 사용하여 데이터가 있으면 사용하고, 없으면 빈 리스트
+    final feeds = feedsAsync.value ?? [];
+
+    return MyPageState(
+      nickname: userState.value?.nickname ?? "닉네임을 알수없음",
+      bio: userState.value?.bio,
+      profileimage: userState.value?.profileImage,
+      feeds: feeds,
+    );
   }
 
   /// 프로필 저장 (낙관적 업데이트 적용)
@@ -91,7 +99,7 @@ class MyPageViewModel extends AsyncNotifier<MyPageState> {
     // 1. 낙관적 업데이트: UI 즉시 반영
     state = AsyncData(
       state.value!.copyWith(
-        isUploading: true,
+        isUploading: imageFile != null, // 이미지가 변경된 경우에만 로딩 표시
         optimisticProfileImage: imageFile,
         nickname: nickname,
         bio: bio,

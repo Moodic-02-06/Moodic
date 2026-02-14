@@ -594,6 +594,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     final isMyComment = currentUser?.uid == comment.userId;
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onLongPress: () {
         if (!isMyComment) return;
 

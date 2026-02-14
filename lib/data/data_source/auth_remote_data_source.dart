@@ -12,6 +12,9 @@ class AuthRemoteDataSource {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // 회원탈퇴 진행 중 플래그 (탈퇴 중에는 스트림이 null을 반환하도록)
+  bool _isDeleting = false;
+
   Future<String?> signInWithGoogle() async {
     try {
       // 2. Google 계정 선택 UI 띄우기
@@ -96,6 +99,9 @@ class AuthRemoteDataSource {
   /// 인증 상태 및 유저 데이터를 실시간으로 감시하는 스트림
   Stream<UserEntity?> get authStateChanges {
     return _auth.authStateChanges().asyncExpand((user) {
+      // 회원탈퇴 진행 중이면 무조건 로그아웃 상태로 처리
+      if (_isDeleting) return Stream.value(null);
+
       if (user == null) return Stream.value(null);
 
       // 유저의 Firestore 문서를 실시간 감시하여 데이터가 바뀔 때마다 스트림 발행
@@ -104,6 +110,9 @@ class AuthRemoteDataSource {
           .doc(user.uid)
           .snapshots()
           .map((doc) {
+            // 탈퇴 진행 중이면 로그아웃 상태 반환
+            if (_isDeleting) return null;
+
             if (doc.exists && doc.data() != null) {
               return UserDto.fromJson(doc.data()!);
             }
@@ -138,6 +147,9 @@ class AuthRemoteDataSource {
     }
 
     try {
+      // 탈퇴 시작 플래그 설정 (스트림이 로그아웃 상태를 반환하도록)
+      _isDeleting = true;
+
       // 1. Google/Kakao 연결 해제 (선택사항이지만 권장)
       if (await _googleSignIn.isSignedIn()) {
         await _googleSignIn.disconnect();
@@ -166,6 +178,9 @@ class AuthRemoteDataSource {
     } catch (e) {
       debugPrint("회원탈퇴 실패: $e");
       throw Exception('회원탈퇴 중 오류가 발생했습니다: $e');
+    } finally {
+      // 탈퇴 완료 또는 실패 시 플래그 해제
+      _isDeleting = false;
     }
   }
 }

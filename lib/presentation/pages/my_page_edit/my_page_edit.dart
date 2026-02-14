@@ -253,9 +253,6 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                   maxLines: 2,
                                   controller: _bioController,
                                   validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return "소개 내용이 작성되지 않았습니다";
-                                    }
                                     return null;
                                   },
                                   textInputAction: TextInputAction.newline,
