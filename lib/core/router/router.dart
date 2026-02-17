@@ -7,6 +7,8 @@ import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
+import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
+import 'package:flutter_moodic/presentation/pages/search_page/search_page.dart';
 import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
@@ -133,7 +135,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.SearchPage.path,
                 name: AppRoutes.SearchPage.name,
-                builder: (context, state) => const SizedBox(),
+                builder: (context, state) => const SearchPage(),
               ),
             ],
           ),
@@ -209,6 +211,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.TempProfile.path,
         name: AppRoutes.TempProfile.name,
         builder: (context, state) => const TempProfile(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.MyPageEdit.path,
+        name: AppRoutes.MyPageEdit.name,
+        builder: (context, state) => const MyPageEdit(),
       ),
     ],
   );

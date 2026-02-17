@@ -49,28 +49,52 @@ class HomeViewModel extends Notifier<HomeState> {
 
   @override
   HomeState build() {
-    ref.onDispose(() {
-      _feedSubscription?.cancel();
-    });
+    // dispose 시 구독 해제
+    ref.onDispose(_cancelSubscription);
     return HomeState(feeds: []);
   }
 
+  /// 스트림 구독 취소
+  void _cancelSubscription() {
+    _feedSubscription?.cancel();
+    _feedSubscription = null;
+  }
+
+  /// 피드 정렬
+  List<Post> _sortFeeds(List<Post> feeds, FeedSortType sortType) {
+    switch (sortType) {
+      case FeedSortType.mostLiked:
+        feeds.sort((a, b) {
+          final likeCompare = b.likeCount.compareTo(a.likeCount);
+          return likeCompare != 0
+              ? likeCompare
+              : b.createdAt.compareTo(a.createdAt);
+        });
+        break;
+      case FeedSortType.latest:
+        feeds.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+    }
+    return feeds;
+  }
+
+  /// 피드 로드
   Future<void> loadFeeds({FeedSortType? newSort, int? limit}) async {
     final targetLimit = limit ?? state.limit;
+    final sortType = newSort ?? state.sortType;
 
-    // 상태 업데이트 (로딩 표시)
+    // 상태 업데이트 (로딩 표시 + 초기화)
     state = state.copyWith(
       isLoading: true,
       errorMessage: null,
-      sortType: newSort ?? state.sortType,
+      sortType: sortType,
       limit: targetLimit,
     );
 
-    _feedSubscription?.cancel();
+    _cancelSubscription();
 
     try {
       final fetchFeedsUseCase = ref.read(fetchFeedsUseCaseProvider);
-
       final currentUser = ref.read(userProvider).value;
 
       final stream = fetchFeedsUseCase.call(
@@ -80,26 +104,12 @@ class HomeViewModel extends Notifier<HomeState> {
 
       _feedSubscription = stream.listen(
         (fetchedFeeds) {
-          // 정렬 로직
-          if (state.sortType == FeedSortType.mostLiked) {
-            fetchedFeeds.sort((a, b) {
-              // 1순위: 좋아요 수 내림차순
-              final compare = b.likeCount.compareTo(a.likeCount);
-              // 2순위: 작성일 내림차순 (좋아요 수가 같을 경우)
-              if (compare == 0) {
-                return b.createdAt.compareTo(a.createdAt);
-              }
-              return compare;
-            });
-          } else {
-            // 최신순
-            fetchedFeeds.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          }
+          final sortedFeeds = _sortFeeds(fetchedFeeds, sortType);
 
           state = state.copyWith(
-            feeds: fetchedFeeds,
+            feeds: sortedFeeds,
             isLoading: false,
-            hasMore: fetchedFeeds.length == targetLimit,
+            hasMore: sortedFeeds.length >= targetLimit,
           );
         },
         onError: (e) {
@@ -113,21 +123,18 @@ class HomeViewModel extends Notifier<HomeState> {
     }
   }
 
-  /// 더 보기 (무한 스크롤)
+  /// 무한 스크롤용 더 보기
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) return;
-
-    final newLimit = state.limit + 20;
-    await loadFeeds(limit: newLimit);
+    await loadFeeds(limit: state.limit + 20);
   }
 
-  /// 새로고침 (초기화)
+  /// 새로고침
   Future<void> refresh() async {
-    state = state.copyWith(limit: 20, feeds: [], hasMore: true);
-
-    await loadFeeds(limit: 20);
+    await loadFeeds(limit: 20, newSort: state.sortType);
   }
 
+  /// 게시글 삭제
   Future<void> deletePost(String postId) async {
     try {
       await ref.read(deletePostUseCaseProvider).execute(postId);

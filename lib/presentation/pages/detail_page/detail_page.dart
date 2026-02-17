@@ -1,22 +1,18 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
-import 'package:flutter_moodic/core/utils/dialog_util.dart';
-import 'package:flutter_moodic/core/utils/music_link_utils.dart';
-import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.dart';
-import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
-import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
-import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/comment_input_field.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/comment_list_item.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/image_carousel.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/interaction_bar.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/music_player_card.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/user_header.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
   final Post post;
@@ -28,7 +24,6 @@ class DetailPage extends ConsumerStatefulWidget {
 }
 
 class _DetailPageState extends ConsumerState<DetailPage> {
-  int _currentPage = 0;
   final TextEditingController _commentController = TextEditingController();
 
   void _submitComment() {
@@ -77,7 +72,10 @@ class _DetailPageState extends ConsumerState<DetailPage> {
 
     return Scaffold(
       backgroundColor: AppColors.primary700,
-      bottomSheet: _buildCommentInputField(),
+      bottomSheet: CommentInputField(
+        controller: _commentController,
+        onSubmit: _submitComment,
+      ),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(),
       body: Padding(
@@ -91,16 +89,16 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildUserHeader(
-                  name: post.userNickname,
+                UserHeader(
+                  post: post,
                   time: DateFormatter.formatRelativeTime(post.createdAt),
-                  imageUrl: post.userImageUrl,
                 ),
                 SizedBox(height: 16),
-                _buildMusicCard(),
+                MusicPlayerCard(post: post),
                 SizedBox(height: 24),
 
-                if (post.imageUrls.isNotEmpty) _imageCarousel(),
+                if (post.imageUrls.isNotEmpty)
+                  ImageCarousel(imageUrls: post.imageUrls),
                 MoodBadge(moodLabel: post.mood),
                 SizedBox(height: 12),
                 Text(
@@ -110,7 +108,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                   ),
                 ),
                 SizedBox(height: 12),
-                _buildInteractionBar(post),
+                InteractionBar(post: post),
                 const Divider(color: AppColors.gray100, height: 32),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 120.0),
@@ -119,606 +117,15 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                     physics: NeverScrollableScrollPhysics(),
                     itemCount: comments.length,
                     itemBuilder: (context, index) {
-                      return _buildCommentItem(comments[index]);
+                      return CommentListItem(
+                        comment: comments[index],
+                        postId: widget.post.postId,
+                      );
                     },
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 사용자 헤더
-  Widget _buildUserHeader({
-    required String imageUrl,
-    required String name,
-    required String time,
-  }) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundColor: AppColors.gray300,
-          backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-          child: imageUrl.isEmpty
-              ? Icon(Icons.person, color: AppColors.gray100, size: 24)
-              : null,
-        ),
-        SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name,
-              style: AppTextStyles.bodyPrimary16w600.copyWith(
-                color: AppColors.gray900,
-              ),
-            ),
-            Text(
-              time,
-              style: AppTextStyles.labelStatus12w500.copyWith(
-                color: AppColors.gray500,
-              ),
-            ),
-          ],
-        ),
-        Spacer(),
-        GestureDetector(
-          onTap: () {
-            //  현재 유저 정보 가져오기 (ref 사용)
-            final currentUser = ref.read(userProvider).value;
-            final bool isMyPost = currentUser?.uid == widget.post.userId;
-
-            showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              isScrollControlled: true,
-              builder: (context) {
-                return PostOptionsBottomSheet(
-                  isMyPost: isMyPost,
-                  onEdit: () {
-                    Navigator.pop(context);
-                    ref
-                        .read(writeViewModelProvider.notifier)
-                        .initEdit(widget.post);
-
-                    context.push('/write', extra: widget.post);
-                  },
-                  onDelete: () {
-                    final postId = widget.post.postId;
-
-                    DialogUtil.showDeleteDialog(
-                      context,
-                      onConfirm: () async {
-                        await ref
-                            .read(detailViewModelProvider(postId).notifier)
-                            .deletePost(postId);
-
-                        // Sheet
-                        if (context.mounted) {
-                          Navigator.of(context, rootNavigator: true).pop();
-                        }
-
-                        // Route
-                        if (context.mounted) {
-                          context.pop();
-                        }
-                      },
-                    );
-                  },
-
-                  onReport: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('신고가 접수되었습니다.')),
-                    );
-                  },
-                );
-              },
-            );
-          },
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(color: Colors.transparent),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Icon(Icons.more_vert, size: 20, color: AppColors.gray500),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 음악 카드
-  Widget _buildMusicCard() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final playerState = ref.watch(globalMusicPlayerProvider);
-        final isPlaying =
-            playerState.playingId == widget.post.postId &&
-            playerState.isPlaying;
-        return Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primary900,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isPlaying
-                  ? AppColors.secondary500.withValues(alpha: 0.5)
-                  : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: widget.post.music.artwork.isNotEmpty
-                        ? Image.network(
-                            widget.post.music.artwork,
-                            width: 84,
-                            height: 84,
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            width: 84,
-                            height: 84,
-                            color: AppColors.primary600,
-                            child: const Icon(
-                              Icons.music_note_rounded,
-                              color: AppColors.gray500,
-                            ),
-                          ),
-                  ),
-                  if (isPlaying)
-                    Container(
-                      width: 84,
-                      height: 84,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.equalizer,
-                        color: AppColors.secondary500,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 14),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.post.music.title,
-                                maxLines: 1,
-                                style: AppTextStyles.bodyPrimary16w600.copyWith(
-                                  color: AppColors.gray900,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                widget.post.music.artist,
-                                maxLines: 1,
-                                style: AppTextStyles.bodySecondary14w500
-                                    .copyWith(
-                                      color: AppColors.text600,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(width: 8),
-
-                        IconButton(
-                          onPressed: () {
-                            ref
-                                .read(globalMusicPlayerProvider.notifier)
-                                .togglePlay(
-                                  widget.post.postId,
-                                  widget.post.music.previewUrl,
-                                );
-                          },
-                          style: IconButton.styleFrom(
-                            backgroundColor: isPlaying
-                                ? AppColors.secondary500
-                                : AppColors.gray100,
-                            padding: const EdgeInsets.all(8),
-                          ),
-                          icon: Icon(
-                            isPlaying
-                                ? Icons.pause_rounded
-                                : Icons.play_arrow_rounded,
-                            color: isPlaying
-                                ? AppColors.primary900
-                                : AppColors.gray400,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Row(
-                      children: [
-                        _buildMusicTag(
-                          label: 'Spotify',
-                          url: buildSpotifySearchUrl(
-                            widget.post.music.artist,
-                            widget.post.music.title,
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        _buildMusicTag(
-                          label: 'YouTube',
-                          url: buildYoutubeMusicSearchUrl(
-                            widget.post.music.artist,
-                            widget.post.music.title,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // 음악 버튼
-  Widget _buildMusicTag({
-    required String label,
-    required String url,
-    String? fallbackUrl,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () async {
-          final Uri uri = Uri.parse(url);
-
-          // 1 앱 딥링크 먼저 시도
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri);
-            return;
-          }
-
-          // 2 실패하면 웹 링크로 fallback
-          if (fallbackUrl != null) {
-            final webUri = Uri.parse(fallbackUrl);
-
-            if (await launchUrl(webUri, mode: LaunchMode.externalApplication)) {
-              return;
-            }
-          }
-
-          // 3 전부 실패
-          if (!mounted) return;
-
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('음악 앱을 열 수 없습니다.')));
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.gray300.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.gray300),
-          ),
-          child: Row(
-            children: [
-              Text(
-                label,
-                style: AppTextStyles.bodyPrimary16w600.copyWith(
-                  color: AppColors.gray500,
-                ),
-              ),
-              const Spacer(),
-              Transform.rotate(
-                angle: math.pi / 2,
-                child: const Icon(
-                  Icons.vertical_align_top,
-                  color: AppColors.gray500,
-                  size: 18,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 이미지 캐러셀
-  Widget _imageCarousel() {
-    return Column(
-      children: [
-        SizedBox(
-          height: 300,
-          child: PageView.builder(
-            itemCount: widget.post.imageUrls.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              final url = widget.post.imageUrls[index];
-              if (url.isEmpty) return const SizedBox();
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    url,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-
-                      return const Center(child: CircularProgressIndicator());
-                    },
-
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.gray300,
-                        child: const Icon(Icons.error),
-                      );
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            widget.post.imageUrls.length,
-            (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentPage == index ? 12 : 8,
-              height: 8,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: _currentPage == index
-                    ? AppColors.gray300
-                    : AppColors.primary600,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 좋아요, 댓글 아이콘
-  Widget _buildInteractionBar(Post post) {
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: () {
-            // 1. 유저 정보 가져오기
-            final currentUser = ref.read(userProvider).value;
-
-            if (currentUser != null) {
-              // 2. ViewModel의 toggleLike 호출
-              ref
-                  .read(detailViewModelProvider(post.postId).notifier)
-                  .toggleLike(currentUser);
-            } else {
-              // 로그인 안 된 경우 안내 (선택 사항)
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('로그인이 필요한 서비스입니다.')));
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
-                  color: post.isLikedByMe ? Colors.red : AppColors.gray500,
-                  size: 28,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${post.likeCount}',
-                  style: AppTextStyles.bodyPrimary16w600.copyWith(
-                    color: AppColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.chat_bubble_outline,
-                color: AppColors.gray500,
-                size: 28,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '${post.commentCount}',
-                style: AppTextStyles.bodyPrimary16w600.copyWith(
-                  color: AppColors.gray500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 댓글 아이템
-  Widget _buildCommentItem(Comment comment) {
-    final currentUser = ref.watch(userProvider).value;
-    final isMyComment = currentUser?.uid == comment.userId;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onLongPress: () {
-        if (!isMyComment) return;
-
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.red),
-                    title: const Text('댓글 삭제'),
-                    onTap: () {
-                      Navigator.pop(context); // 닫기
-
-                      DialogUtil.showDeleteDialog(
-                        context,
-                        title: '댓글 삭제',
-                        content: '정말 삭제하시겠습니까?',
-                        onConfirm: () {
-                          ref
-                              .read(
-                                detailViewModelProvider(
-                                  widget.post.postId,
-                                ).notifier,
-                              )
-                              .deleteComment(comment.commentId);
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.gray300,
-              backgroundImage: comment.userImageUrl.isNotEmpty
-                  ? NetworkImage(comment.userImageUrl)
-                  : null,
-              child: comment.userImageUrl.isEmpty
-                  ? Icon(Icons.person, color: AppColors.gray100, size: 24)
-                  : null,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        comment.userNickname,
-                        style: AppTextStyles.labelStatus12w500.copyWith(
-                          color: AppColors.gray900,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        DateFormatter.formatRelativeTime(comment.createdAt),
-                        style: AppTextStyles.labelStatus12w500.copyWith(
-                          color: AppColors.text600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    comment.content,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCommentInputField() {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 12,
-        bottom: MediaQuery.of(context).padding.bottom + 10,
-      ),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.gray100)),
-        color: AppColors.primary900,
-      ),
-      child: TextField(
-        controller: _commentController,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          hintText: '따뜻한 한마디를 남겨주세요',
-          hintStyle: AppTextStyles.bodySecondary14w500.copyWith(
-            color: AppColors.gray500,
-          ),
-          filled: true,
-          fillColor: AppColors.primary600,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 12,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.send, color: AppColors.gray400),
-            onPressed: _submitComment,
           ),
         ),
       ),

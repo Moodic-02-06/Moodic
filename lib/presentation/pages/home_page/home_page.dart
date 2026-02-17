@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
-import 'package:flutter_moodic/core/theme/fonts.dart';
 
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/widgets/animated_sort_toggle.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_empty_state.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_feed_card.dart';
-import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -78,53 +78,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         title: Image.asset('assets/images/logo.png', width: 70),
       ),
       body: homeState.feeds.isEmpty
-          ? RefreshIndicator(
-              onRefresh: () => homeVM.refresh(),
-              child: Stack(
-                children: [
-                  ListView(), // 빈 리스트뷰 (RefreshIndicator 동작용)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '아직 작성된 피드가 없어요.\n첫 글을 작성해보세요!',
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.bodyPrimary16w600.copyWith(
-                              color: AppColors.gray500,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const WritePage(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.edit),
-                            label: const Text('새 글 작성'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? HomeEmptyState(onRefresh: () => homeVM.refresh())
           : RefreshIndicator(
               onRefresh: () => homeVM.refresh(),
               child: ListView.separated(
@@ -143,7 +97,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         horizontal: 4, // 리스트 패딩 고려하여 약간 조정
                         vertical: 0,
                       ),
-                      child: _AnimatedSortToggle(
+                      child: AnimatedSortToggle(
                         sortType: homeState.sortType,
                         onTap: (type) {
                           if (homeState.sortType != type) {
@@ -169,95 +123,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
               ),
             ),
-    );
-  }
-}
-
-class _AnimatedSortToggle extends StatelessWidget {
-  final FeedSortType sortType;
-  final Function(FeedSortType) onTap;
-
-  const _AnimatedSortToggle({required this.sortType, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    const double height = 48;
-    // 최신순(좌측) = -1.0, 인기순(우측) = 1.0
-    final alignX = sortType == FeedSortType.latest ? -1.0 : 1.0;
-
-    return Container(
-      height: height + 8,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.primary600,
-        borderRadius: BorderRadius.circular(61),
-      ),
-      child: Stack(
-        children: [
-          // 움직이는 배경 (Thumb)
-          AnimatedAlign(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment(alignX, 0),
-            child: FractionallySizedBox(
-              widthFactor: 0.5,
-              heightFactor: 1.0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primary900,
-                  borderRadius: BorderRadius.circular(40),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // 2. 텍스트 버튼들 (Overlay)
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onTap(FeedSortType.latest),
-                  child: Center(
-                    child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 250),
-                      style: AppTextStyles.bodyPrimary16w600.copyWith(
-                        color: sortType == FeedSortType.latest
-                            ? AppColors.text900
-                            : AppColors.gray500,
-                      ),
-                      child: const Text('최신 글'),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => onTap(FeedSortType.mostLiked),
-                  child: Center(
-                    child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 250),
-                      style: AppTextStyles.bodyPrimary16w600.copyWith(
-                        color: sortType == FeedSortType.mostLiked
-                            ? AppColors.text900
-                            : AppColors.gray500,
-                      ),
-                      child: const Text('인기 글'),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
