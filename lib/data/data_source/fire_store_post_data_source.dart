@@ -7,48 +7,31 @@ class FirestorePostDataSource {
 
   FirestorePostDataSource(this._firestore);
 
-  /// 최신 피드 가져오기
-  Future<List<PostDto>> fetchFeeds({
-    int limit = 20,
-    String? currentUserId,
-    String? authorId,
-  }) async {
+  /// 최신 피드 가져오기 (Stream)
+  Stream<List<PostDto>> getFeedsStream({int limit = 20, String? authorId}) {
     Query query = _firestore.collection('feeds');
 
     if (authorId != null) {
       query = query.where('userId', isEqualTo: authorId);
     }
 
-    final feedQuery = await query
+    return query
         .orderBy('createdAt', descending: true)
         .limit(limit)
-        .get();
-
-    final feedIdList = feedQuery.docs.map((doc) => doc.id).toList();
-
-    final likedFeedIdSet = (currentUserId != null && feedIdList.isNotEmpty)
-        ? (await _firestore
-                  .collection('likes')
-                  .where('userId', isEqualTo: currentUserId)
-                  .where('feedId', whereIn: feedIdList)
-                  .get())
-              .docs
-              .map((doc) => doc['feedId'] as String)
-              .toSet()
-        : <String>{};
-
-    return feedQuery.docs
-        .map(
-          (doc) => PostDto.fromJson(
-            doc.data() as Map<String, dynamic>,
-            doc.id,
-            isLikedByMe: likedFeedIdSet.contains(doc.id),
-          ),
-        )
-        .toList();
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return PostDto.fromJson(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+              // Repository에서 처리하므로 여기서는 false로 둠
+              isLikedByMe: false,
+            );
+          }).toList();
+        });
   }
 
-  /// 월별 포스트 가져오기
+  /// 월별 포스트 가져오기 (통계용이므로 Future 유지)
   Future<List<PostDto>> fetchPostsByMonth(
     String userId,
     int year,
@@ -69,40 +52,22 @@ class FirestorePostDataSource {
         .get();
 
     return snapshot.docs
-        .map(
-          (doc) => PostDto.fromJson(
-            doc.data(),
-            doc.id,
-            isLikedByMe: false, // 통계용이므로 좋아요 여부는 중요하지 않음
-          ),
-        )
+        .map((doc) => PostDto.fromJson(doc.data(), doc.id, isLikedByMe: false))
         .toList();
   }
 
-  /// 특정 포스트 가져오기
-  Future<PostDto> fetchPostById(String postId, String? currentUserId) async {
-    final doc = await _firestore.collection('feeds').doc(postId).get();
-
-    if (!doc.exists || doc.data() == null) {
-      throw Exception("해당 포스트를 찾을 수 없습니다.");
-    }
-
-    final likedFeedIdSet = (currentUserId != null)
-        ? (await _firestore
-                  .collection('likes')
-                  .where('userId', isEqualTo: currentUserId)
-                  .where('feedId', isEqualTo: postId)
-                  .get())
-              .docs
-              .map((doc) => doc['feedId'] as String)
-              .toSet()
-        : <String>{};
-
-    return PostDto.fromJson(
-      doc.data()!,
-      doc.id,
-      isLikedByMe: likedFeedIdSet.contains(doc.id),
-    );
+  /// 특정 포스트 가져오기 (Stream)
+  Stream<PostDto> getPostStream(String postId) {
+    return _firestore.collection('feeds').doc(postId).snapshots().map((doc) {
+      if (!doc.exists || doc.data() == null) {
+        throw Exception("해당 포스트를 찾을 수 없습니다.");
+      }
+      return PostDto.fromJson(
+        doc.data()!,
+        doc.id,
+        isLikedByMe: false, // Repository에서 처리
+      );
+    });
   }
 
   /// 좋아요 토글
@@ -115,6 +80,9 @@ class FirestorePostDataSource {
     final feedDocRef = _firestore.collection('feeds').doc(postId);
 
     await _firestore.runTransaction((transaction) async {
+      final feedDoc = await transaction.get(feedDocRef);
+      if (!feedDoc.exists) throw Exception("Post does not exist!");
+
       if (isCurrentlyLiked) {
         transaction.delete(likeDocRef);
         transaction.update(feedDocRef, {'likeCount': FieldValue.increment(-1)});
@@ -129,17 +97,18 @@ class FirestorePostDataSource {
     });
   }
 
-  /// 댓글 조회
-  Future<List<CommentDto>> fetchComments(String postId) async {
-    final snapshot = await _firestore
+  /// 댓글 조회 (Stream)
+  Stream<List<CommentDto>> getCommentsStream(String postId) {
+    return _firestore
         .collection('comments')
         .where('feedId', isEqualTo: postId)
         .orderBy('createdAt', descending: false)
-        .get();
-
-    return snapshot.docs
-        .map((doc) => CommentDto.fromJson(doc.data(), doc.id))
-        .toList();
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => CommentDto.fromJson(doc.data(), doc.id))
+              .toList();
+        });
   }
 
   /// 댓글 추가
@@ -150,12 +119,10 @@ class FirestorePostDataSource {
     String userNickname,
     String userImageUrl,
   ) async {
-    // runTransaction을 사용하여 두 작업을 하나로 묶음
     await _firestore.runTransaction((transaction) async {
       final commentRef = _firestore.collection('comments').doc();
       final feedDocRef = _firestore.collection('feeds').doc(postId);
 
-      // 1. 댓글 문서 생성 정보 설정
       transaction.set(commentRef, {
         'feedId': postId,
         'userId': userId,
@@ -165,7 +132,6 @@ class FirestorePostDataSource {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // 2. 해당 피드의 댓글 수 증가
       transaction.update(feedDocRef, {'commentCount': FieldValue.increment(1)});
     });
   }
@@ -198,5 +164,39 @@ class FirestorePostDataSource {
         'commentCount': FieldValue.increment(-1),
       });
     });
+  }
+
+  /// 내가 좋아요한 피드 ID 목록 가져오기 (Helper)
+  Future<Set<String>> fetchLikedFeedIds(
+    String userId,
+    List<String> feedIds,
+  ) async {
+    if (feedIds.isEmpty) return {};
+
+    // Firestore whereIn은 최대 10개까지만 지원하므로, 10개씩 끊어서 요청해야 함
+    // 하지만 일단 간단하게 feedIds가 10개 이하라고 가정하거나, chunk 처리를 함
+    // 피드 로드 limit이 20이므로 chunk 처리 필수.
+
+    final Set<String> likedFeedIds = {};
+    final chunks = [];
+    for (var i = 0; i < feedIds.length; i += 10) {
+      chunks.add(
+        feedIds.sublist(i, i + 10 > feedIds.length ? feedIds.length : i + 10),
+      );
+    }
+
+    for (var chunk in chunks) {
+      final snapshot = await _firestore
+          .collection('likes')
+          .where('userId', isEqualTo: userId)
+          .where('feedId', whereIn: chunk)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        likedFeedIds.add(doc['feedId'] as String);
+      }
+    }
+
+    return likedFeedIds;
   }
 }

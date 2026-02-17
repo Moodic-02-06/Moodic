@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
+import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_moodic/core/theme/app_color.dart';
+import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +18,21 @@ class MyPageGridView extends ConsumerWidget {
     if (myState == null) {
       return SizedBox.shrink();
     }
+
+    if (myState.feeds.isEmpty) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Text(
+            "작성된 피드가 없습니다",
+            style: AppTextStyles.bodyPrimary16w500.copyWith(
+              color: AppColors.gray500,
+            ),
+          ),
+        ),
+      );
+    }
+
     return GridView.builder(
       // 그리드뷰 높이를 자식만큼 줄여서 높이값을 지정해줌
       shrinkWrap: true,
@@ -28,18 +46,19 @@ class MyPageGridView extends ConsumerWidget {
       itemCount: myState.feeds.length,
       itemBuilder: (context, index) {
         final post = myState.feeds[index];
-        final String? artworkUrl = post.music.artwork;
-        final String? mood = post.mood;
+        final String artworkUrl = post.music.artwork;
+        final String mood = post.mood;
         return GestureDetector(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DetailPage(post: post)),
+            context.pushNamed(
+              AppRoutes.DetailPage.name,
+              pathParameters: {'id': post.postId},
+              extra: post,
             );
           },
           child: Container(
             decoration: BoxDecoration(
-              image: (artworkUrl != null && artworkUrl.isNotEmpty)
+              image: (artworkUrl.isNotEmpty)
                   ? DecorationImage(
                       image: NetworkImage(artworkUrl),
                       fit: BoxFit.cover,
@@ -52,12 +71,12 @@ class MyPageGridView extends ConsumerWidget {
 
             child: Stack(
               children: [
-                if (artworkUrl == null) Icon(Icons.abc),
+                if (artworkUrl.isEmpty) Icon(Icons.abc),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Align(
                     alignment: Alignment.topLeft,
-                    child: (mood != null && mood.isNotEmpty)
+                    child: (mood.isNotEmpty)
                         ? MoodBadge(moodLabel: mood.toString())
                         : null,
                   ),

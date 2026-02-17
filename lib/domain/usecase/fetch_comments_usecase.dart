@@ -6,7 +6,7 @@ class FetchCommentsUseCase {
 
   FetchCommentsUseCase(this.repository);
 
-  Future<List<Comment>> call(String postId) async {
-    return await repository.fetchComments(postId);
+  Stream<List<Comment>> call(String postId) {
+    return repository.getCommentsStream(postId);
   }
 }

@@ -197,13 +197,15 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                             .read(detailViewModelProvider(postId).notifier)
                             .deletePost(postId);
 
-                        if (!mounted) return;
-
                         // Sheet
-                        Navigator.of(context, rootNavigator: true).pop();
+                        if (context.mounted) {
+                          Navigator.of(context, rootNavigator: true).pop();
+                        }
 
                         // Route
-                        context.pop();
+                        if (context.mounted) {
+                          context.pop();
+                        }
                       },
                     );
                   },
