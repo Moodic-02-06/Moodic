@@ -130,13 +130,32 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(12).copyWith(bottom: 120),
-                // 로딩 인디케이터를 위해 +1
-                itemCount: homeState.feeds.length,
+                // 정렬 토글(헤더) + 피드 리스트
+                itemCount: homeState.feeds.length + 1,
                 separatorBuilder: (context, index) {
                   return const SizedBox(height: 16);
                 },
                 itemBuilder: (context, index) {
-                  final post = homeState.feeds[index];
+                  // 0번째 인덱스는 정렬 토글 (헤더)
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4, // 리스트 패딩 고려하여 약간 조정
+                        vertical: 0,
+                      ),
+                      child: _AnimatedSortToggle(
+                        sortType: homeState.sortType,
+                        onTap: (type) {
+                          if (homeState.sortType != type) {
+                            homeVM.loadFeeds(newSort: type);
+                          }
+                        },
+                      ),
+                    );
+                  }
+
+                  // 1번째 인덱스부터 피드 데이터 (실제 데이터 인덱스는 index - 1)
+                  final post = homeState.feeds[index - 1];
                   return GestureDetector(
                     onTap: () {
                       context.pushNamed(
@@ -150,6 +169,95 @@ class _HomePageState extends ConsumerState<HomePage> {
                 },
               ),
             ),
+    );
+  }
+}
+
+class _AnimatedSortToggle extends StatelessWidget {
+  final FeedSortType sortType;
+  final Function(FeedSortType) onTap;
+
+  const _AnimatedSortToggle({required this.sortType, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const double height = 48;
+    // 최신순(좌측) = -1.0, 인기순(우측) = 1.0
+    final alignX = sortType == FeedSortType.latest ? -1.0 : 1.0;
+
+    return Container(
+      height: height + 8,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.primary600,
+        borderRadius: BorderRadius.circular(61),
+      ),
+      child: Stack(
+        children: [
+          // 움직이는 배경 (Thumb)
+          AnimatedAlign(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            alignment: Alignment(alignX, 0),
+            child: FractionallySizedBox(
+              widthFactor: 0.5,
+              heightFactor: 1.0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.primary900,
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // 2. 텍스트 버튼들 (Overlay)
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(FeedSortType.latest),
+                  child: Center(
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 250),
+                      style: AppTextStyles.bodyPrimary16w600.copyWith(
+                        color: sortType == FeedSortType.latest
+                            ? AppColors.text900
+                            : AppColors.gray500,
+                      ),
+                      child: const Text('최신 글'),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(FeedSortType.mostLiked),
+                  child: Center(
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 250),
+                      style: AppTextStyles.bodyPrimary16w600.copyWith(
+                        color: sortType == FeedSortType.mostLiked
+                            ? AppColors.text900
+                            : AppColors.gray500,
+                      ),
+                      child: const Text('인기 글'),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

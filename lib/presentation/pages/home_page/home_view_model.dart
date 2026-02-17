@@ -82,8 +82,17 @@ class HomeViewModel extends Notifier<HomeState> {
         (fetchedFeeds) {
           // 정렬 로직
           if (state.sortType == FeedSortType.mostLiked) {
-            fetchedFeeds.sort((a, b) => b.likeCount.compareTo(a.likeCount));
+            fetchedFeeds.sort((a, b) {
+              // 1순위: 좋아요 수 내림차순
+              final compare = b.likeCount.compareTo(a.likeCount);
+              // 2순위: 작성일 내림차순 (좋아요 수가 같을 경우)
+              if (compare == 0) {
+                return b.createdAt.compareTo(a.createdAt);
+              }
+              return compare;
+            });
           } else {
+            // 최신순
             fetchedFeeds.sort((a, b) => b.createdAt.compareTo(a.createdAt));
           }
 
