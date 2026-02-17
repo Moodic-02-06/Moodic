@@ -13,19 +13,32 @@ class PostRepositoryImpl implements PostRepository {
 
   PostRepositoryImpl(this.dataSource, this.storageDataSource);
 
-  /// 피드 최신 20개 가져오기
+  /// 피드 최신 20개 가져오기 (Stream)
   @override
-  Future<List<Post>> fetchFeeds({
+  Stream<List<Post>> getFeedsStream({
     int limit = 20,
     String? userId,
     String? authorId,
-  }) async {
-    final dtos = await dataSource.fetchFeeds(
-      limit: limit,
-      currentUserId: userId,
-      authorId: authorId,
+  }) {
+    return dataSource.getFeedsStream(limit: limit, authorId: authorId).asyncMap(
+      (dtos) async {
+        if (dtos.isEmpty) return <Post>[];
+
+        // 로그인 안함 -> 전부 좋아요 false
+        if (userId == null) {
+          return dtos.map((dto) => dto.toEntity()).toList();
+        }
+
+        // 로그인 함 -> 좋아요 여부 확인
+        final feedIds = dtos.map((e) => e.postId).toList();
+        final likedSet = await dataSource.fetchLikedFeedIds(userId, feedIds);
+
+        return dtos.map((dto) {
+          final isLiked = likedSet.contains(dto.postId);
+          return dto.toEntity().copyWith(isLikedByMe: isLiked);
+        }).toList();
+      },
     );
-    return dtos.map((dto) => dto.toEntity()).toList();
   }
 
   /// 월별 포스트 가져오기
@@ -39,11 +52,19 @@ class PostRepositoryImpl implements PostRepository {
     return dtos.map((dto) => dto.toEntity()).toList();
   }
 
-  /// 특정 포스트 가져오기 (상세화면)
+  /// 특정 포스트 가져오기 (Stream)
   @override
-  Future<Post> fetchPostById(String postId, String? userId) async {
-    final dto = await dataSource.fetchPostById(postId, userId);
-    return dto.toEntity();
+  Stream<Post> getPostStream(String postId, String? userId) {
+    return dataSource.getPostStream(postId).asyncMap((dto) async {
+      bool isLiked = false;
+      if (userId != null) {
+        final likedSet = await dataSource.fetchLikedFeedIds(userId, [
+          dto.postId,
+        ]);
+        isLiked = likedSet.contains(dto.postId);
+      }
+      return dto.toEntity().copyWith(isLikedByMe: isLiked);
+    });
   }
 
   /// 좋아요 토글
@@ -56,11 +77,12 @@ class PostRepositoryImpl implements PostRepository {
     return dataSource.toggleLike(postId, userId, isCurrentlyLiked);
   }
 
-  /// 댓글 조회
+  /// 댓글 조회 (Stream)
   @override
-  Future<List<Comment>> fetchComments(String postId) async {
-    final dtos = await dataSource.fetchComments(postId);
-    return dtos.map((dto) => dto.toEntity()).toList();
+  Stream<List<Comment>> getCommentsStream(String postId) {
+    return dataSource.getCommentsStream(postId).map((dtos) {
+      return dtos.map((dto) => dto.toEntity()).toList();
+    });
   }
 
   /// 댓글 추가
@@ -85,9 +107,14 @@ class PostRepositoryImpl implements PostRepository {
   @override
   Future<List<String>> uploadImages(String userId, List<String> paths) async {
     return Future.wait(
-      paths.asMap().entries.map((entry) {
+      paths.asMap().entries.map((entry) async {
         final index = entry.key;
         final path = entry.value;
+
+        // 이미 원격 URL인 경우 업로드 생략
+        if (path.startsWith('http')) {
+          return path;
+        }
 
         return storageDataSource.uploadImage(
           path: path,

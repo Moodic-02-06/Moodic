@@ -1,7 +1,7 @@
 import 'package:flutter_moodic/data/repository/user_repository_impl.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
-import 'package:flutter_moodic/domain/usecase/fetch_feeds_usecase.dart';
+import 'package:flutter_moodic/domain/usecase/fetch_user_posts_usecase.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,18 +56,18 @@ class MyPageState {
 }
 
 /// 마이페이지 피드 목록 Provider (UserUID 기반)
-/// UserUID가 변경되거나 invalidate 될 때만 새로고침됨.
-/// 프로필(닉네임, 이미지 등) 변경 시에는 Rebuild 되지 않음.
-final myPageFeedsProvider = FutureProvider.autoDispose<List<Post>>((ref) async {
+/// StreamProvider로 변경하여 실시간 업데이트 지원
+final myPageFeedsProvider = StreamProvider.autoDispose<List<Post>>((ref) {
   // UserProvider의 전체 상태를 구독하지 않고, UID만 구독하여 최적화
   final uid = ref.watch(userProvider.select((value) => value.value?.uid));
 
-  if (uid == null) return [];
+  if (uid == null) return Stream.value([]);
 
   final repository = ref.read(postRepositoryProvider);
-  final fetchFeedsUseCase = FetchFeedsUseCase(repository);
+  final fetchUserPostsUseCase = FetchUserPostsUseCase(repository);
 
-  return await fetchFeedsUseCase.call(limit: 50, userId: uid, authorId: uid);
+  // await 없이 Stream 반환
+  return fetchUserPostsUseCase.call(uid);
 });
 
 class MyPageViewModel extends AsyncNotifier<MyPageState> {
@@ -127,10 +127,6 @@ class MyPageViewModel extends AsyncNotifier<MyPageState> {
 
       // 성공 시: userProvider가 자동으로 최신 데이터를 가져오므로
       // 별도의 state 갱신 없이 build가 다시 호출되어 isUploading이 false가 된 상태로 돌아올 것임.
-      // 하지만 명시적으로 업로드 완료 상태를 잡아주고 싶다면 아래와 같이 할 수 있음.
-      // 다만 build가 비동기로 호출될 때 타이밍 이슈가 있을 수 있으니 주의.
-
-      // 여기서는 성공했음을 가정하고, userProvider가 갱신되기를 기다리는 자연스러운 흐름을 따름.
     } catch (e) {
       // 실패 시: 에러 메시지 설정 및 로딩 상태 해제, 원래 값으로 복구는 복잡하므로 에러만 표시
       if (state.hasValue) {

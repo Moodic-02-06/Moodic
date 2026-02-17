@@ -71,7 +71,7 @@ class MyPage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${data.nickname}',
+                          data.nickname,
                           style: AppTextStyles.titlePrimary20w600.copyWith(
                             color: AppColors.text900,
                           ),
@@ -103,7 +103,7 @@ class MyPage extends ConsumerWidget {
               // 디버깅용 로그
               Builder(
                 builder: (context) {
-                  print("MyPage build: feeds.length = ${data.feeds.length}");
+                  debugPrint("마이페이지: feeds.length = ${data.feeds.length}");
                   return SizedBox.shrink();
                 },
               ),

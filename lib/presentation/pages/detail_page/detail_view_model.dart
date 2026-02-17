@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
-import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
 import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
@@ -38,63 +39,52 @@ class DetailState {
 
 class DetailViewModel extends Notifier<DetailState> {
   late final String postId;
+  StreamSubscription<Post>? _postSubscription;
+  StreamSubscription<List<Comment>>? _commentSubscription;
+
   DetailViewModel(this.postId);
 
   @override
   DetailState build() {
-    _load();
+    ref.onDispose(() {
+      _postSubscription?.cancel();
+      _commentSubscription?.cancel();
+    });
+
+    _subscribe();
 
     return const DetailState(isLoading: true);
   }
 
-  Future<void> _load() async {
-    try {
-      final currentUserId = ref.read(userProvider).value?.uid;
+  void _subscribe() {
+    final currentUserId = ref.read(userProvider).value?.uid;
+    final repository = ref.read(postRepositoryProvider);
 
-      final post = await ref
-          .read(postRepositoryProvider)
-          .fetchPostById(postId, currentUserId);
+    _postSubscription = repository
+        .getPostStream(postId, currentUserId)
+        .listen(
+          (post) {
+            state = state.copyWith(post: post, isLoading: false);
+          },
+          onError: (e) {
+            state = state.copyWith(error: e.toString(), isLoading: false);
+          },
+        );
 
-      final comments = await ref
-          .read(postRepositoryProvider)
-          .fetchComments(postId);
-      state = state.copyWith(post: post, comments: comments, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
-    }
+    _commentSubscription = repository
+        .getCommentsStream(postId)
+        .listen(
+          (comments) {
+            state = state.copyWith(comments: comments);
+          },
+          onError: (e) {
+            debugPrint('댓글 로드 실패: $e');
+          },
+        );
   }
 
   Future<void> addComment(String content, UserEntity user) async {
-    // 이전 상태 백업
-    final previousComments = state.comments;
-    final previousPost = state.post;
-
-    // 임시 댓글 생성 (UI에 즉시 보여줄 용도)
-    final tempComment = Comment(
-      postId: postId,
-      commentId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
-      userId: user.uid,
-      userNickname: user.nickname,
-      userImageUrl: user.profileImage ?? '',
-      content: content,
-      createdAt: DateTime.now(),
-    );
-
-    // 선반영
-    state = state.copyWith(
-      comments: [...state.comments, tempComment],
-      post: previousPost?.copyWith(
-        commentCount: (previousPost.commentCount) + 1,
-      ),
-    );
-
-    // 홈 피드와 동기화
-    ref
-        .read(homeViewModelProvider.notifier)
-        .syncCommentCount(postId, (previousPost?.commentCount ?? 0) + 1);
-
     try {
-      // 실제 DB 저장
       await ref
           .read(postRepositoryProvider)
           .addComment(
@@ -104,16 +94,9 @@ class DetailViewModel extends Notifier<DetailState> {
             user.nickname,
             user.profileImage ?? '',
           );
-
-      // 서버 데이터와 최종 동기화
-      await _load();
+      // Stream이 자동 업데이트
     } catch (e) {
-      // 실패 시 롤백
-      state = state.copyWith(
-        comments: previousComments,
-        post: previousPost,
-        error: '댓글 등록 실패',
-      );
+      state = state.copyWith(error: '댓글 등록 실패');
     }
   }
 
@@ -121,56 +104,13 @@ class DetailViewModel extends Notifier<DetailState> {
     final currentPost = state.post;
     if (currentPost == null) return;
 
-    final newIsLiked = !currentPost.isLikedByMe;
-    final newLikeCount = newIsLiked
-        ? currentPost.likeCount + 1
-        : currentPost.likeCount - 1;
-
-    // 1. 디테일 페이지 UI 선반영
-    state = state.copyWith(
-      post: currentPost.copyWith(
-        isLikedByMe: newIsLiked,
-        likeCount: newLikeCount,
-      ),
-    );
-
-    // 2. 홈 피드 리스트도 즉시 동기화
-    ref
-        .read(homeViewModelProvider.notifier)
-        .syncLikeStatus(postId, newIsLiked, newLikeCount);
-
     try {
-      // 3. 실제 DB 저장 (UseCase 호출)
       await ref
           .read(toggleLikeUseCaseProvider)
           .call(currentPost.postId, user.uid, currentPost.isLikedByMe);
+      // Stream이 자동 업데이트
     } catch (e) {
-      // 4. 실패 시 롤백 (홈과 디테일 모두 원래대로)
-      state = state.copyWith(post: currentPost);
-      ref
-          .read(homeViewModelProvider.notifier)
-          .syncLikeStatus(
-            postId,
-            currentPost.isLikedByMe,
-            currentPost.likeCount,
-          );
-    }
-  }
-
-  Future<void> refreshDetail() async {
-    try {
-      final currentUserId = ref.read(userProvider).value?.uid;
-      final post = await ref
-          .read(postRepositoryProvider)
-          .fetchPostById(postId, currentUserId);
-
-      final comments = await ref
-          .read(postRepositoryProvider)
-          .fetchComments(postId);
-
-      state = state.copyWith(post: post, comments: comments, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
+      debugPrint('좋아요 실패: $e');
     }
   }
 
@@ -188,41 +128,11 @@ class DetailViewModel extends Notifier<DetailState> {
   }
 
   Future<void> deleteComment(String commentId) async {
-    final previousComments = state.comments;
-    final previousPost = state.post;
-
-    // 1. UI 선반영 (Optimistic Update)
-    state = state.copyWith(
-      comments: state.comments.where((c) => c.commentId != commentId).toList(),
-      post: previousPost?.copyWith(
-        commentCount: (previousPost.commentCount) - 1,
-      ),
-    );
-
-    // 2. 홈 화면 동기화
-    ref
-        .read(homeViewModelProvider.notifier)
-        .syncCommentCount(postId, (previousPost?.commentCount ?? 0) - 1);
-
     try {
-      // 3. 실제 DB 요청
       await ref.read(postRepositoryProvider).deleteComment(postId, commentId);
-
-      // 4. 삭제 성공 후 최신 데이터 동기화 (새로고침)
-      await _load();
     } catch (e) {
       debugPrint('댓글 삭제 실패: $e');
-      // 5. 실패 시 롤백
-      state = state.copyWith(
-        comments: previousComments,
-        post: previousPost,
-        error: '댓글 삭제 실패',
-      );
-
-      // 홈 화면 롤백
-      ref
-          .read(homeViewModelProvider.notifier)
-          .syncCommentCount(postId, previousPost?.commentCount ?? 0);
+      state = state.copyWith(error: '댓글 삭제 실패');
     }
   }
 }

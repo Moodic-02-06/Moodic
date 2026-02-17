@@ -42,12 +42,12 @@ class EntityGridView extends ConsumerWidget {
       itemCount: myState.feeds.length,
       itemBuilder: (context, index) {
         final feed = myState.feeds[index];
-        final String? artworkUrl = feed.music.artwork;
-        final String? mood = feed.mood;
+        final String artworkUrl = feed.music.artwork;
+        final String mood = feed.mood;
 
         return Container(
           decoration: BoxDecoration(
-            image: (artworkUrl != null && artworkUrl.isNotEmpty)
+            image: (artworkUrl.isNotEmpty)
                 ? DecorationImage(
                     image: NetworkImage(artworkUrl),
                     fit: BoxFit.cover,
@@ -58,12 +58,12 @@ class EntityGridView extends ConsumerWidget {
           ),
           child: Stack(
             children: [
-              if (artworkUrl == null) const Icon(Icons.abc),
+              if (artworkUrl.isEmpty) const Icon(Icons.abc),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Align(
                   alignment: Alignment.topLeft,
-                  child: (mood != null && mood.isNotEmpty)
+                  child: (mood.isNotEmpty)
                       ? MoodBadge(moodLabel: mood.toString())
                       : null,
                 ),
