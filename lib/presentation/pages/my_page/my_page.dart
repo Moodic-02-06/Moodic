@@ -4,7 +4,7 @@ import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/emotion_graph.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/widgets/grid_view.dart';
-import 'package:flutter_moodic/presentation/pages/my_page/widgets/entity_grid_view.dart';
+
 import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -107,7 +107,7 @@ class MyPage extends ConsumerWidget {
                   return SizedBox.shrink();
                 },
               ),
-              (data.feeds.isNotEmpty) ? MyPageGridView() : EntityGridView(),
+              MyPageGridView(),
             ],
           ),
         ),
