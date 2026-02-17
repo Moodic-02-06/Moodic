@@ -13,6 +13,11 @@ enum AppRoutes {
     absolutePath: '/temp_profile',
     path: '/temp_profile',
     name: 'temp_profile',
+  ),
+  MyPageEdit(
+    absolutePath: '/mypage/edit',
+    path: '/mypage/edit',
+    name: 'mypage_edit',
   );
 
   final String absolutePath;

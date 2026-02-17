@@ -16,6 +16,9 @@ enum MoodType {
   const MoodType(this.emoji, this.label, this.color);
 
   static MoodType fromLabel(String label) {
-    return MoodType.values.firstWhere((e) => e.label == label);
+    return MoodType.values.firstWhere(
+      (e) => e.label == label,
+      orElse: () => MoodType.happy,
+    );
   }
 }

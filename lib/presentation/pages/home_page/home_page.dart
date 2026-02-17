@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
-import 'package:flutter_moodic/core/theme/fonts.dart';
 
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/widgets/animated_sort_toggle.dart';
+import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_empty_state.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_feed_card.dart';
-import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -78,65 +78,38 @@ class _HomePageState extends ConsumerState<HomePage> {
         title: Image.asset('assets/images/logo.png', width: 70),
       ),
       body: homeState.feeds.isEmpty
-          ? RefreshIndicator(
-              onRefresh: () => homeVM.refresh(),
-              child: Stack(
-                children: [
-                  ListView(), // 빈 리스트뷰 (RefreshIndicator 동작용)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '아직 작성된 피드가 없어요.\n첫 글을 작성해보세요!',
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.bodyPrimary16w600.copyWith(
-                              color: AppColors.gray500,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const WritePage(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.edit),
-                            label: const Text('새 글 작성'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? HomeEmptyState(onRefresh: () => homeVM.refresh())
           : RefreshIndicator(
               onRefresh: () => homeVM.refresh(),
               child: ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(12).copyWith(bottom: 120),
-                // 로딩 인디케이터를 위해 +1
-                itemCount: homeState.feeds.length,
+                // 정렬 토글(헤더) + 피드 리스트
+                itemCount: homeState.feeds.length + 1,
                 separatorBuilder: (context, index) {
                   return const SizedBox(height: 16);
                 },
                 itemBuilder: (context, index) {
-                  final post = homeState.feeds[index];
+                  // 0번째 인덱스는 정렬 토글 (헤더)
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4, // 리스트 패딩 고려하여 약간 조정
+                        vertical: 0,
+                      ),
+                      child: AnimatedSortToggle(
+                        sortType: homeState.sortType,
+                        onTap: (type) {
+                          if (homeState.sortType != type) {
+                            homeVM.loadFeeds(newSort: type);
+                          }
+                        },
+                      ),
+                    );
+                  }
+
+                  // 1번째 인덱스부터 피드 데이터 (실제 데이터 인덱스는 index - 1)
+                  final post = homeState.feeds[index - 1];
                   return GestureDetector(
                     onTap: () {
                       context.pushNamed(

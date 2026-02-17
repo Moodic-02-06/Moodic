@@ -77,7 +77,10 @@ class MyPageGridView extends ConsumerWidget {
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: (mood.isNotEmpty)
-                        ? MoodBadge(moodLabel: mood.toString())
+                        ? MoodBadge(
+                            moodLabel: mood.toString(),
+                            useDarkBackground: true,
+                          )
                         : null,
                   ),
                 ),

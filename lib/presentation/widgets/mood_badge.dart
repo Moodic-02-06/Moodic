@@ -5,22 +5,26 @@ import 'package:flutter_moodic/domain/entity/mood_type.dart';
 
 class MoodBadge extends StatelessWidget {
   final String moodLabel;
+  final bool useDarkBackground;
 
-  const MoodBadge({super.key, required this.moodLabel});
+  const MoodBadge({
+    super.key,
+    required this.moodLabel,
+    this.useDarkBackground = false,
+  });
+
+  static const double _borderRadius = 23.0;
 
   @override
   Widget build(BuildContext context) {
     // Label 문자열을 기반으로 MoodType 찾기 (없으면 기본값 happy)
-    final moodData = MoodType.values.firstWhere(
-      (e) => e.label == moodLabel,
-      orElse: () => MoodType.happy,
-    );
+    final moodData = MoodType.fromLabel(moodLabel);
 
-    return Container(
+    Widget badgeContent = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: moodData.color.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(23),
+        borderRadius: BorderRadius.circular(_borderRadius),
         border: Border.all(color: moodData.color),
       ),
       child: Row(
@@ -37,5 +41,17 @@ class MoodBadge extends StatelessWidget {
         ],
       ),
     );
+
+    if (useDarkBackground) {
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.primary900,
+          borderRadius: BorderRadius.circular(_borderRadius),
+        ),
+        child: badgeContent,
+      );
+    }
+
+    return badgeContent;
   }
 }
