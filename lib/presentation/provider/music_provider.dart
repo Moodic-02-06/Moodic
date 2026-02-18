@@ -1,3 +1,4 @@
+import 'package:flutter_moodic/data/data_source/post_remote_data_source.dart';
 import 'package:flutter_moodic/domain/repository/music_repository.dart';
 import 'package:flutter_moodic/domain/usecase/search_music_usecase.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,8 +12,14 @@ final musicRemoteDataSourceProvider = Provider<ItunesApi>((ref) {
   return ItunesApi();
 });
 
+final postRemoteDataSourceProvider = Provider<PostRemoteDataSource>((ref) {
+  return PostRemoteDataSource();
+});
+
 final musicRepositoryProvider = Provider<MusicRepository>((ref) {
-  return MusicRepositoryImpl(ref.read(musicRemoteDataSourceProvider));
+  final api = ref.read(musicRemoteDataSourceProvider);
+  final postDataSource = ref.read(postRemoteDataSourceProvider);
+  return MusicRepositoryImpl(api, postDataSource);
 });
 
 final searchMusicUseCaseProvider = Provider<SearchMusicUseCase>((ref) {
