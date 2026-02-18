@@ -9,6 +9,9 @@ abstract class PostRepository {
     String? authorId,
   });
 
+  /// 내가 좋아요한 피드 목록 가져오기
+  Stream<List<Post>> getLikedPostsStream(String userId);
+
   /// 월별 포스트 가져오기
   Future<List<Post>> fetchPostsByMonth(String userId, int year, int month);
 

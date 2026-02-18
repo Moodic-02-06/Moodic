@@ -4,6 +4,7 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
+import 'package:flutter_moodic/presentation/pages/like_page/like_page.dart';
 import 'package:flutter_moodic/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
@@ -143,8 +144,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.FavoritePage.path,
-                name: AppRoutes.FavoritePage.name,
-                builder: (context, state) => const SizedBox(),
+                builder: (context, state) => const LikePage(),
               ),
             ],
           ),

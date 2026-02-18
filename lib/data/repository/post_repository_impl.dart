@@ -41,6 +41,14 @@ class PostRepositoryImpl implements PostRepository {
     );
   }
 
+  /// 내가 좋아요한 피드 목록 가져오기
+  @override
+  Stream<List<Post>> getLikedPostsStream(String userId) {
+    return dataSource.fetchLikedFeedsStream(userId).map((dtos) {
+      return dtos.map((dto) => dto.toEntity()).toList();
+    });
+  }
+
   /// 월별 포스트 가져오기
   @override
   Future<List<Post>> fetchPostsByMonth(

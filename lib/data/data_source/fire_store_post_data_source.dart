@@ -199,4 +199,63 @@ class FirestorePostDataSource {
 
     return likedFeedIds;
   }
+
+  /// 내가 좋아요한 피드 목록 가져오기 (Stream)
+  Stream<List<PostDto>> fetchLikedFeedsStream(String userId) {
+    // 1. likes 컬렉션에서 내가 좋아요한 목록을 실시간 감시
+    return _firestore
+        .collection('likes')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          if (snapshot.docs.isEmpty) {
+            return [];
+          }
+
+          // 2. feedId 목록 추출
+          final feedIds = snapshot.docs
+              .map((doc) => doc['feedId'] as String)
+              .toList();
+
+          // 3. feeds 컬렉션에서 해당 피드 정보 조회
+          // whereIn은 최대 10개 제한이 있으므로 청크 처리 필요
+          // (여기서는 간단히 20개 제한으로 가정하고 상위 10개만 조회하거나 반복 조회)
+          final List<PostDto> posts = [];
+          final chunks = [];
+          for (var i = 0; i < feedIds.length; i += 10) {
+            chunks.add(
+              feedIds.sublist(
+                i,
+                i + 10 > feedIds.length ? feedIds.length : i + 10,
+              ),
+            );
+          }
+
+          for (var chunk in chunks) {
+            final feedSnapshot = await _firestore
+                .collection('feeds')
+                .where(FieldPath.documentId, whereIn: chunk)
+                .get();
+
+            posts.addAll(
+              feedSnapshot.docs.map(
+                (doc) => PostDto.fromJson(
+                  doc.data(),
+                  doc.id,
+                  isLikedByMe: true, // 내가 좋아요한 목록이므로 true
+                ),
+              ),
+            );
+          }
+
+          // 4. 원래 좋아요 순서대로 정렬 (Firestore whereIn은 순서 보장 안 함)
+          // feedIds 순서(좋아요 최신순)에 맞춰 posts 정렬
+          final Map<String, PostDto> postMap = {
+            for (var post in posts) post.postId: post,
+          };
+
+          return feedIds.map((id) => postMap[id]).whereType<PostDto>().toList();
+        });
+  }
 }
