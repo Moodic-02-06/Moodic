@@ -33,8 +33,9 @@ abstract class PostRepository {
     String userId,
     String content,
     String nickname,
-    String profileImageUrl,
-  );
+    String profileImageUrl, {
+    String? parentId,
+  });
 
   /// 포스트 작성
   Future<void> createPost(Post post);

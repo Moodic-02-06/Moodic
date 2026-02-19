@@ -151,8 +151,9 @@ class FirestorePostDataSource {
     String userId,
     String content,
     String userNickname,
-    String userImageUrl,
-  ) async {
+    String userImageUrl, {
+    String? parentId,
+  }) async {
     await _firestore.runTransaction((transaction) async {
       final commentRef = _firestore.collection('comments').doc();
       final feedDocRef = _firestore.collection('feeds').doc(postId);
@@ -164,6 +165,7 @@ class FirestorePostDataSource {
         'userImageUrl': userImageUrl,
         'content': content,
         'createdAt': FieldValue.serverTimestamp(),
+        'parentId': parentId,
       });
 
       transaction.update(feedDocRef, {'commentCount': FieldValue.increment(1)});

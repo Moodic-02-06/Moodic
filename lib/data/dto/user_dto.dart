@@ -7,6 +7,10 @@ class UserDto extends UserEntity {
     required super.profileImage,
     required super.bio,
     required super.isFirst,
+    required super.postCount,
+    required super.followerCount,
+    required super.followingCount,
+    required super.isNotificationEnabled,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
@@ -16,6 +20,10 @@ class UserDto extends UserEntity {
       profileImage: json['profileImage'] as String? ?? '',
       bio: json['bio'] as String? ?? '',
       isFirst: json['isFirst'] as bool? ?? true,
+      postCount: json['postCount'] as int? ?? 0,
+      followerCount: json['followerCount'] as int? ?? 0,
+      followingCount: json['followingCount'] as int? ?? 0,
+      isNotificationEnabled: json['isNotificationEnabled'] as bool? ?? true,
     );
   }
 
@@ -26,6 +34,10 @@ class UserDto extends UserEntity {
       'profileImage': profileImage,
       'bio': bio,
       'isFirst': isFirst,
+      'postCount': postCount,
+      'followerCount': followerCount,
+      'followingCount': followingCount,
+      'isNotificationEnabled': isNotificationEnabled,
     };
   }
 
@@ -36,6 +48,10 @@ class UserDto extends UserEntity {
       profileImage: profileImage,
       bio: bio,
       isFirst: isFirst,
+      postCount: postCount,
+      followerCount: followerCount,
+      followingCount: followingCount,
+      isNotificationEnabled: isNotificationEnabled,
     );
   }
 }

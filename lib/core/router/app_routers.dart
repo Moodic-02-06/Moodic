@@ -23,6 +23,15 @@ enum AppRoutes {
     absolutePath: '/search/result',
     path: '/search/result',
     name: 'search_result',
+  UserPage(
+    absolutePath: '/user/:userId',
+    path: '/user/:userId',
+    name: 'user_page',
+  ),
+  FollowList(
+    absolutePath: '/follow_list/:userId',
+    path: '/follow_list/:userId',
+    name: 'follow_list',
   );
 
   final String absolutePath;

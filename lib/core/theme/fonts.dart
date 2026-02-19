@@ -64,4 +64,11 @@ class AppTextStyles {
     fontSize: 10,
     fontWeight: FontWeight.w500,
   );
+
+  /// Body-primary: 기본 본문 (14px / SemiBold)
+  static const TextStyle bodyPrimary14w600 = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
 }

@@ -94,6 +94,8 @@ class TempProfileViewModel extends Notifier<TempProfileState> {
         profileImage: firebaseImageUrl,
         bio: state.bio.trim(),
         isFirst: false,
+        followerCount: 0,
+        followingCount: 0,
       );
 
       // 3. DB 저장

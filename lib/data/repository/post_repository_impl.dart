@@ -100,14 +100,16 @@ class PostRepositoryImpl implements PostRepository {
     String userId,
     String content,
     String userNickname,
-    String userImageUrl,
-  ) {
+    String userImageUrl, {
+    String? parentId,
+  }) {
     return dataSource.addComment(
       postId,
       userId,
       content,
       userNickname,
       userImageUrl,
+      parentId: parentId,
     );
   }
 
