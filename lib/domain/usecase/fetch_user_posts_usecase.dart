@@ -6,11 +6,11 @@ class FetchUserPostsUseCase {
 
   FetchUserPostsUseCase(this.repository);
 
-  Stream<List<Post>> call(String userId) {
+  Stream<List<Post>> call(String authorId, {String? currentUserId}) {
     return repository.getFeedsStream(
-      limit: 50, // 마이페이지는 더 많이?
-      authorId: userId,
-      userId: userId, // 내 좋아요 상태도 확인해야 하므로
+      limit: 50,
+      authorId: authorId,
+      userId: currentUserId, // 내 좋아요 상태 확인용 (로그인한 유저 ID)
     );
   }
 }

@@ -9,17 +9,21 @@ import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MyPageGridView extends ConsumerWidget {
-  const MyPageGridView({super.key});
+  final String? userId;
+  const MyPageGridView({super.key, this.userId});
 
   @override
-  Widget build(BuildContext contex, WidgetRef ref) {
-    final myPageState = ref.watch(myPageViewModelProvider);
-    final myState = myPageState.value;
-    if (myState == null) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myPageState = ref.watch(myPageViewModelProvider(userId));
+    // Notifier는 AsyncValue가 아니므로 바로 상태에 접근
+
+    if (myPageState.isLoading && myPageState.feeds.isEmpty) {
+      // 초기 로딩
       return SizedBox.shrink();
+      // 혹은 return Center(child: CircularProgressIndicator()); 하지만 GridView라 context에 따라 다를 수 있음
     }
 
-    if (myState.feeds.isEmpty) {
+    if (myPageState.feeds.isEmpty) {
       return SizedBox(
         height: 200,
         child: Center(
@@ -43,9 +47,9 @@ class MyPageGridView extends ConsumerWidget {
         mainAxisSpacing: 6,
         crossAxisCount: 3,
       ),
-      itemCount: myState.feeds.length,
+      itemCount: myPageState.feeds.length,
       itemBuilder: (context, index) {
-        final post = myState.feeds[index];
+        final post = myPageState.feeds[index];
         final String artworkUrl = post.music.artwork;
         final String mood = post.mood;
         return GestureDetector(

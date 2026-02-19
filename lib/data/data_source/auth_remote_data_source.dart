@@ -93,6 +93,8 @@ class AuthRemoteDataSource {
       nickname: user.displayName ?? '익명',
       profileImage: user.photoURL,
       bio: '',
+      followerCount: 0,
+      followingCount: 0,
     );
   }
 
@@ -124,9 +126,33 @@ class AuthRemoteDataSource {
               profileImage: user.photoURL,
               bio: '',
               isFirst: true,
+              followerCount: 0,
+              followingCount: 0,
             );
           });
     });
+  }
+
+  /// 소셜 로그인 등의 과정에서 유저 정보가 있는지 확인하고 없으면 생성
+  Future<UserDto> getOrCreateUser(UserEntity user) async {
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      return UserDto.fromJson(doc.data()!);
+    } else {
+      final newUser = UserDto(
+        uid: user.uid,
+        nickname: user.nickname,
+        profileImage: user.profileImage,
+        bio: user.bio,
+        isFirst: true,
+        postCount: 0,
+        followerCount: 0,
+        followingCount: 0,
+        isNotificationEnabled: true,
+      );
+      await _firestore.collection('users').doc(user.uid).set(newUser.toJson());
+      return newUser;
+    }
   }
 
   Future<bool> checkUserExists(String uid) async {
@@ -166,7 +192,22 @@ class AuthRemoteDataSource {
         await doc.reference.delete();
       }
 
-      // 2-2. 유저 문서 삭제
+      // 2-2. 유저의 댓글 익명화 ("탈퇴된 사용자"로 변경)
+      final commentsSnapshot = await _firestore
+          .collection('comments')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in commentsSnapshot.docs) {
+        batch.update(doc.reference, {
+          'userNickname': '탈퇴된 사용자',
+          'userImageUrl': '', // 이미지 제거
+        });
+      }
+      await batch.commit();
+
+      // 2-3. 유저 문서 삭제
       await _firestore.collection('user').doc(user.uid).delete();
 
       // 3. Firebase Auth 계정 삭제

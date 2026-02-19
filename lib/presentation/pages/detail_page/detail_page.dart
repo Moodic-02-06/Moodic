@@ -7,7 +7,7 @@ import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/widgets/comment_input_field.dart';
-import 'package:flutter_moodic/presentation/pages/detail_page/widgets/comment_list_item.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/comment_thread_item.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/widgets/image_carousel.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/widgets/interaction_bar.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/widgets/music_player_card.dart';
@@ -75,6 +75,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       bottomSheet: CommentInputField(
         controller: _commentController,
         onSubmit: _submitComment,
+        postId: widget.post.postId,
       ),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(),
@@ -112,14 +113,41 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                 const Divider(color: AppColors.gray100, height: 32),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 120.0),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: comments.length,
-                    itemBuilder: (context, index) {
-                      return CommentListItem(
-                        comment: comments[index],
-                        postId: widget.post.postId,
+                  child: Builder(
+                    builder: (context) {
+                      // 댓글 그룹화 로직
+                      // 1. 부모 댓글(parentId == null) 필터링
+                      final parentComments = comments
+                          .where((c) => c.parentId == null)
+                          .toList();
+
+                      // 생성일 순 정렬 (오래된 순)
+                      parentComments.sort(
+                        (a, b) => a.createdAt.compareTo(b.createdAt),
+                      );
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: parentComments.length,
+                        itemBuilder: (context, index) {
+                          final parent = parentComments[index];
+                          // 2. 해당 부모의 대댓글 찾기
+                          final replies = comments
+                              .where((c) => c.parentId == parent.commentId)
+                              .toList();
+
+                          // 대댓글도 생성일 순 정렬
+                          replies.sort(
+                            (a, b) => a.createdAt.compareTo(b.createdAt),
+                          );
+
+                          return CommentThreadItem(
+                            parentComment: parent,
+                            replies: replies,
+                            postId: widget.post.postId,
+                          );
+                        },
                       );
                     },
                   ),

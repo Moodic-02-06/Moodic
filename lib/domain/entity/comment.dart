@@ -6,6 +6,7 @@ class Comment {
   final String userImageUrl;
   final String content;
   final DateTime createdAt;
+  final String? parentId;
 
   Comment({
     required this.commentId,
@@ -15,5 +16,6 @@ class Comment {
     required this.userImageUrl,
     required this.content,
     required this.createdAt,
+    this.parentId,
   });
 }

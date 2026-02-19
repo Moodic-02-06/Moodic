@@ -33,6 +33,7 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
     final user = ref.read(userProvider).value;
     _nicknameController = TextEditingController(text: user?.nickname ?? "");
     _bioController = TextEditingController(text: user?.bio ?? "");
+    _isSwitched = user?.isNotificationEnabled ?? true;
   }
 
   @override
@@ -60,11 +61,12 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
     if (_formKey.currentState!.validate() && user != null) {
       // 뷰모델을 통해 저장 (낙관적 업데이트)
       ref
-          .read(myPageViewModelProvider.notifier)
+          .read(myPageViewModelProvider(null).notifier)
           .saveProfile(
             imageFile: _xFile != null ? File(_xFile!.path) : null,
             nickname: _nicknameController.text,
             bio: _bioController.text,
+            isNotificationEnabled: _isSwitched,
             currentUser: user,
           );
 

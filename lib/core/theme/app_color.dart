@@ -38,5 +38,8 @@ class AppColors {
   static const gray300 = Color(0xFF475569);
   static const gray100 = Color(0xFF1E293B);
 
+  static const moodPurple = Color(
+    0xFF8E8EFE,
+  ); // Example purple, adjust as needed or use primary
   static Color? get primary500 => null;
 }

@@ -33,6 +33,10 @@ class UserRepositoryImpl implements UserRepository {
       profileImage: user.profileImage,
       bio: user.bio,
       isFirst: user.isFirst,
+      postCount: user.postCount,
+      followerCount: user.followerCount,
+      followingCount: user.followingCount,
+      isNotificationEnabled: user.isNotificationEnabled,
     );
     await _dataSource.updateUser(dto);
   }
@@ -46,6 +50,10 @@ class UserRepositoryImpl implements UserRepository {
       profileImage: user.profileImage,
       bio: user.bio,
       isFirst: user.isFirst,
+      postCount: user.postCount,
+      followerCount: user.followerCount,
+      followingCount: user.followingCount,
+      isNotificationEnabled: user.isNotificationEnabled,
     );
     await _dataSource.saveUser(userDto);
   }
@@ -57,6 +65,31 @@ class UserRepositoryImpl implements UserRepository {
       fileName:
           'users/$userId/profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
     );
+  }
+
+  @override
+  Future<void> followUser(String uid, String targetUid) async {
+    await _dataSource.followUser(uid, targetUid);
+  }
+
+  @override
+  Future<void> unfollowUser(String uid, String targetUid) async {
+    await _dataSource.unfollowUser(uid, targetUid);
+  }
+
+  @override
+  Future<bool> isFollowing(String uid, String targetUid) async {
+    return await _dataSource.isFollowing(uid, targetUid);
+  }
+
+  @override
+  Future<List<String>> getFollowers(String uid) async {
+    return await _dataSource.getFollowers(uid);
+  }
+
+  @override
+  Future<List<String>> getFollowing(String uid) async {
+    return await _dataSource.getFollowing(uid);
   }
 }
 

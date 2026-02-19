@@ -4,6 +4,10 @@ class UserEntity {
   final String? profileImage;
   final String? bio;
   final bool isFirst;
+  final int postCount;
+  final int followerCount;
+  final int followingCount;
+  final bool isNotificationEnabled;
 
   UserEntity({
     required this.uid,
@@ -11,6 +15,10 @@ class UserEntity {
     required this.profileImage,
     required this.bio,
     this.isFirst = false,
+    this.postCount = 0,
+    required this.followerCount,
+    required this.followingCount,
+    this.isNotificationEnabled = true,
   });
 
   UserEntity copyWith({
@@ -19,6 +27,10 @@ class UserEntity {
     String? profileImage,
     String? bio,
     bool? isFirst,
+    int? postCount,
+    int? followerCount,
+    int? followingCount,
+    bool? isNotificationEnabled,
   }) {
     return UserEntity(
       uid: uid ?? this.uid,
@@ -26,6 +38,11 @@ class UserEntity {
       profileImage: profileImage ?? this.profileImage,
       bio: bio ?? this.bio,
       isFirst: isFirst ?? this.isFirst,
+      postCount: postCount ?? this.postCount,
+      followerCount: followerCount ?? this.followerCount,
+      followingCount: followingCount ?? this.followingCount,
+      isNotificationEnabled:
+          isNotificationEnabled ?? this.isNotificationEnabled,
     );
   }
 }
