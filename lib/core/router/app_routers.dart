@@ -23,6 +23,7 @@ enum AppRoutes {
     absolutePath: '/search/result',
     path: '/search/result',
     name: 'search_result',
+  ),
   UserPage(
     absolutePath: '/user/:userId',
     path: '/user/:userId',

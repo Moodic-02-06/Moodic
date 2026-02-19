@@ -247,6 +247,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           }
           // fallback: 잘못된 접근
           return const Scaffold(body: Center(child: Text('잘못된 검색 요청입니다.')));
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.UserPage.absolutePath,
         name: AppRoutes.UserPage.name,
         builder: (context, state) {
