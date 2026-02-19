@@ -5,10 +5,10 @@ import 'package:flutter_moodic/domain/entity/mood_type.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
-import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 
 class EmotionGraph extends ConsumerWidget {
-  const EmotionGraph({super.key});
+  final String? userId;
+  const EmotionGraph({super.key, this.userId});
 
   double _calculateHeight(int count) {
     if (count == 0) return 40.0; // 최소 높이
@@ -19,14 +19,16 @@ class EmotionGraph extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userState = ref.watch(userProvider);
-    final user = userState.value;
+    // userId가 넘어오면 그것을 쓰고, 아니면 내 정보를 쓴다.
+    // 하지만 상위에서 이미 로직을 처리해서 userId를 넘겨주는 것이 더 깔끔할 수 있다.
+    // 여기서는 MyPage에서 넘겨준 targetUserId를 사용한다.
 
-    if (user?.uid == null) {
+    // targetUserId가 null이면 (즉, 로그인도 안된 상태 등) 빈 공간
+    if (userId == null) {
       return const SizedBox(height: 171); // 유저 정보 없을 때 빈 공간
     }
 
-    final moodAsyncValue = ref.watch(monthlyMoodsProvider(user!.uid));
+    final moodAsyncValue = ref.watch(monthlyMoodsProvider(userId!));
 
     return Container(
       width: double.infinity,

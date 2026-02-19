@@ -18,6 +18,16 @@ enum AppRoutes {
     absolutePath: '/mypage/edit',
     path: '/mypage/edit',
     name: 'mypage_edit',
+  ),
+  UserPage(
+    absolutePath: '/user/:userId',
+    path: '/user/:userId',
+    name: 'user_page',
+  ),
+  FollowList(
+    absolutePath: '/follow_list/:userId',
+    path: '/follow_list/:userId',
+    name: 'follow_list',
   );
 
   final String absolutePath;

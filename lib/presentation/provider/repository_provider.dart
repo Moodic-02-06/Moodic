@@ -4,6 +4,9 @@ import 'package:flutter_moodic/data/data_source/fire_store_post_data_source.dart
 import 'package:flutter_moodic/data/data_source/firebase_storage_data_source.dart';
 import 'package:flutter_moodic/data/repository/post_repository_impl.dart';
 import 'package:flutter_moodic/domain/repository/post_repository.dart';
+import 'package:flutter_moodic/data/data_source/notification_remote_data_source.dart';
+import 'package:flutter_moodic/data/repository/notification_repository_impl.dart';
+import 'package:flutter_moodic/domain/repository/notification_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final firestoreProvider = Provider<FirebaseFirestore>((ref) {
@@ -30,4 +33,14 @@ final postRepositoryProvider = Provider<PostRepository>((ref) {
   final dataSource = ref.watch(firestoreDataSourceProvider);
   final storageDataSource = ref.watch(firebaseStorageDataSourceProvider);
   return PostRepositoryImpl(dataSource, storageDataSource);
+});
+
+final notificationRemoteDataSourceProvider =
+    Provider<NotificationRemoteDataSource>((ref) {
+      return NotificationRemoteDataSource();
+    });
+
+final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
+  final dataSource = ref.watch(notificationRemoteDataSourceProvider);
+  return NotificationRepositoryImpl(dataSource);
 });

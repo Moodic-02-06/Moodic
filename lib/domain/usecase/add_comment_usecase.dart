@@ -10,14 +10,16 @@ class AddCommentUseCase {
     String userId,
     String content,
     String nickname,
-    String profileImageUrl,
-  ) async {
+    String profileImageUrl, {
+    String? parentId,
+  }) async {
     await repository.addComment(
       postId,
       userId,
       content,
       nickname,
       profileImageUrl,
+      parentId: parentId,
     );
   }
 }

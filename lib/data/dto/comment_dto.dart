@@ -9,6 +9,7 @@ class CommentDto {
   final String userImageUrl;
   final String content;
   final Timestamp createdAt;
+  final String? parentId; // 대댓글 상위 댓글 ID
 
   CommentDto({
     required this.commentId,
@@ -18,6 +19,7 @@ class CommentDto {
     required this.userImageUrl,
     required this.content,
     required this.createdAt,
+    this.parentId,
   });
 
   factory CommentDto.fromJson(Map<String, dynamic> json, String id) {
@@ -29,6 +31,7 @@ class CommentDto {
       userImageUrl: json['userImageUrl'] as String,
       content: json['content'] as String,
       createdAt: json['createdAt'] as Timestamp,
+      parentId: json['parentId'] as String?,
     );
   }
 
@@ -40,6 +43,7 @@ class CommentDto {
       'userImageUrl': userImageUrl,
       'content': content,
       'createdAt': createdAt,
+      'parentId': parentId,
     };
   }
 
@@ -53,6 +57,7 @@ class CommentDto {
       userImageUrl: userImageUrl,
       content: content,
       createdAt: createdAt.toDate(),
+      parentId: parentId,
     );
   }
 }
