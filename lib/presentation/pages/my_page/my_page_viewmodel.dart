@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_moodic/domain/usecase/check_follow_status_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/follow_user_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/unfollow_user_usecase.dart';
@@ -20,16 +22,13 @@ class MyPageState {
   final bool isLoading;
   final String? errorMessage;
 
-  // 낙관적 업데이트를 위한 필드 추가
   final bool isUploading;
   final File? optimisticProfileImage;
 
-  // 통계 필드
   final int postCount;
   final int followerCount;
   final int followingCount;
 
-  // 팔로우 상태 (타인일 경우)
   final bool isFollowing;
 
   MyPageState({
@@ -92,216 +91,193 @@ final myPageFamilyFeedsProvider = StreamProvider.family
       return fetchUserPostsUseCase.call(authorId, currentUserId: currentUid);
     });
 
-class MyPageViewModel extends StateNotifier<MyPageState> {
-  final String? userId; // 타겟 유저 ID (null이면 "나")
-  final Ref ref;
+/// Riverpod 2.x / 3.x 호환: AutoDisposeFamilyNotifier 패턴
+/// arg = 타겟 유저 ID (null이면 "나")
+class MyPageViewModel extends AutoDisposeFamilyNotifier<MyPageState, String?> {
+  /// feedsStreamProvider 스트림을 직접 구독하는 subscription
+  /// (ref.listen은 build() 동기 컨텍스트에서만 사용 가능하므로 직접 구독)
+  StreamSubscription<List<Post>>? _feedsSubscription;
+  bool _mounted = true;
 
-  MyPageViewModel(this.userId, this.ref)
-    : super(MyPageState(nickname: '', feeds: [], isLoading: true)) {
-    _load();
-    _watchUserProvider();
-  }
+  @override
+  MyPageState build(String? arg) {
+    ref.onDispose(() {
+      _mounted = false;
+      _feedsSubscription?.cancel();
+    });
 
-  void _watchUserProvider() {
-    // 내 프로필인 경우 (userId == null), userProvider가 변경될 때마다 state 업데이트
-    if (userId == null) {
+    // "나" 프로필인 경우, userProvider 변경 시 닉네임·프로필 동기화
+    // ref.listen은 build() 동기 컨텍스트에서만 안전하게 호출 가능
+    if (arg == null) {
       ref.listen<AsyncValue<UserEntity?>>(userProvider, (previous, next) {
         final user = next.value;
-        if (user != null) {
-          // 닉네임, 프로필, 통계 정보 동기화
-          if (mounted) {
-            state = state.copyWith(
-              nickname: user.nickname,
-              bio: user.bio,
-              profileimage: user.profileImage,
-              postCount: user.postCount,
-              followerCount: user.followerCount,
-              followingCount: user.followingCount,
-            );
-
-            // 만약 처음에 피드를 못 불러왔다면(아이디가 없어서), 다시 시도
-            // (이미 feeds가 있으면 다시 로드할 필요 없음, 스트림이 알아서 함?
-            //  아니, StreamProvider family key가 uid이므로 uid가 바뀌거나 생기면 다시 구독해야 함)
-            // 하지만 userId(생성자 인자)는 null로 고정. 내부적으로 사용하는 userIdToLoad가 문제.
-            // 여기서는 복잡하므로 단순 정보 업데이트만 수행.
-            // _load()에서 구독한 StreamProvider는 userProvider의 uid를 watch하고 있으므로 자동 갱신됨.
-          }
+        if (user != null && _mounted) {
+          state = state.copyWith(
+            nickname: user.nickname,
+            bio: user.bio,
+            profileimage: user.profileImage,
+            postCount: user.postCount,
+            followerCount: user.followerCount,
+            followingCount: user.followingCount,
+          );
         }
       });
     }
+
+    // 비동기 초기화는 microtask로 지연 → build() 완료 후 state 접근 보장
+    Future.microtask(() => _load(arg));
+
+    return MyPageState(nickname: '', feeds: [], isLoading: true);
   }
 
-  Future<void> _load() async {
-    final targetUserId = userId; // 타겟 유저
+  Future<void> _load(String? userId) async {
+    if (!_mounted) return;
+
     final currentUserState = ref.read(userProvider);
-    final myUid = currentUserState.value?.uid; // 접속한 유저
+    final myUid = currentUserState.value?.uid;
+
+    // 1. 타겟 유저 결정 (타겟이 없으면 나)
+    final userIdToLoad = userId ?? myUid;
+
+    if (userIdToLoad == null) {
+      // 로그인 정보가 아직 없음 → ref.listen(userProvider)가 업데이트 해줌
+      if (_mounted) {
+        state = state.copyWith(isLoading: false, nickname: '로딩 중...');
+      }
+      return;
+    }
 
     String? nickname;
     String? bio;
     String? profileImage;
-
     int postCount = 0;
     int followerCount = 0;
     int followingCount = 0;
     bool isFollowing = false;
 
-    // 1. 타겟 유저 결정 (타겟이 없으면 나)
-    final userIdToLoad = targetUserId ?? myUid;
-
-    // 만약 "나"인데 아직 로딩 안됐으면 일단 대기 상태
-    if (userIdToLoad == null && targetUserId == null) {
-      // userProvider가 로딩되면 myPageFamilyFeedsProvider도 업데이트 될 것임.
-      // 다만 닉네임 등은 위 _watchUserProvider에서 처리.
-      state = state.copyWith(nickname: "", isLoading: true);
-      // 여기서 return하면 feeds 구독을 안하게 됨. 구독은 해야 함.
-      // 하지만 key가 null이면?
-      // myPageFamilyFeedsProvider는 String을 받음. null 전달 불가.
-      // 따라서 return 하되, 나중에 userProvider가 업데이트 되면 이 ViewModel이 다시 만들어지거나 해야 함.
-      // 하지만 StateNotifierProvider는 유지가 됨.
-      // 해결책: userProvider의 uid가 null -> non-null로 바뀌면 ViewModel도 갱신되어야 함?
-      // 아니면 여기서 기다림?
-      // 가장 좋은 건 UI에서 userProvider가 로딩 중이면 ViewModel 접근 전에 로딩을 띄우는 것.
-      // 하지만 Router 구조상 ViewModel이 먼저 생성될 수 있음.
-
-      // 일단 리턴. _watchUserProvider가 업데이트 해주기를 기대?
-      // 아니, _watchUserProvider는 state만 업데이트함. 피드 로딩은?
-      // 피드 로딩 트리거가 필요함.
-    }
-
-    // userIdToLoad가 있어야 아래 로직 수행 가능
-    if (userIdToLoad != null) {
-      // ... 기존 로직 ...
-      // 2. 유저 정보 가져오기
-      if (targetUserId == null || targetUserId == myUid) {
-        // "나"인 경우
-        final user = currentUserState.value;
-        nickname = user?.nickname ?? "닉네임 없음";
-        bio = user?.bio;
-        profileImage = user?.profileImage;
-        postCount = user?.postCount ?? 0;
-        followerCount = user?.followerCount ?? 0;
-        followingCount = user?.followingCount ?? 0;
-      } else {
-        // "타인"인 경우 Repository에서 fetch
-        try {
-          final repository = ref.read(userRepositoryProvider);
-          final userEntity = await repository.getUser(userIdToLoad);
-
-          nickname = userEntity?.nickname ?? "알 수 없는 사용자";
-          bio = userEntity?.bio;
-          profileImage = userEntity?.profileImage;
-          postCount = userEntity?.postCount ?? 0;
-          followerCount = userEntity?.followerCount ?? 0;
-          followingCount = userEntity?.followingCount ?? 0;
-
-          // 팔로우 여부 확인
-          if (myUid != null) {
-            final checkFollowUseCase = CheckFollowStatusUseCase(repository);
-            isFollowing = await checkFollowUseCase.call(myUid, userIdToLoad);
-          }
-        } catch (e) {
-          nickname = "유저 로드 실패";
-        }
-      }
-
-      // 초기 설정
-      if (mounted) {
-        state = state.copyWith(
-          nickname: nickname,
-          bio: bio,
-          profileimage: profileImage,
-          postCount: postCount,
-          followerCount: followerCount,
-          followingCount: followingCount,
-          isFollowing: isFollowing,
-          isLoading: true,
-        );
-      }
-
-      // 3. 피드 가져오기
-      final feedsStreamProvider = myPageFamilyFeedsProvider(userIdToLoad);
-
-      // Stream 구독
-      ref.listen(feedsStreamProvider, (previous, next) {
-        next.when(
-          data: (feeds) {
-            if (mounted) {
-              state = state.copyWith(feeds: feeds, isLoading: false);
-            }
-          },
-          error: (err, stack) {
-            if (mounted) {
-              state = state.copyWith(
-                errorMessage: err.toString(),
-                isLoading: false,
-              );
-            }
-            debugPrint("MyPage Feed Error: $err");
-          },
-          loading: () {},
-        );
-      });
-
-      // 현재 값 반영 (초기값)
-      final currentAsyncValue = ref.read(feedsStreamProvider);
-      if (currentAsyncValue.hasValue && mounted) {
-        state = state.copyWith(
-          feeds: currentAsyncValue.value!,
-          isLoading: false,
-        );
-      }
+    // 2. 유저 정보 가져오기
+    if (userId == null || userId == myUid) {
+      // "나"인 경우 — userProvider에서 바로 읽기
+      final user = currentUserState.value;
+      nickname = user?.nickname ?? '닉네임 없음';
+      bio = user?.bio;
+      profileImage = user?.profileImage;
+      postCount = user?.postCount ?? 0;
+      followerCount = user?.followerCount ?? 0;
+      followingCount = user?.followingCount ?? 0;
     } else {
-      // userIdToLoad is null (로그인 안됨 or 로딩중)
-      // 아무것도 안함. (userProvider listener가 처리하길 기대하거나 UI에서 처리)
-      state = state.copyWith(isLoading: false, nickname: "로딩 중...");
+      // "타인"인 경우 — Repository에서 fetch
+      try {
+        final repository = ref.read(userRepositoryProvider);
+        final userEntity = await repository.getUser(userIdToLoad);
+
+        if (!_mounted) return;
+
+        nickname = userEntity?.nickname ?? '알 수 없는 사용자';
+        bio = userEntity?.bio;
+        profileImage = userEntity?.profileImage;
+        postCount = userEntity?.postCount ?? 0;
+        followerCount = userEntity?.followerCount ?? 0;
+        followingCount = userEntity?.followingCount ?? 0;
+
+        // 팔로우 여부 확인
+        if (myUid != null) {
+          isFollowing = await CheckFollowStatusUseCase(
+            ref.read(userRepositoryProvider),
+          ).call(myUid, userIdToLoad);
+        }
+      } catch (e) {
+        nickname = '유저 로드 실패';
+      }
     }
+
+    if (!_mounted) return;
+
+    state = state.copyWith(
+      nickname: nickname,
+      bio: bio,
+      profileimage: profileImage,
+      postCount: postCount,
+      followerCount: followerCount,
+      followingCount: followingCount,
+      isFollowing: isFollowing,
+      isLoading: true, // 피드 로딩 대기 중
+    );
+
+    // 3. 피드 스트림 직접 구독
+    // async 함수 내부에서는 ref.listen 사용 불가 → StreamSubscription으로 처리
+    await _subscribeFeed(userIdToLoad);
+  }
+
+  Future<void> _subscribeFeed(String userIdToLoad) async {
+    await _feedsSubscription?.cancel();
+
+    final repository = ref.read(postRepositoryProvider);
+    final currentUserId = ref.read(userProvider.select((v) => v.value?.uid));
+    final fetchUserPostsUseCase = FetchUserPostsUseCase(repository);
+    final stream = fetchUserPostsUseCase.call(
+      userIdToLoad,
+      currentUserId: currentUserId,
+    );
+
+    _feedsSubscription = stream.listen(
+      (feeds) {
+        if (_mounted) {
+          // feeds 스트림에서 실시간으로 반영되므로 postCount도 함께 갱신
+          state = state.copyWith(
+            feeds: feeds,
+            isLoading: false,
+            postCount: feeds.length,
+          );
+        }
+      },
+      onError: (err) {
+        debugPrint('MyPage Feed Error: $err');
+        if (_mounted) {
+          state = state.copyWith(
+            errorMessage: err.toString(),
+            isLoading: false,
+          );
+        }
+      },
+    );
   }
 
   /// 팔로우/언팔로우 토글
   Future<void> toggleFollow() async {
-    final currentUserState = ref.read(userProvider);
-    final myUid = currentUserState.value?.uid;
-    final targetUid = userId; // 타겟 유저
+    final myUid = ref.read(userProvider).value?.uid;
+    final targetUid = arg; // AutoDisposeFamilyNotifier의 arg 필드
 
     if (myUid == null || targetUid == null || myUid == targetUid) return;
 
     final repository = ref.read(userRepositoryProvider);
     final isCurrentlyFollowing = state.isFollowing;
 
-    // 1. 낙관적 업데이트
-    if (mounted) {
+    // 낙관적 업데이트
+    if (_mounted) {
       state = state.copyWith(
         isFollowing: !isCurrentlyFollowing,
-        followerCount:
-            state.followerCount +
-            (isCurrentlyFollowing ? -1 : 1), // 상대방의 팔로워 수 변경
+        followerCount: state.followerCount + (isCurrentlyFollowing ? -1 : 1),
       );
     }
 
     try {
       if (isCurrentlyFollowing) {
-        final unfollowUseCase = UnfollowUserUseCase(repository);
-        await unfollowUseCase.call(myUid, targetUid);
+        await UnfollowUserUseCase(repository).call(myUid, targetUid);
       } else {
-        final followUseCase = FollowUserUseCase(repository);
-        await followUseCase.call(myUid, targetUid);
+        await FollowUserUseCase(repository).call(myUid, targetUid);
       }
     } catch (e) {
       // 실패 시 롤백
-      if (mounted) {
+      if (_mounted) {
         state = state.copyWith(
           isFollowing: isCurrentlyFollowing,
           followerCount: state.followerCount + (isCurrentlyFollowing ? 1 : -1),
-          errorMessage: "팔로우 처리 중 오류가 발생했습니다.",
+          errorMessage: '팔로우 처리 중 오류가 발생했습니다.',
         );
       }
     }
   }
-
-  // StateNotifier에는 mounted 속성이 있음.
-  // Getter for convenience if explicit usage needed (though super.mounted is available)
-  // But wait, StateNotifier 'mounted' is available.
-  // I used 'mount' in one place above, should be 'mounted'.
 
   /// 프로필 저장 (낙관적 업데이트 적용) - "나"일 때만 호출됨
   Future<void> saveProfile({
@@ -311,8 +287,7 @@ class MyPageViewModel extends StateNotifier<MyPageState> {
     required bool isNotificationEnabled,
     required UserEntity currentUser,
   }) async {
-    // 1. 낙관적 업데이트: UI 즉시 반영
-    if (mounted) {
+    if (_mounted) {
       state = state.copyWith(
         isUploading: imageFile != null,
         optimisticProfileImage: imageFile,
@@ -324,14 +299,12 @@ class MyPageViewModel extends StateNotifier<MyPageState> {
     try {
       String? imageUrl;
 
-      // 이미지 업로드
       if (imageFile != null) {
         imageUrl = await ref
             .read(userRepositoryProvider)
             .uploadProfileImage(imageFile.path, currentUser.uid);
       }
 
-      // 2. 서버 저장
       final updatedUser = currentUser.copyWith(
         nickname: nickname,
         bio: bio,
@@ -341,8 +314,7 @@ class MyPageViewModel extends StateNotifier<MyPageState> {
 
       await ref.read(userRepositoryProvider).saveUser(updatedUser);
 
-      // 성공 시 업로드 상태 해제 및 최신 정보 반영
-      if (mounted) {
+      if (_mounted) {
         state = state.copyWith(
           isUploading: false,
           optimisticProfileImage: null,
@@ -350,18 +322,17 @@ class MyPageViewModel extends StateNotifier<MyPageState> {
         );
       }
     } catch (e) {
-      // 실패 시 에러 메시지
-      if (mounted) {
+      if (_mounted) {
         state = state.copyWith(
           isUploading: false,
-          errorMessage: "프로필 저장 실패: $e",
+          errorMessage: '프로필 저장 실패: $e',
         );
       }
     }
   }
 }
 
-/// 월별 감정 통계 Provider (Family로 userId 받음)
+/// 월별 감정 통계 Provider
 final monthlyMoodsProvider = FutureProvider.family<Map<MoodType, int>, String>((
   ref,
   userId,
@@ -370,14 +341,8 @@ final monthlyMoodsProvider = FutureProvider.family<Map<MoodType, int>, String>((
   final now = DateTime.now();
   final posts = await repository.fetchPostsByMonth(userId, now.year, now.month);
 
-  final Map<MoodType, int> counts = {};
+  final Map<MoodType, int> counts = {for (var mood in MoodType.values) mood: 0};
 
-  // 초기화
-  for (var mood in MoodType.values) {
-    counts[mood] = 0;
-  }
-
-  // 카운팅
   for (var post in posts) {
     try {
       final moodEnum = MoodType.values.firstWhere(
@@ -385,15 +350,11 @@ final monthlyMoodsProvider = FutureProvider.family<Map<MoodType, int>, String>((
         orElse: () => MoodType.happy,
       );
       counts[moodEnum] = (counts[moodEnum] ?? 0) + 1;
-    } catch (e) {
-      // ignore
-    }
+    } catch (_) {}
   }
 
   return counts;
 });
 
-final myPageViewModelProvider =
-    StateNotifierProvider.family<MyPageViewModel, MyPageState, String?>(
-      (ref, userId) => MyPageViewModel(userId, ref),
-    );
+final myPageViewModelProvider = NotifierProvider.family
+    .autoDispose<MyPageViewModel, MyPageState, String?>(MyPageViewModel.new);

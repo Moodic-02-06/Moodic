@@ -3,7 +3,6 @@ import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 
 import 'package:flutter_moodic/presentation/pages/home_page/home_view_model.dart';
-import 'package:flutter_moodic/presentation/pages/home_page/widgets/animated_sort_toggle.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_empty_state.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_feed_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +22,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    // 화면 진입 시 최초 1회만 실행
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(homeViewModelProvider.notifier).loadFeeds();
     });
@@ -50,12 +48,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     final homeState = ref.watch(homeViewModelProvider);
     final homeVM = ref.read(homeViewModelProvider.notifier);
 
-    // 1. 초기 로딩 중이고 데이터가 없는 경우 -> 전체 로딩
+    // 1. 초기 로딩 중이고 데이터가 없는 경우 → 전체 로딩
     if (homeState.isLoading && homeState.feeds.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // 2. 에러가 있고 데이터가 없는 경우 -> 에러 화면
+    // 2. 에러가 있고 데이터가 없는 경우 → 에러 화면
     if (homeState.errorMessage != null && homeState.feeds.isEmpty) {
       return Scaffold(
         appBar: AppBar(
@@ -84,32 +82,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: ListView.separated(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(12).copyWith(bottom: 120),
-                // 정렬 토글(헤더) + 피드 리스트
-                itemCount: homeState.feeds.length + 1,
-                separatorBuilder: (context, index) {
-                  return const SizedBox(height: 16);
-                },
+                itemCount: homeState.feeds.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 16),
                 itemBuilder: (context, index) {
-                  // 0번째 인덱스는 정렬 토글 (헤더)
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4, // 리스트 패딩 고려하여 약간 조정
-                        vertical: 0,
-                      ),
-                      child: AnimatedSortToggle(
-                        sortType: homeState.sortType,
-                        onTap: (type) {
-                          if (homeState.sortType != type) {
-                            homeVM.loadFeeds(newSort: type);
-                          }
-                        },
-                      ),
-                    );
-                  }
-
-                  // 1번째 인덱스부터 피드 데이터 (실제 데이터 인덱스는 index - 1)
-                  final post = homeState.feeds[index - 1];
+                  final post = homeState.feeds[index];
                   return GestureDetector(
                     onTap: () {
                       context.pushNamed(

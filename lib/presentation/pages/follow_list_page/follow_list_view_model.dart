@@ -35,16 +35,17 @@ class FollowListState {
   }
 }
 
-class FollowListViewModel extends StateNotifier<FollowListState> {
-  final String userId; // 누구의 리스트인지
-  final Ref ref;
-
-  FollowListViewModel(this.userId, this.ref) : super(FollowListState()) {
-    _loadData();
+/// Riverpod 2.x / 3.x 호환: StateNotifier → AutoDisposeFamilyNotifier 마이그레이션
+class FollowListViewModel
+    extends AutoDisposeFamilyNotifier<FollowListState, String> {
+  @override
+  FollowListState build(String arg) {
+    // arg = 누구의 팔로우 리스트를 볼 것인지의 userId
+    _loadData(arg);
+    return FollowListState(isLoading: true);
   }
 
-  Future<void> _loadData() async {
-    state = state.copyWith(isLoading: true);
+  Future<void> _loadData(String userId) async {
     final repository = ref.read(userRepositoryProvider);
     final currentUser = ref.read(userProvider).value;
 
@@ -79,11 +80,10 @@ class FollowListViewModel extends StateNotifier<FollowListState> {
       );
     } catch (e) {
       state = state.copyWith(isLoading: false);
-      // 에러 처리 필요 시 추가
     }
   }
 
-  // 팔로우/언팔로우 토글
+  /// 팔로우/언팔로우 토글
   Future<void> toggleFollow(String targetUid) async {
     final currentUser = ref.read(userProvider).value;
     if (currentUser == null) return;
@@ -117,7 +117,7 @@ class FollowListViewModel extends StateNotifier<FollowListState> {
   }
 }
 
-final followListViewModelProvider = StateNotifierProvider.family
+final followListViewModelProvider = NotifierProvider.family
     .autoDispose<FollowListViewModel, FollowListState, String>(
-      (ref, userId) => FollowListViewModel(userId, ref),
+      FollowListViewModel.new,
     );
