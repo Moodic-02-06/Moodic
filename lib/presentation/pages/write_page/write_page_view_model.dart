@@ -40,11 +40,16 @@ class WriteState {
   }
 }
 
-class WriteViewModel extends Notifier<WriteState> {
+class WriteViewModel extends AutoDisposeNotifier<WriteState> {
   Post? _originPost;
+
+  bool _mounted = true;
 
   @override
   WriteState build() {
+    ref.onDispose(() {
+      _mounted = false;
+    });
     return WriteState(
       postId: null,
       content: '',
@@ -52,6 +57,8 @@ class WriteViewModel extends Notifier<WriteState> {
       imageUrls: [],
     );
   }
+
+  // ... (setContent, setMood, addImages, _uploadImagesIfNeeded, initEdit, initNewPost, removeImage methods are unchanged)
 
   void setContent(String content) {
     state = state.copyWith(content: content);
@@ -126,7 +133,7 @@ class WriteViewModel extends Notifier<WriteState> {
     try {
       final imageUrls = await _uploadImagesIfNeeded(userId);
 
-      if (!ref.mounted) return;
+      if (!_mounted) return;
 
       // Post 객체 생성
       final post = Post(
@@ -147,7 +154,7 @@ class WriteViewModel extends Notifier<WriteState> {
       // DB 저장 (UseCase 실행)
       await ref.read(createPostUseCaseProvider)(post);
 
-      if (!ref.mounted) return;
+      if (!_mounted) return;
 
       // 직접 로드 호출
       ref.read(homeViewModelProvider.notifier).loadFeeds();
@@ -155,7 +162,7 @@ class WriteViewModel extends Notifier<WriteState> {
       // 마이페이지 감정 그래프 갱신
       ref.invalidate(monthlyMoodsProvider(userId));
       // 마이페이지 피드 목록 갱신
-      ref.invalidate(myPageFeedsProvider);
+      ref.invalidate(myPageFamilyFeedsProvider(userId));
 
       ref.read(selectedMusicProvider.notifier).clear();
       // 작업 완료 후 초기화 (isLoading도 false로 돌아감)
@@ -163,7 +170,7 @@ class WriteViewModel extends Notifier<WriteState> {
 
       debugPrint("글 작성이 완료되었습니다!");
     } catch (e) {
-      if (!ref.mounted) return;
+      if (!_mounted) return;
 
       state = state.copyWith(isLoading: false);
 
@@ -193,7 +200,7 @@ class WriteViewModel extends Notifier<WriteState> {
     try {
       final imageUrls = await _uploadImagesIfNeeded(userId);
 
-      if (!ref.mounted) return;
+      if (!_mounted) return;
 
       final post = Post(
         postId: state.postId!,
@@ -213,18 +220,18 @@ class WriteViewModel extends Notifier<WriteState> {
 
       await ref.read(updatePostUseCaseProvider).call(post);
 
-      if (!ref.mounted) return;
+      if (!_mounted) return;
 
       ref.read(homeViewModelProvider.notifier).loadFeeds();
       // 마이페이지 피드 목록 갱신
-      ref.invalidate(myPageFeedsProvider);
+      ref.invalidate(myPageFamilyFeedsProvider(userId));
 
       state = build();
       _originPost = null;
 
       debugPrint('글 수정 완료');
     } catch (e) {
-      if (!ref.mounted) return;
+      if (!_mounted) return;
 
       state = state.copyWith(isLoading: false);
 

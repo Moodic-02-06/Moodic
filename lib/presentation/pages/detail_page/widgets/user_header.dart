@@ -20,33 +20,46 @@ class UserHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundColor: AppColors.gray300,
-          backgroundImage: post.userImageUrl.isNotEmpty
-              ? NetworkImage(post.userImageUrl)
-              : null,
-          child: post.userImageUrl.isEmpty
-              ? const Icon(Icons.person, color: AppColors.gray100, size: 24)
-              : null,
-        ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              post.userNickname,
-              style: AppTextStyles.bodyPrimary16w600.copyWith(
-                color: AppColors.gray900,
+        GestureDetector(
+          onTap: () {
+            context.push('/user/${post.userId}');
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppColors.gray300,
+                backgroundImage: post.userImageUrl.isNotEmpty
+                    ? NetworkImage(post.userImageUrl)
+                    : null,
+                child: post.userImageUrl.isEmpty
+                    ? const Icon(
+                        Icons.person,
+                        color: AppColors.gray100,
+                        size: 24,
+                      )
+                    : null,
               ),
-            ),
-            Text(
-              time,
-              style: AppTextStyles.labelStatus12w500.copyWith(
-                color: AppColors.gray500,
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.userNickname,
+                    style: AppTextStyles.bodyPrimary16w600.copyWith(
+                      color: AppColors.gray900,
+                    ),
+                  ),
+                  Text(
+                    time,
+                    style: AppTextStyles.labelStatus12w500.copyWith(
+                      color: AppColors.gray500,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const Spacer(),
         GestureDetector(

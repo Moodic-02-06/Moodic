@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
+
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
@@ -38,17 +39,18 @@ class DetailState {
   }
 }
 
-class DetailViewModel extends Notifier<DetailState> {
+class DetailViewModel extends AutoDisposeFamilyNotifier<DetailState, String> {
   late final String postId;
   StreamSubscription<Post>? _postSubscription;
   StreamSubscription<List<Comment>>? _commentSubscription;
   Timer? _debounceTimer;
-
-  DetailViewModel(this.postId);
+  bool _mounted = true;
 
   @override
-  DetailState build() {
+  DetailState build(String arg) {
+    postId = arg;
     ref.onDispose(() {
+      _mounted = false;
       _postSubscription?.cancel();
       _commentSubscription?.cancel();
       _debounceTimer?.cancel();
@@ -57,6 +59,15 @@ class DetailViewModel extends Notifier<DetailState> {
     _subscribe();
 
     return const DetailState(isLoading: true);
+  }
+
+  // 답글 작성 대상 댓글 (null이면 일반 댓글)
+  Comment? _replyingToComment;
+  Comment? get replyingToComment => _replyingToComment;
+
+  void setReplyingTo(Comment? comment) {
+    _replyingToComment = comment;
+    state = state.copyWith();
   }
 
   void _subscribe() {
@@ -96,9 +107,30 @@ class DetailViewModel extends Notifier<DetailState> {
             content,
             user.nickname,
             user.profileImage ?? '',
+            parentId: _replyingToComment?.commentId,
           );
-      // Stream이 자동 업데이트
+
+      // 알림 전송
+      final post = state.post;
+      if (post != null) {
+        await ref
+            .read(createNotificationUseCaseProvider)
+            .call(
+              userId: post.userId,
+              type: 'comment',
+              message: '${user.nickname}님이 댓글을 달았습니다.',
+              senderId: user.uid,
+              senderNickname: user.nickname,
+              senderProfileImage: user.profileImage ?? '',
+              targetId: post.postId,
+            );
+      }
+
+      if (!_mounted) return;
+
+      setReplyingTo(null);
     } catch (e) {
+      if (!_mounted) return;
       state = state.copyWith(error: '댓글 등록 실패');
     }
   }
@@ -107,13 +139,8 @@ class DetailViewModel extends Notifier<DetailState> {
     final currentPost = state.post;
     if (currentPost == null) return;
 
-    // 낙관적 업데이트 이전의 원래 좋아요 상태 캡처 (서버 요청에 사용)
     final wasLiked = currentPost.isLikedByMe;
-
-    // 1. 낙관적 업데이트 (Optimistic Update)
     final isLiked = !wasLiked;
-
-    // 안전장치 강화: 어떤 상황에서도 0 미만으로 내려가지 않도록 함
     final int newLikeCount = math.max(
       0,
       isLiked ? currentPost.likeCount + 1 : currentPost.likeCount - 1,
@@ -124,27 +151,39 @@ class DetailViewModel extends Notifier<DetailState> {
       likeCount: newLikeCount,
     );
 
-    // 이전 상태 백업
     final previousPost = currentPost;
 
-    // UI 즉시 갱신
     state = state.copyWith(post: updatedPost);
 
-    // 2. 디바운싱 적용 (서버 요청 제한)
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (!_mounted) return;
+
       final finalPost = state.post;
       if (finalPost == null) return;
 
       try {
-        // ⚠️ 핵심: wasLiked(원래 상태)를 전달해야 서버 로직이 올바르게 동작함
-        // finalPost.isLikedByMe는 낙관적 업데이트로 이미 뒤집힌 값이므로 사용 불가
         await ref
             .read(toggleLikeUseCaseProvider)
             .call(finalPost.postId, user.uid, wasLiked);
+
+        // 좋아요를 누른 경우에만 알림 전송
+        if (!wasLiked) {
+          await ref
+              .read(createNotificationUseCaseProvider)
+              .call(
+                userId: finalPost.userId,
+                type: 'like',
+                message: '${user.nickname}님이 좋아요를 눌렀습니다.',
+                senderId: user.uid,
+                senderNickname: user.nickname,
+                senderProfileImage: user.profileImage ?? '',
+                targetId: finalPost.postId,
+              );
+        }
       } catch (e) {
         debugPrint('좋아요 실패: $e');
-        // 실패 시 롤백
+        if (!_mounted) return;
         state = state.copyWith(post: previousPost);
       }
     });
@@ -157,6 +196,7 @@ class DetailViewModel extends Notifier<DetailState> {
   Future<void> deletePost(String postId) async {
     try {
       await ref.read(deletePostUseCaseProvider).execute(postId);
+      if (!_mounted) return;
       clearPost();
     } catch (e) {
       debugPrint('게시글 삭제 실패: $e');
@@ -168,12 +208,11 @@ class DetailViewModel extends Notifier<DetailState> {
       await ref.read(postRepositoryProvider).deleteComment(postId, commentId);
     } catch (e) {
       debugPrint('댓글 삭제 실패: $e');
+      if (!_mounted) return;
       state = state.copyWith(error: '댓글 삭제 실패');
     }
   }
 }
 
-final detailViewModelProvider =
-    NotifierProvider.family<DetailViewModel, DetailState, String>(
-      DetailViewModel.new,
-    );
+final detailViewModelProvider = NotifierProvider.family
+    .autoDispose<DetailViewModel, DetailState, String>(DetailViewModel.new);
