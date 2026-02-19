@@ -49,6 +49,7 @@ dependencies:
   http: ^1.6.0
   just_audio: ^0.10.5
   url_launcher: ^6.3.2
+  flutter_dotenv: ^6.0.0
   flutter_local_notifications: ^20.1.0
   permission_handler: ^12.0.1
 
@@ -92,7 +93,7 @@ flutter:
   # example:
   assets:
     - assets/images/
-
+    - .env
   fonts:
     - family: Pretendard
       fonts:
