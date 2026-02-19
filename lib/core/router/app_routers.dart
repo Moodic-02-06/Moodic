@@ -18,6 +18,11 @@ enum AppRoutes {
     absolutePath: '/mypage/edit',
     path: '/mypage/edit',
     name: 'mypage_edit',
+  ),
+  SearchResult(
+    absolutePath: '/search/result',
+    path: '/search/result',
+    name: 'search_result',
   );
 
   final String absolutePath;

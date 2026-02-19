@@ -1,5 +1,6 @@
 import 'package:flutter_moodic/domain/usecase/delete_post_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/fetch_feeds_usecase.dart';
+import 'package:flutter_moodic/domain/usecase/search_result_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/toggle_like_usecase.dart';
 import 'package:flutter_moodic/domain/usecase/update_post_usecase.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
@@ -20,4 +21,12 @@ final updatePostUseCaseProvider = Provider<UpdatePostUseCase>((ref) {
 final fetchFeedsUseCaseProvider = Provider<FetchFeedsUseCase>((ref) {
   final repo = ref.read(postRepositoryProvider);
   return FetchFeedsUseCase(repo);
+});
+
+final searchByMoodUseCaseProvider = Provider<SearchByMoodUseCase>((ref) {
+  return SearchByMoodUseCase(ref.read(postRepositoryProvider));
+});
+
+final searchByMusicIdUseCaseProvider = Provider<SearchByMusicIdUseCase>((ref) {
+  return SearchByMusicIdUseCase(ref.read(postRepositoryProvider));
 });

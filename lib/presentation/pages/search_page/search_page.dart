@@ -4,7 +4,6 @@ import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/mood_type.dart';
 import 'package:flutter_moodic/domain/entity/music.dart';
 import 'package:flutter_moodic/presentation/pages/search_page/widgets/search_app_bar.dart';
-import 'package:flutter_moodic/presentation/pages/write_page/selected_music_provider.dart';
 import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_moodic/presentation/provider/music_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
@@ -85,6 +84,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
 
+                          // 푸쉬 네임드, 고 네임드, path 파라미터로 넘기기
                           onTap: () {
                             context.push('/search/result', extra: mood);
                           },
@@ -170,20 +170,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                 globalMusicState.isPlaying;
 
                             return Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 12,
-                                left: 12,
-                                right: 12,
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                               child: MusicDisplayCard(
                                 music: music,
                                 isPlaying: isPlaying,
                                 onPlayPressed: () => _togglePlay(music),
                                 onSelect: () {
-                                  ref
-                                      .read(selectedMusicProvider.notifier)
-                                      .select(music);
-                                  Navigator.pop(context);
+                                  // 음악으로 게시글 검색 결과 페이지로 이동
+                                  context.push('/search/result', extra: music);
                                 },
                               ),
                             );

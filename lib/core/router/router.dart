@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:flutter_moodic/domain/entity/mood_type.dart';
+import 'package:flutter_moodic/domain/entity/music.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
@@ -10,6 +12,7 @@ import 'package:flutter_moodic/presentation/pages/my_page/my_page.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
 import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
 import 'package:flutter_moodic/presentation/pages/search_page/search_page.dart';
+import 'package:flutter_moodic/presentation/pages/search_result_page/search_result_page.dart';
 import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
@@ -217,6 +220,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.MyPageEdit.path,
         name: AppRoutes.MyPageEdit.name,
         builder: (context, state) => const MyPageEdit(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.SearchResult.path,
+        name: AppRoutes.SearchResult.name,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is MoodType) {
+            return SearchResultPage(mood: extra);
+          } else if (extra is Music) {
+            return SearchResultPage(music: extra);
+          }
+          // fallback: 잘못된 접근
+          return const Scaffold(body: Center(child: Text('잘못된 검색 요청입니다.')));
+        },
       ),
     ],
   );

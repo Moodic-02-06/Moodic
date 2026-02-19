@@ -70,6 +70,40 @@ class FirestorePostDataSource {
     });
   }
 
+  /// 기분(mood)으로 게시글 조회
+  /// 참고: where + orderBy 복합 쿼리는 Firestore 인덱스가 필요하므로
+  ///       orderBy는 클라이언트 사이드에서 처리
+  Future<List<PostDto>> fetchPostsByMood(String mood) async {
+    final snapshot = await _firestore
+        .collection('feeds')
+        .where('mood', isEqualTo: mood)
+        .get();
+
+    final docs = snapshot.docs
+        .map((doc) => PostDto.fromJson(doc.data(), doc.id, isLikedByMe: false))
+        .toList();
+
+    // 클라이언트 사이드 최신순 정렬
+    docs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return docs;
+  }
+
+  /// 음악 ID로 게시글 조회 (Firestore 내 music.trackId 필드 기반)
+  Future<List<PostDto>> fetchPostsByMusicId(String musicId) async {
+    final snapshot = await _firestore
+        .collection('feeds')
+        .where('music.trackId', isEqualTo: musicId)
+        .get();
+
+    final docs = snapshot.docs
+        .map((doc) => PostDto.fromJson(doc.data(), doc.id, isLikedByMe: false))
+        .toList();
+
+    // 클라이언트 사이드 최신순 정렬
+    docs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return docs;
+  }
+
   /// 좋아요 토글
   Future<void> toggleLike(
     String postId,

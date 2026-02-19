@@ -47,4 +47,10 @@ abstract class PostRepository {
 
   /// 댓글 삭제
   Future<void> deleteComment(String postId, String commentId);
+
+  /// 기분으로 게시글 조회
+  Future<List<Post>> fetchPostsByMood(String mood, String? userId);
+
+  /// 음악 ID로 게시글 조회
+  Future<List<Post>> fetchPostsByMusicId(String musicId, String? userId);
 }
