@@ -92,7 +92,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                       context.pushNamed(
                         AppRoutes.DetailPage.name,
                         pathParameters: {'id': post.postId},
-                        extra: post,
                       );
                     },
                     child: HomeFeedCard(post: post),

@@ -3,7 +3,6 @@ import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/mood_type.dart';
-import 'package:flutter_moodic/domain/entity/music.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/widgets/home_feed_card.dart';
 import 'package:flutter_moodic/presentation/pages/search_result_page/search_result_view_model.dart';
@@ -11,19 +10,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// 검색 결과 페이지
-/// [extra]로 MoodType 또는 Music 객체를 받음
+/// queryParameters로 type/value를 받아 mood 또는 music 검색 결과를 표시합니다.
+/// - type=mood  : moodLabel로 감정 검색
+/// - type=music : musicId, musicTitle, musicArtwork로 음악 검색
 class SearchResultPage extends ConsumerStatefulWidget {
-  /// MoodType 검색일 때 사용
-  final MoodType? mood;
+  /// type: 'mood' or 'music'
+  final String type;
 
-  /// Music 검색일 때 사용
-  final Music? music;
+  /// mood 검색 시: mood label (예: '행복')
+  /// music 검색 시: music id
+  final String value;
 
-  const SearchResultPage({super.key, this.mood, this.music})
-    : assert(
-        mood != null || music != null,
-        'mood 또는 music 중 하나는 반드시 전달해야 합니다.',
-      );
+  /// music 검색 시 표시용 제목 (optional)
+  final String? musicTitle;
+
+  /// music 검색 시 표시용 아트워크 URL (optional)
+  final String? musicArtwork;
+
+  const SearchResultPage({
+    super.key,
+    required this.type,
+    required this.value,
+    this.musicTitle,
+    this.musicArtwork,
+  }) : assert(type == 'mood' || type == 'music');
 
   @override
   ConsumerState<SearchResultPage> createState() => _SearchResultPageState();
@@ -33,31 +43,37 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
   @override
   void initState() {
     super.initState();
-    // 진입 직후 데이터 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = ref.read(searchResultViewModelProvider.notifier);
-      if (widget.mood != null) {
-        viewModel.loadByMood(widget.mood!.label);
-      } else if (widget.music != null) {
-        viewModel.loadByMusicId(widget.music!.id);
+      if (widget.type == 'mood') {
+        viewModel.loadByMood(widget.value);
+      } else {
+        viewModel.loadByMusicId(widget.value);
       }
     });
   }
 
+  // 앱바 타이틀
   String get _title {
-    if (widget.mood != null) {
-      return '${widget.mood!.emoji} ${widget.mood!.label}';
+    if (widget.type == 'mood') {
+      final mood = MoodType.fromLabel(widget.value);
+      return '${mood.emoji} ${mood.label}';
     }
-    if (widget.music != null) {
-      return widget.music!.title;
-    }
-    return '검색 결과';
+    return widget.musicTitle ?? '음악 검색';
   }
 
   String get _subtitle {
-    if (widget.mood != null) return '이 감정의 게시글';
-    if (widget.music != null) return '이 음악이 담긴 게시글';
-    return '';
+    if (widget.type == 'mood') return '이 감정의 게시글';
+    return '이 음악이 담긴 게시글';
+  }
+
+  void _reload() {
+    final viewModel = ref.read(searchResultViewModelProvider.notifier);
+    if (widget.type == 'mood') {
+      viewModel.loadByMood(widget.value);
+    } else {
+      viewModel.loadByMusicId(widget.value);
+    }
   }
 
   @override
@@ -80,13 +96,12 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
                 color: AppColors.text900,
               ),
             ),
-            if (_subtitle.isNotEmpty)
-              Text(
-                _subtitle,
-                style: AppTextStyles.labelStatus12w500.copyWith(
-                  color: AppColors.gray500,
-                ),
+            Text(
+              _subtitle,
+              style: AppTextStyles.labelStatus12w500.copyWith(
+                color: AppColors.gray500,
               ),
+            ),
           ],
         ),
       ),
@@ -115,7 +130,6 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
               ),
             ),
             const SizedBox(height: 8),
-            // 디버깅용 에러 메시지 표시
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -127,19 +141,7 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
               ),
             ),
             const SizedBox(height: 8),
-            TextButton(
-              onPressed: () {
-                final viewModel = ref.read(
-                  searchResultViewModelProvider.notifier,
-                );
-                if (widget.mood != null) {
-                  viewModel.loadByMood(widget.mood!.label);
-                } else if (widget.music != null) {
-                  viewModel.loadByMusicId(widget.music!.id);
-                }
-              },
-              child: const Text('다시 시도'),
-            ),
+            TextButton(onPressed: _reload, child: const Text('다시 시도')),
           ],
         ),
       );
@@ -150,14 +152,7 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
     }
 
     return RefreshIndicator(
-      onRefresh: () async {
-        final viewModel = ref.read(searchResultViewModelProvider.notifier);
-        if (widget.mood != null) {
-          await viewModel.loadByMood(widget.mood!.label);
-        } else if (widget.music != null) {
-          await viewModel.loadByMusicId(widget.music!.id);
-        }
-      },
+      onRefresh: () async => _reload(),
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         itemCount: state.posts.length,
@@ -171,12 +166,13 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
   }
 
   Widget _buildEmptyState() {
+    final isMood = widget.type == 'mood';
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            widget.mood != null
+            isMood
                 ? Icons.sentiment_dissatisfied_rounded
                 : Icons.music_off_rounded,
             size: 64,
@@ -191,8 +187,8 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.mood != null
-                ? '${widget.mood!.label} 감정의 첫 번째 게시글을 남겨보세요 ✨'
+            isMood
+                ? '${widget.value} 감정의 첫 번째 게시글을 남겨보세요 ✨'
                 : '이 음악으로 일기를 써보세요 🎵',
             style: AppTextStyles.labelStatus12w500.copyWith(
               color: AppColors.gray300,
@@ -205,7 +201,7 @@ class _SearchResultPageState extends ConsumerState<SearchResultPage> {
   }
 }
 
-/// 게시글 카드 (탭 시 디테일 페이지로 이동)
+/// 게시글 카드 — postId만 전달해 DetailPage로 이동
 class _SearchPostCard extends StatelessWidget {
   final Post post;
 
@@ -215,7 +211,10 @@ class _SearchPostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.push(AppRoutes.DetailPage.absolutePath, extra: post);
+        context.pushNamed(
+          AppRoutes.DetailPage.name,
+          pathParameters: {'id': post.postId},
+        );
       },
       child: HomeFeedCard(post: post),
     );

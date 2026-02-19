@@ -35,13 +35,20 @@ class FollowListState {
   }
 }
 
-/// Riverpod 2.x / 3.x 호환: StateNotifier → AutoDisposeFamilyNotifier 마이그레이션
-class FollowListViewModel
-    extends AutoDisposeFamilyNotifier<FollowListState, String> {
+/// Riverpod 3.x: Notifier.family 패턴
+/// arg는 provider factory에서 주입되며, _arg 필드로 접근
+class FollowListViewModel extends Notifier<FollowListState> {
+  late String _arg;
+
+  // factory에서 arg를 inject할 때 사용
+  FollowListViewModel setArg(String arg) {
+    _arg = arg;
+    return this;
+  }
+
   @override
-  FollowListState build(String arg) {
-    // arg = 누구의 팔로우 리스트를 볼 것인지의 userId
-    _loadData(arg);
+  FollowListState build() {
+    _loadData(_arg);
     return FollowListState(isLoading: true);
   }
 
@@ -117,7 +124,7 @@ class FollowListViewModel
   }
 }
 
-final followListViewModelProvider = NotifierProvider.family
-    .autoDispose<FollowListViewModel, FollowListState, String>(
-      FollowListViewModel.new,
+final followListViewModelProvider = NotifierProvider.autoDispose
+    .family<FollowListViewModel, FollowListState, String>(
+      (arg) => FollowListViewModel()..setArg(arg),
     );

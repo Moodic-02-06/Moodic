@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/mood_type.dart';
@@ -86,7 +87,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
                           // 푸쉬 네임드, 고 네임드, path 파라미터로 넘기기
                           onTap: () {
-                            context.push('/search/result', extra: mood);
+                            context.pushNamed(
+                              AppRoutes.SearchResult.name,
+                              queryParameters: {
+                                'type': 'mood',
+                                'value': mood.label,
+                              },
+                            );
                           },
 
                           child: MoodBadge(moodLabel: mood.label),
@@ -176,8 +183,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                 isPlaying: isPlaying,
                                 onPlayPressed: () => _togglePlay(music),
                                 onSelect: () {
-                                  // 음악으로 게시글 검색 결과 페이지로 이동
-                                  context.push('/search/result', extra: music);
+                                  context.pushNamed(
+                                    AppRoutes.SearchResult.name,
+                                    queryParameters: {
+                                      'type': 'music',
+                                      'value': music.id,
+                                      'title': music.title,
+                                      'artwork': music.artwork,
+                                    },
+                                  );
                                 },
                               ),
                             );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
@@ -18,25 +20,33 @@ class GlobalMusicState {
 
 class GlobalMusicPlayerNotifier extends Notifier<GlobalMusicState> {
   late final AudioPlayer _player;
+  StreamSubscription? _playerStateSubscription;
 
   @override
   GlobalMusicState build() {
     _player = ref.read(_audioPlayerProvider);
 
     // 노래가 끝까지 재생되면 자동으로 정지 상태로 변경
-    _player.playerStateStream.listen((audioState) {
+    _playerStateSubscription = _player.playerStateStream.listen((audioState) {
       if (audioState.processingState == ProcessingState.completed) {
         state = GlobalMusicState(playingId: null, isPlaying: false);
       }
     });
 
+    // dispose 시 스트림 구독 해제
+    ref.onDispose(() => _playerStateSubscription?.cancel());
+
     return GlobalMusicState();
   }
 
   /// 음악 재생/일시정지 토글
-  /// 재생할 음악의 고유 ID (포스트 ID 또는 음악 ID)
-  /// 미리듣기 URL (없으면 재생 불가)
   Future<void> togglePlay(String id, String? previewUrl) async {
+    // previewUrl 없으면 재생 불가
+    if (previewUrl == null || previewUrl.isEmpty) {
+      debugPrint('[MusicPlayer] previewUrl이 없어 재생할 수 없습니다: id=$id');
+      return;
+    }
+
     // 1. 같은 곡을 눌렀을 때 (일시정지/재생)
     if (state.playingId == id) {
       if (state.isPlaying) {
@@ -50,8 +60,6 @@ class GlobalMusicPlayerNotifier extends Notifier<GlobalMusicState> {
     }
 
     // 2. 새로운 곡을 눌렀을 때
-    if (previewUrl == null || previewUrl.isEmpty) return;
-
     try {
       // 상태 먼저 업데이트 (UI 반응성 향상)
       state = GlobalMusicState(playingId: id, isPlaying: true);
@@ -60,7 +68,7 @@ class GlobalMusicPlayerNotifier extends Notifier<GlobalMusicState> {
       await _player.setUrl(previewUrl);
       await _player.play();
     } catch (e) {
-      debugPrint("Global Music Player Error: $e");
+      debugPrint('[MusicPlayer] 재생 오류: $e');
       state = GlobalMusicState(playingId: null, isPlaying: false);
     }
   }

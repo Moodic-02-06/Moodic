@@ -149,11 +149,14 @@ class HomeFeedCard extends ConsumerWidget {
               return MusicDisplayCard(
                 music: post.music,
                 isPlaying: isCurrentPlaying,
-                onPlayPressed: () {
-                  ref
-                      .read(globalMusicPlayerProvider.notifier)
-                      .togglePlay(post.postId, post.music.previewUrl);
-                },
+                // previewUrl 없으면 재생 버튼 비활성화 (null → 버튼 미표시)
+                onPlayPressed: post.music.previewUrl.isNotEmpty
+                    ? () {
+                        ref
+                            .read(globalMusicPlayerProvider.notifier)
+                            .togglePlay(post.postId, post.music.previewUrl);
+                      }
+                    : null,
                 backgroundColor: AppColors.primary900,
               );
             },
@@ -187,7 +190,6 @@ class HomeFeedCard extends ConsumerWidget {
             style: AppTextStyles.bodySecondary14w500.copyWith(
               color: AppColors.text900,
             ),
-            // TODO: 텍스트 줄 수 제한 튜터님께 물어보기
             maxLines: 7,
             overflow: TextOverflow.ellipsis,
           ),

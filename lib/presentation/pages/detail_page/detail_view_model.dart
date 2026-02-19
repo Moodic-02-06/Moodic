@@ -39,7 +39,7 @@ class DetailState {
   }
 }
 
-class DetailViewModel extends AutoDisposeFamilyNotifier<DetailState, String> {
+class DetailViewModel extends Notifier<DetailState> {
   late final String postId;
   StreamSubscription<Post>? _postSubscription;
   StreamSubscription<List<Comment>>? _commentSubscription;
@@ -47,8 +47,7 @@ class DetailViewModel extends AutoDisposeFamilyNotifier<DetailState, String> {
   bool _mounted = true;
 
   @override
-  DetailState build(String arg) {
-    postId = arg;
+  DetailState build() {
     ref.onDispose(() {
       _mounted = false;
       _postSubscription?.cancel();
@@ -214,5 +213,8 @@ class DetailViewModel extends AutoDisposeFamilyNotifier<DetailState, String> {
   }
 }
 
-final detailViewModelProvider = NotifierProvider.family
-    .autoDispose<DetailViewModel, DetailState, String>(DetailViewModel.new);
+// autoDispose: 화면 이탈 시 StreamSubscription 등 리소스 즉시 해제
+final detailViewModelProvider = NotifierProvider.autoDispose
+    .family<DetailViewModel, DetailState, String>(
+      (arg) => DetailViewModel()..postId = arg,
+    );

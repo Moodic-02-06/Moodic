@@ -12,12 +12,12 @@ class MusicDto extends Music {
 
   factory MusicDto.fromJson(Map<String, dynamic> json) {
     return MusicDto(
-      id: json['trackId'].toString(),
-      title: json['trackName'],
-      artist: json['artistName'],
-      previewUrl: json['previewUrl'],
-      artwork: json['artworkUrl100'],
-      trackUrl: json['trackViewUrl'],
+      id: json['trackId']?.toString() ?? '',
+      title: json['trackName'] as String? ?? '',
+      artist: json['artistName'] as String? ?? '',
+      previewUrl: json['previewUrl'] as String? ?? '',
+      artwork: json['artworkUrl100'] as String? ?? '',
+      trackUrl: json['trackViewUrl'] as String? ?? '',
     );
   }
 

@@ -40,7 +40,7 @@ class WriteState {
   }
 }
 
-class WriteViewModel extends AutoDisposeNotifier<WriteState> {
+class WriteViewModel extends Notifier<WriteState> {
   Post? _originPost;
 
   bool _mounted = true;
@@ -255,7 +255,6 @@ class WriteViewModel extends AutoDisposeNotifier<WriteState> {
   }
 }
 
-final writeViewModelProvider =
-    NotifierProvider.autoDispose<WriteViewModel, WriteState>(
-      WriteViewModel.new,
-    );
+final writeViewModelProvider = NotifierProvider<WriteViewModel, WriteState>(
+  WriteViewModel.new,
+);

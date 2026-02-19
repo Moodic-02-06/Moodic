@@ -28,7 +28,7 @@ class SearchResultState {
   }
 }
 
-class SearchResultViewModel extends AutoDisposeNotifier<SearchResultState> {
+class SearchResultViewModel extends Notifier<SearchResultState> {
   @override
   SearchResultState build() {
     return const SearchResultState(isLoading: true);
@@ -64,6 +64,6 @@ class SearchResultViewModel extends AutoDisposeNotifier<SearchResultState> {
 }
 
 final searchResultViewModelProvider =
-    NotifierProvider.autoDispose<SearchResultViewModel, SearchResultState>(
+    NotifierProvider<SearchResultViewModel, SearchResultState>(
       SearchResultViewModel.new,
     );

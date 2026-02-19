@@ -91,41 +91,54 @@ final myPageFamilyFeedsProvider = StreamProvider.family
       return fetchUserPostsUseCase.call(authorId, currentUserId: currentUid);
     });
 
-/// Riverpod 2.x / 3.x 호환: AutoDisposeFamilyNotifier 패턴
+/// Riverpod 3.x: Notifier.family 패턴
 /// arg = 타겟 유저 ID (null이면 "나")
-class MyPageViewModel extends AutoDisposeFamilyNotifier<MyPageState, String?> {
+class MyPageViewModel extends Notifier<MyPageState> {
   /// feedsStreamProvider 스트림을 직접 구독하는 subscription
-  /// (ref.listen은 build() 동기 컨텍스트에서만 사용 가능하므로 직접 구독)
   StreamSubscription<List<Post>>? _feedsSubscription;
   bool _mounted = true;
+  String? _arg; // factory에서 주입되는 인자
+
+  // factory에서 arg를 inject할 때 사용
+  MyPageViewModel setArg(String? arg) {
+    _arg = arg;
+    return this;
+  }
 
   @override
-  MyPageState build(String? arg) {
+  MyPageState build() {
+    _mounted = true; // re-build 시 반드시 초기화
     ref.onDispose(() {
       _mounted = false;
       _feedsSubscription?.cancel();
+      _feedsSubscription = null; // 재진입 시 null 체크를 위해 리셋
     });
 
-    // "나" 프로필인 경우, userProvider 변경 시 닉네임·프로필 동기화
-    // ref.listen은 build() 동기 컨텍스트에서만 안전하게 호출 가능
-    if (arg == null) {
+    // "나" 프로필: userProvider 변경 시 닉네임·프로필 동기화 + 피드 연결 보장
+    if (_arg == null) {
       ref.listen<AsyncValue<UserEntity?>>(userProvider, (previous, next) {
         final user = next.value;
-        if (user != null && _mounted) {
-          state = state.copyWith(
-            nickname: user.nickname,
-            bio: user.bio,
-            profileimage: user.profileImage,
-            postCount: user.postCount,
-            followerCount: user.followerCount,
-            followingCount: user.followingCount,
-          );
+        if (user == null || !_mounted) return;
+
+        // 유저 정보 동기화
+        state = state.copyWith(
+          nickname: user.nickname,
+          bio: user.bio,
+          profileimage: user.profileImage,
+          postCount: user.postCount,
+          followerCount: user.followerCount,
+          followingCount: user.followingCount,
+        );
+
+        // 피드 구독이 아직 안 되어 있으면 (재진입 시 userProvider가 늘리 완료된 경우) 재시도
+        if (_feedsSubscription == null) {
+          Future.microtask(() => _subscribeFeed(user.uid));
         }
       });
     }
 
-    // 비동기 초기화는 microtask로 지연 → build() 완료 후 state 접근 보장
-    Future.microtask(() => _load(arg));
+    // 비동기 초기화 (microtask로 지연 → build() 완료 후 state 접근 보장)
+    Future.microtask(() => _load(_arg));
 
     return MyPageState(nickname: '', feeds: [], isLoading: true);
   }
@@ -134,16 +147,28 @@ class MyPageViewModel extends AutoDisposeFamilyNotifier<MyPageState, String?> {
     if (!_mounted) return;
 
     final currentUserState = ref.read(userProvider);
+
+    // userProvider가 아직 로딩 중이면 대기 (로딩 정왕이 아니라 ref.listen이 콜백함)
+    if (currentUserState.isLoading) {
+      // build()에서 ref.listen이 인자=null일 때 콜백하므로 여기서 기다림
+      // 인자가 있는 경우(👤 🤵‍♂️ 타인 프로필)는 역주음 외부로 빠짘 편
+      if (userId != null) {
+        // 타인 프로필: 대기하는 것보다 간단히 잠시 지연 후 재시도
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (_mounted) await _load(userId);
+      }
+      // 나 프로필: ref.listen이 userProvider 완료 시 콜백하므로 여기서는 보렬마 없음
+      return;
+    }
+
     final myUid = currentUserState.value?.uid;
 
     // 1. 타겟 유저 결정 (타겟이 없으면 나)
     final userIdToLoad = userId ?? myUid;
 
     if (userIdToLoad == null) {
-      // 로그인 정보가 아직 없음 → ref.listen(userProvider)가 업데이트 해줌
-      if (_mounted) {
-        state = state.copyWith(isLoading: false, nickname: '로딩 중...');
-      }
+      // 로그인 정보가 없음 (userProvider가 완료되었지만 유저가 null)
+      if (_mounted) state = state.copyWith(isLoading: false);
       return;
     }
 
@@ -246,7 +271,7 @@ class MyPageViewModel extends AutoDisposeFamilyNotifier<MyPageState, String?> {
   /// 팔로우/언팔로우 토글
   Future<void> toggleFollow() async {
     final myUid = ref.read(userProvider).value?.uid;
-    final targetUid = arg; // AutoDisposeFamilyNotifier의 arg 필드
+    final targetUid = _arg; // Riverpod 3.x: factory에서 주입된 _arg 필드 사용
 
     if (myUid == null || targetUid == null || myUid == targetUid) return;
 
@@ -356,5 +381,9 @@ final monthlyMoodsProvider = FutureProvider.family<Map<MoodType, int>, String>((
   return counts;
 });
 
-final myPageViewModelProvider = NotifierProvider.family
-    .autoDispose<MyPageViewModel, MyPageState, String?>(MyPageViewModel.new);
+// autoDispose: 화면 이탈 시 provider가 dispose되어
+// 재진입 시 build()가 다시 실행되므로 데이터가 새로고침
+final myPageViewModelProvider = NotifierProvider.autoDispose
+    .family<MyPageViewModel, MyPageState, String?>(
+      (arg) => MyPageViewModel().setArg(arg),
+    );
