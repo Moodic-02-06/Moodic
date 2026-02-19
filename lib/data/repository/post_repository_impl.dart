@@ -189,4 +189,42 @@ class PostRepositoryImpl implements PostRepository {
   Future<void> deleteComment(String postId, String commentId) async {
     return dataSource.deleteComment(postId, commentId);
   }
+
+  /// 기분으로 게시글 조회
+  @override
+  Future<List<Post>> fetchPostsByMood(String mood, String? userId) async {
+    final dtos = await dataSource.fetchPostsByMood(mood);
+    if (dtos.isEmpty) return [];
+
+    if (userId == null) {
+      return dtos.map((dto) => dto.toEntity()).toList();
+    }
+
+    final feedIds = dtos.map((e) => e.postId).toList();
+    final likedSet = await dataSource.fetchLikedFeedIds(userId, feedIds);
+    return dtos.map((dto) {
+      return dto.toEntity().copyWith(
+        isLikedByMe: likedSet.contains(dto.postId),
+      );
+    }).toList();
+  }
+
+  /// 음악 ID로 게시글 조회
+  @override
+  Future<List<Post>> fetchPostsByMusicId(String musicId, String? userId) async {
+    final dtos = await dataSource.fetchPostsByMusicId(musicId);
+    if (dtos.isEmpty) return [];
+
+    if (userId == null) {
+      return dtos.map((dto) => dto.toEntity()).toList();
+    }
+
+    final feedIds = dtos.map((e) => e.postId).toList();
+    final likedSet = await dataSource.fetchLikedFeedIds(userId, feedIds);
+    return dtos.map((dto) {
+      return dto.toEntity().copyWith(
+        isLikedByMe: likedSet.contains(dto.postId),
+      );
+    }).toList();
+  }
 }

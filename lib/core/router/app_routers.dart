@@ -19,6 +19,10 @@ enum AppRoutes {
     path: '/mypage/edit',
     name: 'mypage_edit',
   ),
+  SearchResult(
+    absolutePath: '/search/result',
+    path: '/search/result',
+    name: 'search_result',
   UserPage(
     absolutePath: '/user/:userId',
     path: '/user/:userId',
