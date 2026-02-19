@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
@@ -41,6 +42,7 @@ class DetailViewModel extends Notifier<DetailState> {
   late final String postId;
   StreamSubscription<Post>? _postSubscription;
   StreamSubscription<List<Comment>>? _commentSubscription;
+  Timer? _debounceTimer;
 
   DetailViewModel(this.postId);
 
@@ -49,6 +51,7 @@ class DetailViewModel extends Notifier<DetailState> {
     ref.onDispose(() {
       _postSubscription?.cancel();
       _commentSubscription?.cancel();
+      _debounceTimer?.cancel();
     });
 
     _subscribe();
@@ -104,14 +107,43 @@ class DetailViewModel extends Notifier<DetailState> {
     final currentPost = state.post;
     if (currentPost == null) return;
 
-    try {
-      await ref
-          .read(toggleLikeUseCaseProvider)
-          .call(currentPost.postId, user.uid, currentPost.isLikedByMe);
-      // Stream이 자동 업데이트
-    } catch (e) {
-      debugPrint('좋아요 실패: $e');
-    }
+    // 1. 낙관적 업데이트 (Optimistic Update)
+    final isLiked = !currentPost.isLikedByMe;
+
+    // 안전장치 강화: 어떤 상황에서도 0 미만으로 내려가지 않도록 함
+    final int newLikeCount = math.max(
+      0,
+      isLiked ? currentPost.likeCount + 1 : currentPost.likeCount - 1,
+    );
+
+    final updatedPost = currentPost.copyWith(
+      isLikedByMe: isLiked,
+      likeCount: newLikeCount,
+    );
+
+    // 이전 상태 백업
+    final previousPost = currentPost;
+
+    // UI 즉시 갱신
+    state = state.copyWith(post: updatedPost);
+
+    // 2. 디바운싱 적용 (서버 요청 제한)
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      // 타이머 실행 시점의 최신 상태를 기준으로 요청
+      final finalPost = state.post;
+      if (finalPost == null) return;
+
+      try {
+        await ref
+            .read(toggleLikeUseCaseProvider)
+            .call(finalPost.postId, user.uid, finalPost.isLikedByMe);
+      } catch (e) {
+        debugPrint('좋아요 실패: $e');
+        // 실패 시 롤백
+        state = state.copyWith(post: previousPost);
+      }
+    });
   }
 
   void clearPost() {

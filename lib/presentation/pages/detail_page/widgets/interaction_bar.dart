@@ -39,7 +39,9 @@ class InteractionBar extends ConsumerWidget {
               children: [
                 Icon(
                   post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
-                  color: post.isLikedByMe ? Colors.red : AppColors.gray500,
+                  color: post.isLikedByMe
+                      ? const Color.fromARGB(255, 224, 81, 71)
+                      : AppColors.gray500,
                   size: 28,
                 ),
                 const SizedBox(width: 6),
