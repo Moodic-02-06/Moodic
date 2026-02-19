@@ -195,11 +195,11 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                 child: TextFormField(
                                   maxLength: 12,
                                   // 한글,영문,숫자만 입력되게
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(r'[a-zA-Z0-9가-힣]'),
-                                    ),
-                                  ],
+                                  // inputFormatters: [
+                                  //   FilteringTextInputFormatter.allow(
+                                  //     RegExp(r'[a-zA-Z0-9가-힣]'),
+                                  //   ),
+                                  // ],
                                   controller: _nicknameController,
                                   validator: (value) {
                                     if (value == null || value.trim().isEmpty) {

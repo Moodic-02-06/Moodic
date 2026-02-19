@@ -107,8 +107,11 @@ class DetailViewModel extends Notifier<DetailState> {
     final currentPost = state.post;
     if (currentPost == null) return;
 
+    // 낙관적 업데이트 이전의 원래 좋아요 상태 캡처 (서버 요청에 사용)
+    final wasLiked = currentPost.isLikedByMe;
+
     // 1. 낙관적 업데이트 (Optimistic Update)
-    final isLiked = !currentPost.isLikedByMe;
+    final isLiked = !wasLiked;
 
     // 안전장치 강화: 어떤 상황에서도 0 미만으로 내려가지 않도록 함
     final int newLikeCount = math.max(
@@ -130,14 +133,15 @@ class DetailViewModel extends Notifier<DetailState> {
     // 2. 디바운싱 적용 (서버 요청 제한)
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      // 타이머 실행 시점의 최신 상태를 기준으로 요청
       final finalPost = state.post;
       if (finalPost == null) return;
 
       try {
+        // ⚠️ 핵심: wasLiked(원래 상태)를 전달해야 서버 로직이 올바르게 동작함
+        // finalPost.isLikedByMe는 낙관적 업데이트로 이미 뒤집힌 값이므로 사용 불가
         await ref
             .read(toggleLikeUseCaseProvider)
-            .call(finalPost.postId, user.uid, finalPost.isLikedByMe);
+            .call(finalPost.postId, user.uid, wasLiked);
       } catch (e) {
         debugPrint('좋아요 실패: $e');
         // 실패 시 롤백
