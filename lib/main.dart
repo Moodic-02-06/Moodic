@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_moodic/core/theme/app_theme.dart';
 import 'package:flutter_moodic/firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_moodic/core/router/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   KakaoSdk.init(nativeAppKey: '71864507c21bfc33642fa3c40adefdc9');
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
