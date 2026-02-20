@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/provider/blocked_ids_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeState {
@@ -65,6 +66,7 @@ class HomeViewModel extends Notifier<HomeState> {
     _cancelSubscription();
 
     try {
+      await ref.read(blockedIdsProvider.notifier).loadBlockedIds();
       final fetchFeedsUseCase = ref.read(fetchFeedsUseCaseProvider);
       final currentUser = ref.read(userProvider).value;
 
@@ -75,14 +77,23 @@ class HomeViewModel extends Notifier<HomeState> {
 
       _feedSubscription = stream.listen(
         (fetchedFeeds) {
-          // 최신순으로 정렬 (createdAt 내림차순)
-          final sorted = List<Post>.from(fetchedFeeds)
-            ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          final blockedIds = ref.read(blockedIdsProvider);
+
+          // 차단된 게시글 또는 유저 필터링 후 최신순으로 정렬
+          final filteredAndSorted =
+              List<Post>.from(fetchedFeeds)
+                  .where(
+                    (post) =>
+                        !blockedIds.contains(post.postId) &&
+                        !blockedIds.contains(post.userId),
+                  )
+                  .toList()
+                ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
           state = state.copyWith(
-            feeds: sorted,
+            feeds: filteredAndSorted,
             isLoading: false,
-            hasMore: sorted.length >= targetLimit,
+            hasMore: filteredAndSorted.length >= targetLimit,
           );
         },
         onError: (e) {
@@ -114,6 +125,14 @@ class HomeViewModel extends Notifier<HomeState> {
     } catch (e) {
       debugPrint('게시글 삭제 실패: $e');
     }
+  }
+
+  /// 로컬 목록에서 특정 게시물 숨기기 (차단 적용용)
+  void removePost(String targetId) {
+    final newFeeds = state.feeds
+        .where((post) => post.postId != targetId && post.userId != targetId)
+        .toList();
+    state = state.copyWith(feeds: newFeeds);
   }
 }
 

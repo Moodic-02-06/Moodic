@@ -5,8 +5,11 @@ import 'package:flutter_moodic/core/utils/dialog_util.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/provider/blocked_ids_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
+import 'package:flutter_moodic/presentation/widgets/report_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -104,11 +107,48 @@ class UserHeader extends ConsumerWidget {
                     );
                   },
 
-                  onReport: () {
+                  onBlock: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('신고가 접수되었습니다.')),
+                    DialogUtil.showBlockDialog(
+                      context,
+                      targetName: '이 게시글을',
+                      onConfirm: () async {
+                        if (currentUser != null) {
+                          await ref
+                              .read(blockTargetUseCaseProvider)
+                              .execute(currentUser.uid, post.postId, 'post');
+                          ref
+                              .read(blockedIdsProvider.notifier)
+                              .addBlockedId(post.postId);
+                          // 상세 페이지에서 차단 시 메인으로 돌아갑니다.
+                          if (context.mounted) {
+                            context.pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('게시글이 차단되었습니다.')),
+                            );
+                          }
+                        }
+                      },
                     );
+                  },
+                  onReport: () async {
+                    Navigator.pop(context);
+                    final reason = await ReportDialog.show(context);
+                    if (reason != null && currentUser != null) {
+                      await ref
+                          .read(reportTargetUseCaseProvider)
+                          .execute(
+                            targetId: post.postId,
+                            targetType: 'post',
+                            reporterId: currentUser.uid,
+                            reason: reason,
+                          );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('신고가 접수되었습니다.')),
+                        );
+                      }
+                    }
                   },
                 );
               },

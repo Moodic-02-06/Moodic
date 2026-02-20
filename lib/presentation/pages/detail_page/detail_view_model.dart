@@ -9,6 +9,7 @@ import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_moodic/presentation/provider/repository_provider.dart';
 import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/provider/blocked_ids_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DetailState {
@@ -69,7 +70,9 @@ class DetailViewModel extends Notifier<DetailState> {
     state = state.copyWith();
   }
 
-  void _subscribe() {
+  Future<void> _subscribe() async {
+    await ref.read(blockedIdsProvider.notifier).loadBlockedIds();
+
     final currentUserId = ref.read(userProvider).value?.uid;
     final repository = ref.read(postRepositoryProvider);
 
@@ -88,7 +91,15 @@ class DetailViewModel extends Notifier<DetailState> {
         .getCommentsStream(postId)
         .listen(
           (comments) {
-            state = state.copyWith(comments: comments);
+            final blockedIds = ref.read(blockedIdsProvider);
+            final filteredComments = comments
+                .where(
+                  (c) =>
+                      !blockedIds.contains(c.commentId) &&
+                      !blockedIds.contains(c.userId),
+                )
+                .toList();
+            state = state.copyWith(comments: filteredComments);
           },
           onError: (e) {
             debugPrint('댓글 로드 실패: $e');
@@ -210,6 +221,13 @@ class DetailViewModel extends Notifier<DetailState> {
       if (!_mounted) return;
       state = state.copyWith(error: '댓글 삭제 실패');
     }
+  }
+
+  void removeComment(String targetId) {
+    final filteredComments = state.comments
+        .where((c) => c.commentId != targetId && c.userId != targetId)
+        .toList();
+    state = state.copyWith(comments: filteredComments);
   }
 }
 

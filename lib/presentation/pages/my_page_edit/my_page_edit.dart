@@ -297,6 +297,57 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                             ),
                           ],
                         ),
+                        SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: AppColors.primary600,
+                        ),
+                        SizedBox(height: 12),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            "차단 관리",
+                            style: AppTextStyles.bodyPrimary16w600.copyWith(
+                              color: AppColors.text900,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: AppColors.gray500,
+                          ),
+                          onTap: () {
+                            context.pushNamed(AppRoutes.BlockList.name);
+                          },
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: AppColors.primary600,
+                        ),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            "신고 내역",
+                            style: AppTextStyles.bodyPrimary16w600.copyWith(
+                              color: AppColors.text900,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: AppColors.gray500,
+                          ),
+                          onTap: () {
+                            context.pushNamed(AppRoutes.ReportList.name);
+                          },
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: AppColors.primary600,
+                        ),
                         Spacer(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
