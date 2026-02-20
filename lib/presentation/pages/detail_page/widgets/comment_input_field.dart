@@ -74,8 +74,11 @@ class CommentInputField extends StatelessWidget {
                       ),
                       child: TextField(
                         controller: controller,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: '댓글을 입력하세요...',
+                          hintStyle: AppTextStyles.bodyPrimary14w600.copyWith(
+                            color: AppColors.gray500,
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -88,13 +91,13 @@ class CommentInputField extends StatelessWidget {
                     onTap: onSubmit,
                     child: Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.moodPurple,
+                        color: AppColors.secondary500,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_upward,
-                        color: Colors.white,
+                        color: AppColors.gray300,
                         size: 20,
                       ),
                     ),

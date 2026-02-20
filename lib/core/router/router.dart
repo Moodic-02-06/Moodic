@@ -42,7 +42,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = location == AppRoutes.LoginPage.absolutePath;
       final isTempProfile = location == AppRoutes.TempProfile.absolutePath;
 
-      if (userState.isLoading || userState.isRefreshing) return null;
+      // 스트림이 처음 로딩 중인 경우 대기 (아직 값이 없음)
+      if (userState.isLoading) return null;
+
+      // 스트림 에러(예: 로그아웃 후 Firestore PERMISSION_DENIED) → 로그인 페이지로
+      if (userState.hasError) {
+        if (isLoggingIn) return null;
+        return AppRoutes.LoginPage.absolutePath;
+      }
 
       final user = userState.value;
       final isLoggedIn = user != null;

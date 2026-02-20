@@ -321,8 +321,8 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                           ),
                           onTap: () async {
                             final Uri url = Uri.parse(
-                              'https://example.com/terms',
-                            ); // 임시 URL
+                              'https://sparkling-wallaby-fec.notion.site/2026-02-20-30d3afd0fa6e80228ac2ff232936a751',
+                            );
                             if (!await launchUrl(url)) {
                               debugPrint("Could not launch $url");
                             }
@@ -348,8 +348,8 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                           ),
                           onTap: () async {
                             final Uri url = Uri.parse(
-                              'https://example.com/privacy',
-                            ); // 임시 URL
+                              'https://sparkling-wallaby-fec.notion.site/2026-02-20-30d3afd0fa6e806b8266d4d0ab24aff5?pvs=74',
+                            );
                             if (!await launchUrl(url)) {
                               debugPrint("Could not launch $url");
                             }
@@ -432,15 +432,12 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                         TextButton(
                                           onPressed: () async {
                                             Navigator.pop(context); // 다이얼로그 닫기
-                                            // 직접 로그아웃 호출
                                             await ref
                                                 .read(authRepositoryProvider)
                                                 .signOut();
-                                            if (context.mounted) {
-                                              context.goNamed(
-                                                AppRoutes.LoginPage.name,
-                                              );
-                                            }
+                                            // signOut() → Firebase authStateChanges null 발행
+                                            // → userProvider AsyncData(null) 업데이트
+                                            // → RouterNotifier.notify() → redirect → LoginPage
                                           },
                                           child: Text(
                                             "로그아웃",
@@ -487,14 +484,33 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                         TextButton(
                                           onPressed: () async {
                                             Navigator.pop(context); // 다이얼로그 닫기
-                                            // 직접 탈퇴 호출
-                                            await ref
-                                                .read(authRepositoryProvider)
-                                                .deleteAccount();
-                                            if (context.mounted) {
-                                              context.goNamed(
-                                                AppRoutes.LoginPage.name,
-                                              );
+
+                                            try {
+                                              // 직접 탈퇴 호출
+                                              // deleteAccount() 내부에서 auth 삭제 완료 →
+                                              // userProvider 스트림이 null 발행 →
+                                              // RouterNotifier.notify() → redirect가 자동으로 LoginPage 이동
+                                              await ref
+                                                  .read(authRepositoryProvider)
+                                                  .deleteAccount();
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                final errorMessage = e
+                                                    .toString()
+                                                    .replaceAll(
+                                                      'Exception: ',
+                                                      '',
+                                                    );
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(errorMessage),
+                                                    backgroundColor:
+                                                        AppColors.stateError,
+                                                  ),
+                                                );
+                                              }
                                             }
                                           },
                                           child: Text(

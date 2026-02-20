@@ -15,45 +15,46 @@ final userProvider = StreamProvider<UserEntity?>((ref) {
   final useCase = ref.watch(getCurrentUserUseCaseProvider);
   final authRepo = ref.read(authRepositoryProvider); // 미리 읽어두기
 
-  return useCase.authStateChanges.asyncMap((user) async {
+  return useCase.authStateChanges.asyncExpand((user) {
+    // 로그아웃 상태: 즉시 null 발행 (비동기 작업 없이)
     if (user == null) {
       debugPrint('<<<< 🔒 유저 로그아웃 상태 >>>>');
-      return null;
+      return Stream.value(null);
     }
 
-    try {
-      // 1. 실제 존재 여부 검증
-      final exists = await authRepo.checkUserExists(user.uid);
-
-      // exists가 false라면 (문서가 없다면) 신규 유저로 간주
-      if (!exists) {
-        debugPrint('⚠️ 계정 정보 없음: 신규 회원으로 처리 (isFirst = true)');
-        return user.copyWith(isFirst: true);
-      }
-
-      // 2. 정상 로그인 정보 출력 (디버깅용)
-      _logUserInfo(user);
-
-      // 3. FCM 토큰 발급 및 Firestore 업데이트
+    // 로그인 상태: 비동기 작업 수행 후 결과 발행
+    return Stream.fromFuture(() async {
       try {
-        final fcmToken = await NotificationService().getFcmToken();
-        if (fcmToken != null && fcmToken != user.fcmToken) {
-          debugPrint('📲 FCM 토큰 저장 중: $fcmToken');
+        // 1. 실제 존재 여부 검증
+        final exists = await authRepo.checkUserExists(user.uid);
 
-          final userRepo = ref.read(userRepositoryProvider);
-          await userRepo.updateFcmToken(user.uid, fcmToken);
+        // exists가 false라면 (문서가 없다면) 신규 유저로 간주
+        if (!exists) {
+          debugPrint('⚠️ 계정 정보 없음: 신규 회원으로 처리 (isFirst = true)');
+          return user.copyWith(isFirst: true);
         }
-      } catch (e) {
-        debugPrint('FCM 토큰 업데이트 실패: $e');
-      }
 
-      return user;
-    } catch (e) {
-      debugPrint('❌ 인증 검증 중 서버 통신 또는 데이터 오류 발생: $e');
-      // 에러 발생 시 신규 유저로 처리하지 않고 null을 반환하여
-      // 앱이 잠시 대기하거나 로그인 화면으로 안전하게 리다이렉트되도록 함
-      return null;
-    }
+        // 2. 정상 로그인 정보 출력 (디버깅용)
+        _logUserInfo(user);
+
+        // 3. FCM 토큰 발급 및 Firestore 업데이트
+        try {
+          final fcmToken = await NotificationService().getFcmToken();
+          if (fcmToken != null && fcmToken != user.fcmToken) {
+            debugPrint('📲 FCM 토큰 저장 중: $fcmToken');
+            final userRepo = ref.read(userRepositoryProvider);
+            await userRepo.updateFcmToken(user.uid, fcmToken);
+          }
+        } catch (e) {
+          debugPrint('FCM 토큰 업데이트 실패: $e');
+        }
+
+        return user;
+      } catch (e) {
+        debugPrint('❌ 인증 검증 중 서버 통신 또는 데이터 오류 발생: $e');
+        return null;
+      }
+    }());
   });
 });
 

@@ -78,13 +78,18 @@ class UserRemoteDataSource {
     final targetUserRef = _firestore.collection("user").doc(targetUid);
     batch.update(targetUserRef, {"followerCount": FieldValue.increment(1)});
 
-    // 4. 푸시 알림 (notifications 컬렉션 추가)
+    // 4. 푸시 알림 (notifications 서브컬렉션 추가)
     if (uid != targetUid) {
-      final notificationRef = _firestore.collection("notifications").doc();
+      final notificationRef = _firestore
+          .collection("user")
+          .doc(targetUid)
+          .collection("notifications")
+          .doc();
+
       batch.set(notificationRef, {
         "type": "follow",
         "senderId": uid,
-        "receiverId": targetUid,
+        "userId": targetUid, // 수신자 ID
         "postId": "",
         "message": "님이 팔로우를 시작했습니다.",
         "createdAt": FieldValue.serverTimestamp(),

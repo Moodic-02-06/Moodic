@@ -58,6 +58,13 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
   );
 
+  /// Body-secondary: 보조 설명 (12px / Medium)
+  static const TextStyle bodySecondary12w500 = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+  );
+
   /// label-status: 채팅 시간 (10px / Medium)
   static const TextStyle labelChat10w500 = TextStyle(
     fontFamily: fontFamily,

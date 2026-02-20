@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -101,39 +102,70 @@ class AuthRemoteDataSource {
     );
   }
 
-  /// 인증 상태 및 유저 데이터를 실시간으로 감시하는 스트림
+  /// 인증 상태 및 유저 데이터를 실시간으로 감시하는 스트림 (switchMap 패턴)
+  ///
+  /// asyncExpand는 이전 내부 스트림을 취소하지 않으므로,
+  /// StreamController를 활용한 진짜 switchMap으로 구현합니다.
+  /// 로그아웃 시 Firestore 구독을 즉시 취소하여 이전 값이 재발행되는 문제를 방지합니다.
   Stream<UserEntity?> get authStateChanges {
-    return _auth.authStateChanges().asyncExpand((user) {
-      // 회원탈퇴 진행 중이면 무조건 로그아웃 상태로 처리
-      if (_isDeleting) return Stream.value(null);
+    late StreamController<UserEntity?> controller;
+    StreamSubscription<User?>? authSub;
+    StreamSubscription? firestoreSub;
 
-      if (user == null) return Stream.value(null);
+    controller = StreamController<UserEntity?>(
+      onListen: () {
+        authSub = _auth.authStateChanges().listen((user) {
+          // 새로운 Auth 이벤트가 오면 이전 Firestore 구독을 즉시 취소 (switchMap 핵심)
+          firestoreSub?.cancel();
+          firestoreSub = null;
 
-      // 유저의 Firestore 문서를 실시간 감시하여 데이터가 바뀔 때마다 스트림 발행
-      return FirebaseFirestore.instance
-          .collection('user')
-          .doc(user.uid)
-          .snapshots()
-          .map((doc) {
-            // 탈퇴 진행 중이면 로그아웃 상태 반환
-            if (_isDeleting) return null;
+          if (_isDeleting || user == null) {
+            controller.add(null);
+            return;
+          }
 
-            if (doc.exists && doc.data() != null) {
-              return UserDto.fromJson(doc.data()!);
-            }
+          // 로그인 상태: Firestore 실시간 구독 시작
+          firestoreSub = FirebaseFirestore.instance
+              .collection('user')
+              .doc(user.uid)
+              .snapshots()
+              .listen(
+                (doc) {
+                  if (_isDeleting) {
+                    controller.add(null);
+                    return;
+                  }
+                  if (doc.exists && doc.data() != null) {
+                    controller.add(UserDto.fromJson(doc.data()!));
+                  } else {
+                    // 신규 유저 초기 객체
+                    controller.add(
+                      UserEntity(
+                        uid: user.uid,
+                        nickname: user.displayName ?? '익명',
+                        profileImage: user.photoURL,
+                        bio: '',
+                        isFirst: true,
+                        followerCount: 0,
+                        followingCount: 0,
+                      ),
+                    );
+                  }
+                },
+                onError: (e) {
+                  // 로그아웃 후 PERMISSION_DENIED 등은 무시
+                  debugPrint('Firestore 스트림 에러 (무시됨): $e');
+                },
+              );
+        });
+      },
+      onCancel: () {
+        authSub?.cancel();
+        firestoreSub?.cancel();
+      },
+    );
 
-            // Firestore에 문서가 없는 신규 유저를 위한 초기 객체 반환
-            return UserEntity(
-              uid: user.uid,
-              nickname: user.displayName ?? '익명',
-              profileImage: user.photoURL,
-              bio: '',
-              isFirst: true,
-              followerCount: 0,
-              followingCount: 0,
-            );
-          });
-    });
+    return controller.stream;
   }
 
   /// 소셜 로그인 등의 과정에서 유저 정보가 있는지 확인하고 없으면 생성

@@ -7,6 +7,7 @@ import 'package:flutter_moodic/firebase_options.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
+import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/core/router/router.dart';
 import 'package:flutter_moodic/core/service/notification_service.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
@@ -36,6 +37,17 @@ class MyApp extends ConsumerWidget {
     ref.listen<AsyncValue<UserEntity?>>(userProvider, (previous, next) {
       if (!next.isLoading) {
         FlutterNativeSplash.remove();
+      }
+
+      // 로그인 상태 → 로그아웃 전환 감지: 직접 LoginPage로 이동
+      // redirect 메커니즘의 타이밍 문제를 우회하기 위해 루트에서 직접 처리
+      final wasLoggedIn = previous?.value != null;
+      final isNowLoggedOut =
+          !next.isLoading && (next.value == null || next.hasError);
+
+      if (wasLoggedIn && isNowLoggedOut) {
+        debugPrint('🚪 로그아웃 감지 → 로그인 페이지로 이동');
+        ref.read(routerProvider).go(AppRoutes.LoginPage.absolutePath);
       }
     });
 

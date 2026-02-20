@@ -3,23 +3,55 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 유저 정보 보호 (user, users 모두 대응)
+    // 유저 컬렉션 (user)
     match /user/{userId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
       
-      match /{collection}/{docId} {
+      // 타인의 팔로워 카운트 업데이트 허용
+      allow update: if request.auth != null && 
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'followingCount']));
+
+      match /followers/{followerId} {
+        allow read: if true;
+        allow write: if request.auth != null && (request.auth.uid == followerId || request.auth.uid == userId);
+      }
+      
+      match /following/{followingId} {
         allow read: if true;
         allow write: if request.auth != null && request.auth.uid == userId;
       }
+
+      match /notifications/{noteId} {
+        allow create: if request.auth != null;
+        allow read: if request.auth != null && (request.auth.uid == userId || resource.data.senderId == request.auth.uid);
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // 차단 목록 (user/{userId}/blocks/{targetId})
+      match /blocks/{targetId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
+    // 유저 컬렉션 (users) - 동일 규칙
     match /users/{userId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
-      
-      match /{collection}/{docId} {
+      allow update: if request.auth != null && 
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'followingCount']));
+
+      match /followers/{followerId} {
         allow read: if true;
+        allow write: if request.auth != null && (request.auth.uid == followerId || request.auth.uid == userId);
+      }
+      match /following/{followingId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /notifications/{noteId} {
+        allow create: if request.auth != null;
+        allow read: if request.auth != null && (request.auth.uid == userId || resource.data.senderId == request.auth.uid);
         allow write: if request.auth != null && request.auth.uid == userId;
       }
     }
@@ -28,7 +60,15 @@ service cloud.firestore {
     match /feeds/{feedId} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // 복합 업데이트 허용 (작성자 또는 카운트 변경 시)
+      allow update: if request.auth != null && 
+        (
+          resource.data.userId == request.auth.uid || 
+          (request.resource.data.userId == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasAny(['likeCount', 'commentCount']))
+        );
+      
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
     
     // 댓글 보호
@@ -46,14 +86,29 @@ service cloud.firestore {
     
     // 신고 목록 보호
     match /reports/{reportId} {
+      // 신고 생성: 로그인한 사용자
       allow create: if request.auth != null;
-      allow read, update, delete: if false; // 관리자만 확인 가능하도록 설정 (클라이언트 접근 차단)
+      // 본인이 신고한 내역만 읽기 허용
+      allow read: if request.auth != null && resource.data.reporterId == request.auth.uid;
+      // 수정/삭제 불가
+      allow update, delete: if false;
+    }
+
+    // 알림 목록 보호 (Top-level은 이제 추천하지 않지만, 기존 호환성 위해 유지하거나 제거 가능)
+    match /notifications/{noteId} {
+      allow read, write: if false; 
     }
 
     // 좋아요 보호
     match /likes/{likeId} {
-      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // 읽기는 누구나 가능하게 열어줘야 '좋아요 여부'나 '개수'를 확인할 수 있습니다.
+      allow read: if true; 
+      
+      // 생성은 로그인한 본인 데이터만 가능하게
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // 삭제는 본인이 누른 것만 가능하게
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // 기본 규칙: 모든 접근 차단 (Whitespaces 방식 지향)
