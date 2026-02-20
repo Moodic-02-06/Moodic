@@ -20,7 +20,7 @@ class BlockRemoteDataSource {
     // 차단 대상마다 고유한 ID를 부여하거나, targetId를 문서 ID로 쓸 수 있습니다.
     // 여기서는 targetId 자체를 문서 ID로 써서 중복 차단을 방지합니다.
     await _firestore
-        .collection('users')
+        .collection('user')
         .doc(userId)
         .collection('blocks')
         .doc(targetId)
@@ -29,7 +29,7 @@ class BlockRemoteDataSource {
 
   Future<List<String>> getBlockedIds(String userId) async {
     final snapshot = await _firestore
-        .collection('users')
+        .collection('user')
         .doc(userId)
         .collection('blocks')
         .get();
@@ -39,7 +39,7 @@ class BlockRemoteDataSource {
 
   Future<void> unblockTarget(String userId, String targetId) async {
     await _firestore
-        .collection('users')
+        .collection('user')
         .doc(userId)
         .collection('blocks')
         .doc(targetId)
@@ -48,7 +48,7 @@ class BlockRemoteDataSource {
 
   Future<List<Block>> getBlocks(String userId) async {
     final snapshot = await _firestore
-        .collection('users')
+        .collection('user')
         .doc(userId)
         .collection('blocks')
         .orderBy('createdAt', descending: true)

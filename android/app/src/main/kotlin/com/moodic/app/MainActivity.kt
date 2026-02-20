@@ -1,4 +1,4 @@
-package com.example.flutter_moodic
+package com.moodic.app
 
 import io.flutter.embedding.android.FlutterActivity
 

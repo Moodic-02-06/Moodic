@@ -7,7 +7,7 @@ class NotificationRemoteDataSource {
   Future<void> createNotification(NotificationDto notification) async {
     // 알림 받는 사람의 서브컬렉션에 추가
     await _firestore
-        .collection('users')
+        .collection('user')
         .doc(notification.userId)
         .collection('notifications')
         .add(notification.toJson());
@@ -15,7 +15,7 @@ class NotificationRemoteDataSource {
 
   Stream<List<NotificationDto>> getNotificationStream(String userId) {
     return _firestore
-        .collection('users')
+        .collection('user')
         .doc(userId)
         .collection('notifications')
         .orderBy('createdAt', descending: true)
@@ -29,7 +29,7 @@ class NotificationRemoteDataSource {
 
   Future<void> markAsRead(String userId, String notificationId) async {
     await _firestore
-        .collection('users')
+        .collection('user')
         .doc(userId)
         .collection('notifications')
         .doc(notificationId)

@@ -4,13 +4,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_moodic/core/theme/app_theme.dart';
 import 'package:flutter_moodic/firebase_options.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
 import 'package:flutter_moodic/core/router/router.dart';
 import 'package:flutter_moodic/core/service/notification_service.dart';
+import 'package:flutter_moodic/domain/entity/user_entity.dart';
+import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // 스플래시 화면 유지
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   await dotenv.load(fileName: ".env");
   KakaoSdk.init(nativeAppKey: '71864507c21bfc33642fa3c40adefdc9');
 
@@ -26,6 +32,13 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 유저 상태 로딩 완료 시 스플래시 제거
+    ref.listen<AsyncValue<UserEntity?>>(userProvider, (previous, next) {
+      if (!next.isLoading) {
+        FlutterNativeSplash.remove();
+      }
+    });
+
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(

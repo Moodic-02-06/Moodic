@@ -1,0 +1,237 @@
+Launching lib/main.dart on macOS in debug mode...
+Running pod install...                                             28.1s
+Building macOS application...                                   
+ld: warning: ignoring duplicate libraries: '-lc++'
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/audio_session-0.2.2/macos/audio_session/Sources/audio_session/AudioSessionPlugin.m:14:5: warning: expression result unused [-Wunused-value]
+   14 |     [[AudioSessionPlugin alloc] initWithRegistrar:registrar];
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+ld: warning: ignoring duplicate libraries: '-lc++'
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/trees.c:37:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/deflate.h:16:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.c:8:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/inflate.c:83:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/infback.c:13:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/inftrees.c:6:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/inffast.c:6:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/deflate.c:52:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/deflate.h:16:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/crc32.c:30:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/adler32.c:8:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/gRPC-Core/third_party/zlib/zutil.h:170:11: warning: 'OS_CODE' macro redefined [-Wmacro-redefined]
+  170 | #  define OS_CODE 19
+      |           ^
+  141 | #  define OS_CODE  7
+      |           ^
+1 warning generated.
+ld: warning: ignoring duplicate libraries: '-lc++'
+ld: warning: ignoring duplicate libraries: '-lc++'
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/FirebaseFirestoreInternal/Firestore/core/src/core/view.cc:17:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/FirebaseFirestoreInternal/Firestore/core/src/core/view.h:23:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/FirebaseFirestoreInternal/Firestore/core/src/core/pipeline_util.h:24:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/build/macos/Build/Products/Debug/abseil/absl.framework/Headers/types/optional.h:68:
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/build/macos/Build/Products/Debug/abseil/absl.framework/Headers/types/internal/optional.h:125:49: warning: implicit conversion loses integer precision: 'long long' to 'int' [-Wshorten-64-to-32]
+  125 |     ::new (static_cast<void*>(&this->dummy_)) T(std::forward<Args>(args)...);
+      |     ~~                                          ^~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/FirebaseFirestoreInternal/Firestore/core/src/core/view.cc:17:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/FirebaseFirestoreInternal/Firestore/core/src/core/view.h:23:
+In file included from /Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/FirebaseFirestoreInternal/Firestore/core/src/core/pipeline_util.h:24:
+  241 |       this->construct(std::move(*rhs));
+      |             ^
+   72 |   absl::optional<int32_t> limit_opt = GetLimit(query);
+      |                                       ^
+1 warning generated.
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_storage-13.0.6/macos/firebase_storage/Sources/firebase_storage/FLTFirebaseStoragePlugin.swift:20:1: warning: extension declares a conformance of imported type 'FlutterError' to imported protocols 'Error', 'Sendable'; this will not behave correctly if the owners of 'FlutterMacOS' introduce this conformance in the future
+extension FlutterError: Error {}
+^
+extension FlutterError: Error {}
+^                       ~~~~~
+                        @retroactive Error
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_storage-13.0.6/macos/firebase_storage/Sources/firebase_storage/TaskStateChannelStreamHandler.swift:109:7: warning: switch must be exhaustive
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+      switch storageCode {
+      ^
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_storage-13.0.6/macos/firebase_storage/Sources/firebase_storage/FLTFirebaseStoragePlugin.swift:20:1: warning: extension declares a conformance of imported type 'FlutterError' to imported protocols 'Error', 'Sendable'; this will not behave correctly if the owners of 'FlutterMacOS' introduce this conformance in the future
+extension FlutterError: Error {}
+^
+extension FlutterError: Error {}
+^                       ~~~~~
+                        @retroactive Error
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_storage-13.0.6/macos/firebase_storage/Sources/firebase_storage/FLTFirebaseStoragePlugin.swift:365:7: warning: switch must be exhaustive
+      switch code {
+      ^
+      switch code {
+      ^
+      switch code {
+      ^
+      switch code {
+      ^
+      switch code {
+      ^
+      switch code {
+      ^
+      switch code {
+      ^
+      switch code {
+      ^
+ld: warning: ignoring duplicate libraries: '-lc++'
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_core-4.4.0/macos/firebase_core/Sources/firebase_core/FLTFirebaseCorePlugin.m:92:35: warning: incompatible pointer types assigning to 'NSString * _Nullable' from 'NSNull * _Nonnull' [-Wincompatible-pointer-types]
+   92 |   pigeonOptions.deepLinkURLScheme = [NSNull null];
+      |                                   ^ ~~~~~~~~~~~~~
+1 warning generated.
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTPhoneNumberVerificationStreamHandler.m:10:17: warning: method definition for 'initWithAuth:arguments:' not found [-Wincomplete-implementation]
+   10 | @implementation FLTPhoneNumberVerificationStreamHandler {
+      |                 ^
+In file included from /Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTPhoneNumberVerificationStreamHandler.m:7:
+   26 | - (instancetype)initWithAuth:(FIRAuth *)auth arguments:(NSDictionary *)arguments;
+      | ^
+1 warning generated.
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:127:72: warning: sending 'FLTFirebaseAuthPlugin *__strong' to parameter of incompatible type 'id<FLTFirebasePlugin> _Nonnull'
+  127 |     [[FLTFirebasePluginRegistry sharedInstance] registerFirebasePlugin:self];
+      |                                                                        ^~~~
+In module 'firebase_core' imported from /Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:9:
+   23 | - (void)registerFirebasePlugin:(id<FLTFirebasePlugin> _Nonnull)firebasePlugin;
+      |                                                                ^
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:408:14: warning: unused variable 'capturedCompletion' [-Wunused-variable]
+  408 |       void (^capturedCompletion)(PigeonUserCredential *_Nullable, FlutterError *_Nullable) =
+      |              ^~~~~~~~~~~~~~~~~~
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:419:14: warning: unused variable 'capturedCompletion' [-Wunused-variable]
+  419 |       void (^capturedCompletion)(PigeonUserCredential *_Nullable, FlutterError *_Nullable) =
+      |              ^~~~~~~~~~~~~~~~~~
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:430:14: warning: unused variable 'capturedCompletion' [-Wunused-variable]
+  430 |       void (^capturedCompletion)(PigeonUserCredential *_Nullable, FlutterError *_Nullable) =
+      |              ^~~~~~~~~~~~~~~~~~
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:1166:9: warning: 'fetchSignInMethodsForEmail:completion:' is deprecated: `fetchSignInMethods` is deprecated and will be removed in a future release. This method returns an empty list when Email Enumeration Protection is enabled. [-Wdeprecated-declarations]
+ 1166 |   [auth fetchSignInMethodsForEmail:email
+      |         ^
+In module 'FirebaseAuth' imported from /Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:5:
+  496 | - (void)fetchSignInMethodsForEmail:(NSString * _Nonnull)email completion:(void (^ _Nullable)(NSArray<NSString *> * _Nullable, NSError * _Nullable))completion SWIFT_DEPRECATED_MSG("`fetchSignInMethods` is deprecated and will be removed in a future release. This method returns an empty list when Email Enumeration Protection is enabled.");
+      |                                                                                                                                                               ^
+  221 | # define SWIFT_DEPRECATED_MSG(...) __attribute__((deprecated(__VA_ARGS__)))
+      |                                                   ^
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:1973:16: warning: 'updateEmail:completion:' is deprecated: `updateEmail` is deprecated and will be removed in a future release. Use sendEmailVerification(beforeUpdatingEmail:) instead. [-Wdeprecated-declarations]
+ 1973 |   [currentUser updateEmail:newEmail
+      |                ^
+In module 'FirebaseAuth' imported from /Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:5:
+ 1828 | - (void)updateEmail:(NSString * _Nonnull)email completion:(void (^ _Nullable)(NSError * _Nullable))completion SWIFT_DEPRECATED_MSG("`updateEmail` is deprecated and will be removed in a future release. Use sendEmailVerification(beforeUpdatingEmail:) instead.");
+      |                                                                                                               ^
+  221 | # define SWIFT_DEPRECATED_MSG(...) __attribute__((deprecated(__VA_ARGS__)))
+      |                                                   ^
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/firebase_auth-6.1.4/macos/firebase_auth/Sources/firebase_auth/FLTFirebaseAuthPlugin.m:579:13: warning: unused function 'handleAppleAuthResult' [-Wunused-function]
+  579 | static void handleAppleAuthResult(FLTFirebaseAuthPlugin *object, AuthPigeonFirebaseApp *app,
+      |             ^~~~~~~~~~~~~~~~~~~~~
+7 warnings generated.
+/Users/hyeonseo/.pub-cache/hosted/pub.dev/cloud_firestore-6.1.2/macos/cloud_firestore/Sources/cloud_firestore/FLTFirebaseFirestorePlugin.m:571:14: warning: 'setIndexConfigurationFromJSON:completion:' is deprecated: Instead of creating cache indexes manually, consider using `PersistentCacheIndexManager.enableIndexAutoCreation()` to let the SDK decide whether to create cache indexes for queries running locally. [-Wdeprecated-declarations]
+  571 |   [firestore setIndexConfigurationFromJSON:indexConfiguration
+      |              ^
+In module 'FirebaseFirestoreInternal' imported from /Users/hyeonseo/.pub-cache/hosted/pub.dev/cloud_firestore-6.1.2/macos/cloud_firestore/Sources/cloud_firestore/FLTFirebaseFirestorePlugin.m:13:
+  134 |     NS_SWIFT_NAME(setIndexConfiguration(_:completion:)) DEPRECATED_MSG_ATTRIBUTE(
+      |                                                         ^
+In module 'Foundation' imported from /Users/hyeonseo/.pub-cache/hosted/pub.dev/cloud_firestore-6.1.2/macos/cloud_firestore/Sources/cloud_firestore/include/cloud_firestore/Private/FLTDocumentSnapshotStreamHandler.h:18:
+In module 'CoreFoundation' imported from /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Foundation.framework/Headers/Foundation.h:6:
+In module 'AvailabilityMacros' imported from /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers/CFAvailability.h:23:
+  152 |             #define DEPRECATED_MSG_ATTRIBUTE(s) __attribute__((deprecated(s)))
+      |                                                                ^
+1 warning generated.
+warning: Run script build phase 'Run Script' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'Flutter Assemble' from project 'Runner')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-Core' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'gRPC-C++' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.11, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'abseil-xcprivacy' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.11, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'abseil' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'abseil' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.11, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'PromisesObjC-FBLPromises_Privacy' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.11, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'PromisesObjC' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'GTMSessionFetcher-GTMSessionFetcher_Full_Privacy' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'GTMSessionFetcher-GTMSessionFetcher_Core_Privacy' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'GTMSessionFetcher' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'GTMAppAuth-GTMAppAuth_Privacy' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'GTMAppAuth' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'BoringSSL-GRPC-openssl_grpc' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'BoringSSL-GRPC' from project 'Pods')
+warning: Run script build phase 'Create Symlinks to Header Folders' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'BoringSSL-GRPC' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'AppAuth-AppAuthCore_Privacy' from project 'Pods')
+/Users/hyeonseo/Desktop/CODE/02_flutter/Moodic/macos/Pods/Pods.xcodeproj: warning: The macOS deployment target 'MACOSX_DEPLOYMENT_TARGET' is set to 10.12, but the range of supported deployment target versions is 10.13 to 15.5.99. (in target 'AppAuth' from project 'Pods')
+✓ Built build/macos/Build/Products/Debug/flutter_moodic.app
+2026-02-20 20:32:42.118 flutter_moodic[32528:1745661] Running with merged UI and platform thread. Experimental.
+[ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: Unsupported operation: DefaultFirebaseOptions have not been configured for macos - you can reconfigure this by running the FlutterFire CLI again.
+#0      DefaultFirebaseOptions.currentPlatform (package:flutter_moodic/firebase_options.dart:31:9)
+#1      main (package:flutter_moodic/main.dart:17:64)
+<asynchronous suspension>
+
+2026-02-20 20:32:42.812 flutter_moodic[32528:1745661] The operation couldn’t be completed. (OSStatus error 13.)
+Syncing files to device macOS...                                   453ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on macOS is available at: http://127.0.0.1:64922/qoPUFXY3Dio=/
+The Flutter DevTools debugger and profiler on macOS is available at: http://127.0.0.1:64922/qoPUFXY3Dio=/devtools/?uri=ws://127.0.0.1:64922/qoPUFXY3Dio=/ws
+2026-02-20 20:32:45.484 flutter_moodic[32528:1745661] +[IMKClient subclass]: chose IMKClient_Modern
+2026-02-20 20:32:45.484 flutter_moodic[32528:1745661] +[IMKInputSession subclass]: chose IMKInputSession_Modern
+Lost connection to device.

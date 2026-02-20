@@ -49,7 +49,9 @@ final userProvider = StreamProvider<UserEntity?>((ref) {
 
       return user;
     } catch (e) {
-      debugPrint('❌ 인증 검증 중 오류: $e');
+      debugPrint('❌ 인증 검증 중 서버 통신 또는 데이터 오류 발생: $e');
+      // 에러 발생 시 신규 유저로 처리하지 않고 null을 반환하여
+      // 앱이 잠시 대기하거나 로그인 화면으로 안전하게 리다이렉트되도록 함
       return null;
     }
   });

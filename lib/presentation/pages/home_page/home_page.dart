@@ -81,6 +81,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               onRefresh: () => homeVM.refresh(),
               child: ListView.separated(
                 controller: _scrollController,
+                physics:
+                    const AlwaysScrollableScrollPhysics(), // 추가: 리스트가 짧아도 당겨서 새로고침 가능하도록
                 padding: const EdgeInsets.all(12).copyWith(bottom: 120),
                 itemCount: homeState.feeds.length,
                 separatorBuilder: (context, index) =>

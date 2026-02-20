@@ -16,7 +16,7 @@ class PostRemoteDataSource {
     if (musicIds.isEmpty) return [];
 
     var query = firestore
-        .collection('posts')
+        .collection('feeds')
         .where('music.id', whereIn: musicIds);
 
     if (mood != null) {

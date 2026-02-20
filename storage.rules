@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // 모든 사용자가 읽을 수 있도록 허용 (프로필/게시물 이미지 공개용)
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+
+    // 유저 프로필 이미지 보호
+    match /users/{userId}/{fileName} {
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 포스트 이미지 보호
+    match /posts/{userId}/{fileName} {
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 기본 규칙: 그 외 모든 쓰기 차단
+    match /{allPaths=**} {
+      allow write: if false;
+    }
+  }
+}

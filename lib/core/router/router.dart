@@ -9,7 +9,6 @@ import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart
 import 'package:flutter_moodic/presentation/pages/my_page_edit/my_page_edit.dart';
 import 'package:flutter_moodic/presentation/pages/search_page/search_page.dart';
 import 'package:flutter_moodic/presentation/pages/search_result_page/search_result_page.dart';
-import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_moodic/presentation/pages/follow_list_page/follow_list_page.dart';
@@ -33,14 +32,13 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
 
   return GoRouter(
-    initialLocation: AppRoutes.SplashPage.absolutePath,
+    initialLocation: AppRoutes.HomePage.absolutePath,
     navigatorKey: _rootNavigatorKey,
     refreshListenable: notifier,
 
     redirect: (context, state) {
       final userState = ref.read(userProvider);
       final location = state.matchedLocation;
-      final isSplash = location == AppRoutes.SplashPage.absolutePath;
       final isLoggingIn = location == AppRoutes.LoginPage.absolutePath;
       final isTempProfile = location == AppRoutes.TempProfile.absolutePath;
 
@@ -50,7 +48,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = user != null;
 
       if (!isLoggedIn) {
-        if (isSplash || isLoggingIn) return null;
+        if (isLoggingIn) return null;
         return AppRoutes.LoginPage.absolutePath;
       }
 
@@ -59,11 +57,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           if (isTempProfile) return null;
           return AppRoutes.TempProfile.absolutePath;
         }
-        if (isSplash || isLoggingIn || isTempProfile) {
-          final action = state.uri.queryParameters['action'];
-          if (isSplash && (action == 'logout' || action == 'delete')) {
-            return null;
-          }
+        if (isLoggingIn || isTempProfile) {
           return AppRoutes.HomePage.absolutePath;
         }
       }
@@ -228,15 +222,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             userId: userId,
             initialTabIndex: int.parse(initialTab),
           );
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
-        path: AppRoutes.SplashPage.path,
-        name: AppRoutes.SplashPage.name,
-        builder: (context, state) {
-          final action = state.uri.queryParameters['action'];
-          return SplashPage(action: action);
         },
       ),
       GoRoute(

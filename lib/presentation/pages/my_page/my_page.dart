@@ -53,7 +53,7 @@ class MyPage extends ConsumerWidget {
               onPressed: () {
                 context.pushNamed(AppRoutes.MyPageEdit.name);
               },
-              icon: Icon(Icons.edit, color: AppColors.gray500),
+              icon: Icon(Icons.settings_outlined, color: AppColors.gray900),
             ),
         ],
       ),
@@ -67,22 +67,28 @@ class MyPage extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppColors.primary900,
-                  backgroundImage:
-                      (myPageState.profileimage != null &&
-                          myPageState.profileimage!.isNotEmpty)
-                      ? NetworkImage(myPageState.profileimage!)
-                      : null,
-                  child: myPageState.isUploading
-                      ? const CircularProgressIndicator()
-                      : (myPageState.profileimage == null ||
-                            myPageState.profileimage!.isEmpty)
-                      ? Icon(Icons.person, color: AppColors.gray100, size: 80)
-                      : null,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.gray400, width: 1.5),
+                  ),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: AppColors.primary900,
+                    backgroundImage:
+                        (myPageState.profileimage != null &&
+                            myPageState.profileimage!.isNotEmpty)
+                        ? NetworkImage(myPageState.profileimage!)
+                        : null,
+                    child: myPageState.isUploading
+                        ? const CircularProgressIndicator()
+                        : (myPageState.profileimage == null ||
+                              myPageState.profileimage!.isEmpty)
+                        ? Icon(Icons.person, color: AppColors.gray100, size: 80)
+                        : null,
+                  ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,41 +116,45 @@ class MyPage extends ConsumerWidget {
             SizedBox(height: 24),
             // 팔로잉/팔로워/게시글 통계 (순서 변경: 게시글, 팔로워, 팔로잉)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatItem(context, "게시글", myPageState.postCount),
-                // 팔로워 클릭 시 목록 이동 (탭 0)
-                GestureDetector(
-                  onTap: () {
-                    context.pushNamed(
-                      AppRoutes.FollowList.name,
-                      pathParameters: {
-                        'userId': targetUserId ?? currentUser?.uid ?? '',
-                      },
-                      queryParameters: {'initialTab': '0'},
-                    );
-                  },
+                Expanded(
+                  child: _buildStatItem(
+                    context,
+                    "게시글",
+                    myPageState.postCount,
+                    null,
+                  ),
+                ),
+                Expanded(
                   child: _buildStatItem(
                     context,
                     "팔로워",
                     myPageState.followerCount,
+                    () {
+                      context.pushNamed(
+                        AppRoutes.FollowList.name,
+                        pathParameters: {
+                          'userId': targetUserId ?? currentUser?.uid ?? '',
+                        },
+                        queryParameters: {'initialTab': '0'},
+                      );
+                    },
                   ),
                 ),
-                // 팔로잉 클릭 시 목록 이동 (탭 1)
-                GestureDetector(
-                  onTap: () {
-                    context.pushNamed(
-                      AppRoutes.FollowList.name,
-                      pathParameters: {
-                        'userId': targetUserId ?? currentUser?.uid ?? '',
-                      },
-                      queryParameters: {'initialTab': '1'},
-                    );
-                  },
+                Expanded(
                   child: _buildStatItem(
                     context,
                     "팔로잉",
                     myPageState.followingCount,
+                    () {
+                      context.pushNamed(
+                        AppRoutes.FollowList.name,
+                        pathParameters: {
+                          'userId': targetUserId ?? currentUser?.uid ?? '',
+                        },
+                        queryParameters: {'initialTab': '1'},
+                      );
+                    },
                   ),
                 ),
               ],
@@ -197,13 +207,6 @@ class MyPage extends ConsumerWidget {
               SizedBox(height: 12),
             ],
 
-            // 디버깅용 로그
-            Builder(
-              builder: (context) {
-                debugPrint("마이페이지: feeds.length = ${myPageState.feeds.length}");
-                return SizedBox.shrink();
-              },
-            ),
             // 그리드 뷰
             MyPageGridView(userId: userId),
           ],
@@ -212,23 +215,38 @@ class MyPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, int count) {
-    return Column(
-      children: [
-        Text(
-          count.toString(),
-          style: AppTextStyles.titlePrimary20w600.copyWith(
-            color: AppColors.text900,
+  Widget _buildStatItem(
+    BuildContext context,
+    String label,
+    int count,
+    VoidCallback? onTap,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            children: [
+              Text(
+                count.toString(),
+                style: AppTextStyles.titlePrimary20w600.copyWith(
+                  color: AppColors.text900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: AppTextStyles.bodyPrimary16w500.copyWith(
+                  color: AppColors.gray500,
+                ),
+              ),
+            ],
           ),
         ),
-        SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTextStyles.bodyPrimary16w500.copyWith(
-            color: AppColors.gray500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

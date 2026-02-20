@@ -49,11 +49,19 @@ class PostDto {
       imageUrls: (json['imageUrls'] as List? ?? [])
           .map((e) => e.toString())
           .toList(),
-      likeCount: json['likeCount'] ?? 0,
-      commentCount: json['commentCount'] ?? 0,
+      likeCount: (json['likeCount'] is int)
+          ? json['likeCount'] as int
+          : (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] is int)
+          ? json['commentCount'] as int
+          : (json['commentCount'] as num?)?.toInt() ?? 0,
       isLikedByMe: isLikedByMe,
-      createdAt: json['createdAt'] as Timestamp,
-      updatedAt: json['updatedAt'] as Timestamp,
+      createdAt: json['createdAt'] is Timestamp
+          ? json['createdAt'] as Timestamp
+          : Timestamp.now(),
+      updatedAt: json['updatedAt'] is Timestamp
+          ? json['updatedAt'] as Timestamp
+          : Timestamp.now(),
     );
   }
 

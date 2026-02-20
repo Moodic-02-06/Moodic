@@ -27,7 +27,6 @@ enum AppRoutes {
   DetailPage(absolutePath: '/detail/:id', path: 'detail/:id', name: 'detail'),
 
   WritePage(absolutePath: '/write', path: '/write', name: 'write'),
-  SplashPage(absolutePath: '/splash', path: '/splash', name: 'splash'),
   TempProfile(
     absolutePath: '/temp_profile',
     path: '/temp_profile',

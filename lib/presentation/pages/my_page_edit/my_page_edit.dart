@@ -11,6 +11,8 @@ import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
+import 'package:flutter_moodic/data/repository/auth_repository_impl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyPageEdit extends ConsumerStatefulWidget {
   const MyPageEdit({super.key});
@@ -307,6 +309,60 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(
+                            "이용약관",
+                            style: AppTextStyles.bodyPrimary16w600.copyWith(
+                              color: AppColors.text900,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: AppColors.gray500,
+                          ),
+                          onTap: () async {
+                            final Uri url = Uri.parse(
+                              'https://example.com/terms',
+                            ); // 임시 URL
+                            if (!await launchUrl(url)) {
+                              debugPrint("Could not launch $url");
+                            }
+                          },
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: AppColors.primary600,
+                        ),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            "개인정보처리방침",
+                            style: AppTextStyles.bodyPrimary16w600.copyWith(
+                              color: AppColors.text900,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: AppColors.gray500,
+                          ),
+                          onTap: () async {
+                            final Uri url = Uri.parse(
+                              'https://example.com/privacy',
+                            ); // 임시 URL
+                            if (!await launchUrl(url)) {
+                              debugPrint("Could not launch $url");
+                            }
+                          },
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 1,
+                          color: AppColors.primary600,
+                        ),
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
                             "차단 관리",
                             style: AppTextStyles.bodyPrimary16w600.copyWith(
                               color: AppColors.text900,
@@ -376,13 +432,13 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                         TextButton(
                                           onPressed: () async {
                                             Navigator.pop(context); // 다이얼로그 닫기
-                                            // 스플래시로 이동하여 로그아웃 처리
+                                            // 직접 로그아웃 호출
+                                            await ref
+                                                .read(authRepositoryProvider)
+                                                .signOut();
                                             if (context.mounted) {
                                               context.goNamed(
-                                                AppRoutes.SplashPage.name,
-                                                queryParameters: {
-                                                  'action': 'logout',
-                                                },
+                                                AppRoutes.LoginPage.name,
                                               );
                                             }
                                           },
@@ -431,13 +487,13 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                         TextButton(
                                           onPressed: () async {
                                             Navigator.pop(context); // 다이얼로그 닫기
-                                            // 스플래시로 이동하여 탈퇴 처리
+                                            // 직접 탈퇴 호출
+                                            await ref
+                                                .read(authRepositoryProvider)
+                                                .deleteAccount();
                                             if (context.mounted) {
                                               context.goNamed(
-                                                AppRoutes.SplashPage.name,
-                                                queryParameters: {
-                                                  'action': 'delete',
-                                                },
+                                                AppRoutes.LoginPage.name,
                                               );
                                             }
                                           },
