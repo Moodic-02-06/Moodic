@@ -40,6 +40,11 @@ class UserRemoteDataSource {
     await collectionRef.doc(userDto.uid).set(userDto.toJson());
   }
 
+  // [FCM] 토큰 업데이트
+  Future<void> updateFcmToken(String uid, String token) async {
+    await _firestore.collection("user").doc(uid).update({'fcmToken': token});
+  }
+
   // [팔로우] 타겟 유저 팔로우
   Future<void> followUser(String uid, String targetUid) async {
     final batch = _firestore.batch();

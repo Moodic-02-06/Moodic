@@ -11,6 +11,7 @@ class UserDto extends UserEntity {
     required super.followerCount,
     required super.followingCount,
     required super.isNotificationEnabled,
+    super.fcmToken,
   });
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
@@ -24,6 +25,7 @@ class UserDto extends UserEntity {
       followerCount: json['followerCount'] as int? ?? 0,
       followingCount: json['followingCount'] as int? ?? 0,
       isNotificationEnabled: json['isNotificationEnabled'] as bool? ?? true,
+      fcmToken: json['fcmToken'] as String?,
     );
   }
 
@@ -38,6 +40,7 @@ class UserDto extends UserEntity {
       'followerCount': followerCount,
       'followingCount': followingCount,
       'isNotificationEnabled': isNotificationEnabled,
+      if (fcmToken != null) 'fcmToken': fcmToken,
     };
   }
 
@@ -52,6 +55,7 @@ class UserDto extends UserEntity {
       followerCount: followerCount,
       followingCount: followingCount,
       isNotificationEnabled: isNotificationEnabled,
+      fcmToken: fcmToken,
     );
   }
 }

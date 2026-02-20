@@ -153,7 +153,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // DetailPage: postId만 pathParam으로 받음 (extra 불필요)
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: AppRoutes.DetailPage.path,
+        path: AppRoutes.DetailPage.absolutePath,
         name: AppRoutes.DetailPage.name,
         builder: (context, state) {
           final postId = state.pathParameters['id']!;
@@ -164,7 +164,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // SearchResult: queryParam 기반 (type, value, title, artwork)
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: AppRoutes.SearchResult.path,
+        path: AppRoutes.SearchResult.absolutePath,
         name: AppRoutes.SearchResult.name,
         builder: (context, state) {
           final type = state.uri.queryParameters['type'] ?? 'mood';
@@ -183,7 +183,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // MyPageEdit
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: AppRoutes.MyPageEdit.path,
+        path: AppRoutes.MyPageEdit.absolutePath,
         name: AppRoutes.MyPageEdit.name,
         builder: (context, state) => const MyPageEdit(),
       ),

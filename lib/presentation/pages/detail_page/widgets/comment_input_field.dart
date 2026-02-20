@@ -25,82 +25,83 @@ class CommentInputField extends StatelessWidget {
         ref.watch(detailViewModelProvider(postId));
         final replyingTo = viewModel.replyingToComment;
 
-        return Padding(
+        return Container(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom:
+                12, // Scaffold.resizeToAvoidBottomInset handles keyboard space automatically
           ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: AppColors.primary700,
-              border: Border(top: BorderSide(color: AppColors.gray100)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (replyingTo != null) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${replyingTo.userNickname}님에게 답글 작성 중...',
-                        style: AppTextStyles.labelStatus12w500.copyWith(
-                          color: AppColors.moodPurple,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => viewModel.setReplyingTo(null),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: AppColors.gray500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
+          decoration: const BoxDecoration(
+            color: AppColors.primary700,
+            border: Border(top: BorderSide(color: AppColors.gray100)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (replyingTo != null) ...[
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.gray100,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: TextField(
-                          controller: controller,
-                          decoration: const InputDecoration(
-                            hintText: '댓글을 입력하세요...',
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          style: AppTextStyles.bodyPrimary16w500,
-                        ),
+                    Text(
+                      '${replyingTo.userNickname}님에게 답글 작성 중...',
+                      style: AppTextStyles.labelStatus12w500.copyWith(
+                        color: AppColors.moodPurple,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     GestureDetector(
-                      onTap: onSubmit,
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.moodPurple,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_upward,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                      onTap: () => viewModel.setReplyingTo(null),
+                      child: const Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.gray500,
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
               ],
-            ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.gray100,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: TextField(
+                        controller: controller,
+                        decoration: const InputDecoration(
+                          hintText: '댓글을 입력하세요...',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        style: AppTextStyles.bodyPrimary16w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onSubmit,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.moodPurple,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_upward,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },

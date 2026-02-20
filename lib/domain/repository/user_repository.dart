@@ -12,4 +12,5 @@ abstract class UserRepository {
   Future<bool> isFollowing(String uid, String targetUid);
   Future<List<String>> getFollowers(String uid);
   Future<List<String>> getFollowing(String uid);
+  Future<void> updateFcmToken(String uid, String token);
 }

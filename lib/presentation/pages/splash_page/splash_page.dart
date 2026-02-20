@@ -25,9 +25,8 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       setState(() {
         _opacity = 1.0;
       });
+      _processActionAndNavigate();
     });
-
-    _processActionAndNavigate();
   }
 
   Future<void> _processActionAndNavigate() async {

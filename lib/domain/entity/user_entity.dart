@@ -8,6 +8,7 @@ class UserEntity {
   final int followerCount;
   final int followingCount;
   final bool isNotificationEnabled;
+  final String? fcmToken;
 
   UserEntity({
     required this.uid,
@@ -19,6 +20,7 @@ class UserEntity {
     required this.followerCount,
     required this.followingCount,
     this.isNotificationEnabled = true,
+    this.fcmToken,
   });
 
   UserEntity copyWith({
@@ -31,6 +33,7 @@ class UserEntity {
     int? followerCount,
     int? followingCount,
     bool? isNotificationEnabled,
+    String? fcmToken,
   }) {
     return UserEntity(
       uid: uid ?? this.uid,
@@ -43,6 +46,7 @@ class UserEntity {
       followingCount: followingCount ?? this.followingCount,
       isNotificationEnabled:
           isNotificationEnabled ?? this.isNotificationEnabled,
+      fcmToken: fcmToken ?? this.fcmToken,
     );
   }
 }
