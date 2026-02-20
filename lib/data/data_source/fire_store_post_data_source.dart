@@ -127,6 +127,20 @@ class FirestorePostDataSource {
           'createdAt': FieldValue.serverTimestamp(),
         });
         transaction.update(feedDocRef, {'likeCount': FieldValue.increment(1)});
+
+        // --- 푸시 알림 데이터 추가 ---
+        final receiverId = feedDoc.data()?['userId'];
+        if (receiverId != null && receiverId != userId) {
+          final notificationRef = _firestore.collection('notifications').doc();
+          transaction.set(notificationRef, {
+            'type': 'like',
+            'senderId': userId,
+            'receiverId': receiverId,
+            'postId': postId,
+            'message': '님이 기운을 북돋아 주었습니다.',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
       }
     });
   }
@@ -169,6 +183,23 @@ class FirestorePostDataSource {
       });
 
       transaction.update(feedDocRef, {'commentCount': FieldValue.increment(1)});
+
+      // --- 푸시 알림 데이터 추가 ---
+      final feedDoc = await transaction.get(feedDocRef);
+      if (feedDoc.exists) {
+        final receiverId = feedDoc.data()?['userId'];
+        if (receiverId != null && receiverId != userId) {
+          final notificationRef = _firestore.collection('notifications').doc();
+          transaction.set(notificationRef, {
+            'type': 'comment',
+            'senderId': userId,
+            'receiverId': receiverId,
+            'postId': postId,
+            'message': '님이 댓글을 남겼습니다: \$content',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
     });
   }
 
