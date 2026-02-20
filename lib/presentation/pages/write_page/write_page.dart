@@ -78,7 +78,7 @@ class _WritePageState extends ConsumerState<WritePage> {
               child: Text(
                 '보관함',
                 style: AppTextStyles.bodyPrimary16w500.copyWith(
-                  color: AppColors.text600,
+                  color: AppColors.gray500,
                 ),
               ),
             ),

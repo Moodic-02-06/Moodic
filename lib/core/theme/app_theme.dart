@@ -32,6 +32,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
         iconTheme: IconThemeData(color: AppColors.text900),
+        actionsIconTheme: IconThemeData(color: AppColors.gray500),
       ),
 
       // 3. Text 테마 (Pretendard 기반)

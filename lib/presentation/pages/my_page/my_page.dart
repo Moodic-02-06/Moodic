@@ -53,7 +53,7 @@ class MyPage extends ConsumerWidget {
               onPressed: () {
                 context.pushNamed(AppRoutes.MyPageEdit.name);
               },
-              icon: Icon(Icons.settings_outlined, color: AppColors.gray900),
+              icon: const Icon(Icons.settings_outlined),
             ),
         ],
       ),
