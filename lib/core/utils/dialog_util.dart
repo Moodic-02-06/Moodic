@@ -58,4 +58,23 @@ class DialogUtil {
       onConfirm();
     }
   }
+
+  /// 차단 전용 프리셋
+  static Future<void> showBlockDialog(
+    BuildContext context, {
+    required VoidCallback onConfirm,
+    String targetName = '사용자',
+  }) async {
+    final result = await showConfirmBoolDialog(
+      context,
+      title: Text('차단하기'),
+      content: Text('정말로 $targetName 차단하시겠어요?\n차단하면 상대방의 모든 글과 댓글이 보이지 않습니다.'),
+      confirmText: '차단',
+      confirmColor: AppColors.stateError,
+    );
+
+    if (result) {
+      onConfirm();
+    }
+  }
 }

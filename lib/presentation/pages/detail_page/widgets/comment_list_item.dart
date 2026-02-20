@@ -5,8 +5,11 @@ import 'package:flutter_moodic/core/utils/date_formatter.dart';
 import 'package:flutter_moodic/core/utils/dialog_util.dart';
 import 'package:flutter_moodic/domain/entity/comment.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_view_model.dart';
+import 'package:flutter_moodic/presentation/provider/use_case_provider.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
+import 'package:flutter_moodic/presentation/provider/blocked_ids_provider.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
+import 'package:flutter_moodic/presentation/widgets/report_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,8 +36,6 @@ class CommentListItem extends ConsumerWidget {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onLongPress: () {
-        if (!isMyComment) return;
-
         showModalBottomSheet(
           context: context,
           builder: (context) {
@@ -42,24 +43,103 @@ class CommentListItem extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.red),
-                    title: const Text('댓글 삭제'),
-                    onTap: () {
-                      Navigator.pop(context); // 닫기
+                  if (isMyComment)
+                    ListTile(
+                      leading: const Icon(
+                        Icons.delete,
+                        color: AppColors.stateError,
+                      ),
+                      title: const Text(
+                        '댓글 삭제',
+                        style: TextStyle(color: AppColors.stateError),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context); // 닫기
 
-                      DialogUtil.showDeleteDialog(
-                        context,
-                        title: '댓글 삭제',
-                        content: '정말 삭제하시겠습니까?',
-                        onConfirm: () {
-                          ref
-                              .read(detailViewModelProvider(postId).notifier)
-                              .deleteComment(comment.commentId);
-                        },
-                      );
-                    },
-                  ),
+                        DialogUtil.showDeleteDialog(
+                          context,
+                          title: '댓글 삭제',
+                          content: '정말 삭제하시겠습니까?',
+                          onConfirm: () {
+                            ref
+                                .read(detailViewModelProvider(postId).notifier)
+                                .deleteComment(comment.commentId);
+                          },
+                        );
+                      },
+                    )
+                  else ...[
+                    ListTile(
+                      leading: const Icon(
+                        Icons.block,
+                        color: AppColors.gray500,
+                      ),
+                      title: const Text(
+                        '차단하기',
+                        style: TextStyle(color: AppColors.gray900),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        DialogUtil.showBlockDialog(
+                          context,
+                          targetName: '이 댓글을',
+                          onConfirm: () async {
+                            if (currentUser != null) {
+                              await ref
+                                  .read(blockTargetUseCaseProvider)
+                                  .execute(
+                                    currentUser.uid,
+                                    comment.commentId,
+                                    'comment',
+                                  );
+                              ref
+                                  .read(blockedIdsProvider.notifier)
+                                  .addBlockedId(comment.commentId);
+                              ref
+                                  .read(
+                                    detailViewModelProvider(postId).notifier,
+                                  )
+                                  .removeComment(comment.commentId);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('댓글이 차단되었습니다.')),
+                                );
+                              }
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.report,
+                        color: AppColors.stateError,
+                      ),
+                      title: const Text(
+                        '신고하기',
+                        style: TextStyle(color: AppColors.stateError),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(context);
+                        final reason = await ReportDialog.show(context);
+                        if (reason != null && currentUser != null) {
+                          await ref
+                              .read(reportTargetUseCaseProvider)
+                              .execute(
+                                targetId: comment.commentId,
+                                targetType: 'comment',
+                                reporterId: currentUser.uid,
+                                reason: reason,
+                              );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('신고가 접수되었습니다.')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ],
                 ],
               ),
             );

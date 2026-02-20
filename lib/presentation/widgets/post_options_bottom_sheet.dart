@@ -6,6 +6,7 @@ class PostOptionsBottomSheet extends StatelessWidget {
   final VoidCallback? onEdit; // 수정 누를 때 실행할 함수
   final VoidCallback? onDelete; // 삭제 누를 때 실행할 함수
   final VoidCallback? onReport; // 신고 누를 때 실행할 함수
+  final VoidCallback? onBlock; // 차단 누를 때 실행할 함수
 
   const PostOptionsBottomSheet({
     super.key,
@@ -13,6 +14,7 @@ class PostOptionsBottomSheet extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onReport,
+    this.onBlock,
   });
 
   @override
@@ -74,6 +76,14 @@ class PostOptionsBottomSheet extends StatelessWidget {
             ),
           ] else ...[
             // 남이 쓴 글일 때 보여줄 메뉴
+            ListTile(
+              leading: const Icon(
+                Icons.block_outlined,
+                color: AppColors.gray500,
+              ),
+              title: const Text('차단하기', style: TextStyle(color: Colors.white)),
+              onTap: onBlock,
+            ),
             ListTile(
               leading: const Icon(
                 Icons.report_gmailerrorred_outlined,

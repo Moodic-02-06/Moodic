@@ -13,6 +13,8 @@ import 'package:flutter_moodic/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_moodic/presentation/pages/temp_profile/temp_profile.dart';
 import 'package:flutter_moodic/presentation/pages/write_page/write_page.dart';
 import 'package:flutter_moodic/presentation/pages/follow_list_page/follow_list_page.dart';
+import 'package:flutter_moodic/presentation/pages/block_list_page/block_list_page.dart';
+import 'package:flutter_moodic/presentation/pages/report_list_page/report_list_page.dart';
 import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/custom_bottom_nav_bar.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
@@ -186,6 +188,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.MyPageEdit.absolutePath,
         name: AppRoutes.MyPageEdit.name,
         builder: (context, state) => const MyPageEdit(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.BlockList.absolutePath,
+        name: AppRoutes.BlockList.name,
+        builder: (context, state) => const BlockListPage(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.ReportList.absolutePath,
+        name: AppRoutes.ReportList.name,
+        builder: (context, state) => const ReportListPage(),
       ),
 
       GoRoute(

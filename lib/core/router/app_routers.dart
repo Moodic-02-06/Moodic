@@ -53,6 +53,16 @@ enum AppRoutes {
     absolutePath: '/follow_list/:userId',
     path: '/follow_list/:userId',
     name: 'follow_list',
+  ),
+  BlockList(
+    absolutePath: '/block_list',
+    path: '/block_list',
+    name: 'block_list',
+  ),
+  ReportList(
+    absolutePath: '/report_list',
+    path: '/report_list',
+    name: 'report_list',
   );
 
   final String absolutePath;
