@@ -37,6 +37,7 @@ class UserRepositoryImpl implements UserRepository {
       followerCount: user.followerCount,
       followingCount: user.followingCount,
       isNotificationEnabled: user.isNotificationEnabled,
+      fcmToken: user.fcmToken,
     );
     await _dataSource.updateUser(dto);
   }
@@ -54,6 +55,7 @@ class UserRepositoryImpl implements UserRepository {
       followerCount: user.followerCount,
       followingCount: user.followingCount,
       isNotificationEnabled: user.isNotificationEnabled,
+      fcmToken: user.fcmToken,
     );
     await _dataSource.saveUser(userDto);
   }
@@ -90,6 +92,11 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<List<String>> getFollowing(String uid) async {
     return await _dataSource.getFollowing(uid);
+  }
+
+  @override
+  Future<void> updateFcmToken(String uid, String token) async {
+    await _dataSource.updateFcmToken(uid, token);
   }
 }
 
