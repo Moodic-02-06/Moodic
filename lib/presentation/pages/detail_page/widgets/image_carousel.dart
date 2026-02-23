@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 
 class ImageCarousel extends StatefulWidget {
@@ -36,23 +37,19 @@ class _ImageCarouselState extends State<ImageCarousel> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    url,
+                  child: CachedNetworkImage(
+                    imageUrl: url,
                     fit: BoxFit.cover,
                     width: double.infinity,
-
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-
-                      return const Center(child: CircularProgressIndicator());
-                    },
-
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.gray300,
-                        child: const Icon(Icons.error),
-                      );
-                    },
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.secondary500,
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: AppColors.gray300,
+                      child: const Icon(Icons.error),
+                    ),
                   ),
                 ),
               );

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/music_link_utils.dart';
@@ -41,11 +42,35 @@ class MusicPlayerCard extends ConsumerWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: post.music.artwork.isNotEmpty
-                    ? Image.network(
-                        post.music.artwork,
+                    ? CachedNetworkImage(
+                        imageUrl: post.music.artwork,
                         width: 84,
                         height: 84,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 84,
+                          height: 84,
+                          color: AppColors.primary600,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.secondary500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: 84,
+                          height: 84,
+                          color: AppColors.primary600,
+                          child: const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.stateError,
+                          ),
+                        ),
                       )
                     : Container(
                         width: 84,

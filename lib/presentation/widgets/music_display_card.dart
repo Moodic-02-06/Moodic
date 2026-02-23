@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/domain/entity/music.dart';
@@ -68,11 +69,35 @@ class MusicDisplayCard extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: music.artwork.isNotEmpty
-              ? Image.network(
-                  music.artwork,
+              ? CachedNetworkImage(
+                  imageUrl: music.artwork,
                   width: 64,
                   height: 64,
                   fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 64,
+                    height: 64,
+                    color: AppColors.primary600,
+                    child: const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.secondary500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 64,
+                    height: 64,
+                    color: AppColors.primary600,
+                    child: const Icon(
+                      Icons.error_outline_rounded,
+                      color: AppColors.stateError,
+                    ),
+                  ),
                 )
               : Container(
                   width: 64,
