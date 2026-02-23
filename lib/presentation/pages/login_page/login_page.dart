@@ -5,6 +5,7 @@ import 'package:flutter_moodic/presentation/pages/login_page/login_view_model.da
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});

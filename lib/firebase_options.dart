@@ -63,6 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '648526573724',
     projectId: 'moodic-54e16',
     storageBucket: 'moodic-54e16.firebasestorage.app',
+    androidClientId:
+        '648526573724-08uilcdq279vscm0o1ei880iu9c1mllt.apps.googleusercontent.com',
     iosClientId:
         '648526573724-kv548pp2pb2t4d6o92m424tlelnlblee.apps.googleusercontent.com',
     iosBundleId: 'com.example.flutterMoodic',
