@@ -15,47 +15,50 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 90,
+      // SafeArea 내부의 컴포넌트 크기로 동적으로 높이를 늘리기 위해 고정값 90 제거
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
         color: AppColors.primary900,
         border: Border(top: BorderSide(color: AppColors.gray100, width: 0.5)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildNavItem(index: 0, icon: Icons.home_filled),
-          _buildNavItem(index: 1, icon: Icons.search),
-          GestureDetector(
-            onTap: () => onTap(2),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: ShapeDecoration(
-                color: AppColors.secondary500,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(48),
-                ),
-                shadows: [
-                  BoxShadow(
-                    color: AppColors.secondary400.withValues(alpha: 0.5),
-                    blurRadius: 20,
-                    offset: const Offset(0, 0),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildNavItem(index: 0, icon: Icons.home_filled),
+            _buildNavItem(index: 1, icon: Icons.search),
+            GestureDetector(
+              onTap: () => onTap(2),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: ShapeDecoration(
+                  color: AppColors.secondary500,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(48),
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.add,
-                size: 32,
-                color: AppColors.primary900,
+                  shadows: [
+                    BoxShadow(
+                      color: AppColors.secondary400.withValues(alpha: 0.5),
+                      blurRadius: 20,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.add,
+                  size: 32,
+                  color: AppColors.primary900,
+                ),
               ),
             ),
-          ),
 
-          // 오른쪽 아이템들
-          _buildNavItem(index: 3, icon: Icons.favorite),
-          _buildNavItem(index: 4, icon: Icons.person), // 마이페이지
-        ],
+            // 오른쪽 아이템들
+            _buildNavItem(index: 3, icon: Icons.favorite),
+            _buildNavItem(index: 4, icon: Icons.person), // 마이페이지
+          ],
+        ),
       ),
     );
   }
