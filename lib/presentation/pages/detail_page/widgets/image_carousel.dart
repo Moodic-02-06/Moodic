@@ -36,45 +36,44 @@ class _ImageCarouselState extends State<ImageCarousel> {
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-child: GestureDetector(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FullScreenImagePage(
-          imageUrls: widget.imageUrls,
-          initialIndex: index,
-        ),
-      ),
-    );
-  },
-  child: Hero(
-    tag: url,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        placeholder: (context, url) => const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.secondary500,
-          ),
-        ),
-        errorWidget: (context, url, error) => Container(
-          color: AppColors.gray300,
-          child: const Icon(Icons.error),
-        ),
-      ),
-    ),
-  ),
-),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FullScreenImagePage(
+                          imageUrls: widget.imageUrls,
+                          initialIndex: index,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Hero(
+                    tag: url,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: url,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.secondary500,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.gray300,
+                          child: const Icon(Icons.error),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               );
             },
           ),
         ),
+
         const SizedBox(height: 10),
 
         Row(
