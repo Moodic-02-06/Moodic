@@ -8,6 +8,7 @@ import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/provider/global_music_player_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_moodic/core/service/analytics_service.dart';
 
 class MusicPlayerCard extends ConsumerWidget {
   final Post post;
@@ -108,6 +109,14 @@ class MusicPlayerCard extends ConsumerWidget {
 
                     IconButton(
                       onPressed: () {
+                        if (!isPlaying) {
+                          ref
+                              .read(analyticsServiceProvider)
+                              .logPlayDetail(
+                                musicTitle: post.music.title,
+                                postId: post.postId,
+                              );
+                        }
                         ref
                             .read(globalMusicPlayerProvider.notifier)
                             .togglePlay(post.postId, post.music.previewUrl);
@@ -142,6 +151,15 @@ class MusicPlayerCard extends ConsumerWidget {
                         post.music.artist,
                         post.music.title,
                       ),
+                      onTagPressed: () {
+                        ref
+                            .read(analyticsServiceProvider)
+                            .logExternalLinkClick(
+                              platform: 'Spotify',
+                              musicTitle: post.music.title,
+                              postId: post.postId,
+                            );
+                      },
                     ),
 
                     const SizedBox(width: 8),
@@ -153,6 +171,15 @@ class MusicPlayerCard extends ConsumerWidget {
                         post.music.artist,
                         post.music.title,
                       ),
+                      onTagPressed: () {
+                        ref
+                            .read(analyticsServiceProvider)
+                            .logExternalLinkClick(
+                              platform: 'YouTube',
+                              musicTitle: post.music.title,
+                              postId: post.postId,
+                            );
+                      },
                     ),
                   ],
                 ),
@@ -169,10 +196,12 @@ class MusicPlayerCard extends ConsumerWidget {
     required String label,
     required String url,
     String? fallbackUrl,
+    VoidCallback? onTagPressed,
   }) {
     return Expanded(
       child: GestureDetector(
         onTap: () async {
+          onTagPressed?.call();
           final Uri uri = Uri.parse(url);
 
           // 1 앱 딥링크 먼저 시도

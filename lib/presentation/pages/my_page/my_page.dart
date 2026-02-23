@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
@@ -51,6 +52,10 @@ class MyPage extends ConsumerWidget {
           if (isMe)
             IconButton(
               onPressed: () {
+                FirebaseAnalytics.instance.logEvent(
+                  name: 'my_page_edit_button_tapped',
+                  parameters: {'content': 'my_page_edit_button_tapped'},
+                );
                 context.pushNamed(AppRoutes.MyPageEdit.name);
               },
               icon: const Icon(Icons.settings_outlined),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_moodic/core/service/analytics_service.dart';
 import 'package:flutter_moodic/core/router/app_routers.dart';
 import 'package:flutter_moodic/presentation/pages/detail_page/detail_page.dart';
 import 'package:flutter_moodic/presentation/pages/home_page/home_page.dart';
@@ -85,6 +86,31 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ? navigationShell.currentIndex
                   : navigationShell.currentIndex + 1,
               onTap: (index) {
+                String tabName;
+                switch (index) {
+                  case 0:
+                    tabName = 'HomeTap';
+                    break;
+                  case 1:
+                    tabName = 'SearchTap';
+                    break;
+                  case 2:
+                    tabName = 'WriteTap';
+                    break;
+                  case 3:
+                    tabName = 'FavoriteTap';
+                    break;
+                  case 4:
+                    tabName = 'MyPageTap';
+                    break;
+                  default:
+                    tabName = 'UnknownTap';
+                    break;
+                }
+                ref
+                    .read(analyticsServiceProvider)
+                    .logTabChanged(tabName: tabName);
+
                 if (index == 2) {
                   context.push(AppRoutes.WritePage.absolutePath);
                 } else {

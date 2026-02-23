@@ -3,6 +3,7 @@ import 'package:flutter_moodic/data/repository/auth_repository_impl.dart';
 import 'package:flutter_moodic/data/repository/user_repository_impl.dart';
 import 'package:flutter_moodic/domain/entity/user_entity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_moodic/core/service/analytics_service.dart';
 
 class LoginViewModel extends Notifier<UserEntity?> {
   // 1. 초기 상태 설정
@@ -18,6 +19,11 @@ class LoginViewModel extends Notifier<UserEntity?> {
       final String? uid = await authRepo.signInWithGoogle();
 
       if (uid == null) return; // 취소 시 종료
+
+      // 유저 식별자 등록 및 로그인 이벤트 로깅
+      final analyticsService = ref.read(analyticsServiceProvider);
+      await analyticsService.setUserId(uid);
+      await analyticsService.logLogin(loginMethod: 'google');
 
       final userRepo = ref.read(userRepositoryProvider);
       final existingUser = await userRepo.getUser(uid);
@@ -50,6 +56,11 @@ class LoginViewModel extends Notifier<UserEntity?> {
       final String? uid = await authRepo.signInWithKakao();
 
       if (uid == null) return; // 취소 시 종료
+
+      // 유저 식별자 등록 및 로그인 이벤트 로깅
+      final analyticsService = ref.read(analyticsServiceProvider);
+      await analyticsService.setUserId(uid);
+      await analyticsService.logLogin(loginMethod: 'kakao');
 
       final userRepo = ref.read(userRepositoryProvider);
       final existingUser = await userRepo.getUser(uid);

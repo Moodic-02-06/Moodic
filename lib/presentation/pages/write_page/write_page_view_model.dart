@@ -7,6 +7,7 @@ import 'package:flutter_moodic/presentation/provider/write_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_moodic/domain/entity/post.dart';
 import 'package:flutter_moodic/presentation/pages/my_page/my_page_viewmodel.dart';
+import 'package:flutter_moodic/core/service/analytics_service.dart';
 
 class WriteState {
   final String? postId;
@@ -158,6 +159,9 @@ class WriteViewModel extends Notifier<WriteState> {
 
       // 직접 로드 호출
       ref.read(homeViewModelProvider.notifier).loadFeeds();
+
+      // 게시글 생성 완료 이벤트 로깅
+      ref.read(analyticsServiceProvider).logPostCreated(postId: post.postId);
 
       // 마이페이지 감정 그래프 갱신
       ref.invalidate(monthlyMoodsProvider(userId));

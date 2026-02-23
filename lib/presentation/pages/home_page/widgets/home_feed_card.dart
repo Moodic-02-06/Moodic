@@ -12,6 +12,7 @@ import 'package:flutter_moodic/presentation/provider/user_provider.dart';
 import 'package:flutter_moodic/presentation/provider/blocked_ids_provider.dart';
 import 'package:flutter_moodic/presentation/widgets/mood_badge.dart';
 import 'package:flutter_moodic/presentation/widgets/music_display_card.dart';
+import 'package:flutter_moodic/core/service/analytics_service.dart';
 import 'package:flutter_moodic/presentation/widgets/post_options_bottom_sheet.dart';
 import 'package:flutter_moodic/presentation/widgets/report_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -199,6 +200,12 @@ class HomeFeedCard extends ConsumerWidget {
                 // previewUrl 없으면 재생 버튼 비활성화 (null → 버튼 미표시)
                 onPlayPressed: post.music.previewUrl.isNotEmpty
                     ? () {
+                        // 재생할 때만 로그 수집 (정지할 때는 제외)
+                        if (!isCurrentPlaying) {
+                          ref
+                              .read(analyticsServiceProvider)
+                              .logPlayPreview(musicTitle: post.music.title);
+                        }
                         ref
                             .read(globalMusicPlayerProvider.notifier)
                             .togglePlay(post.postId, post.music.previewUrl);
