@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -139,9 +140,23 @@ class _MyPageEditState extends ConsumerState<MyPageEdit> {
                                         )
                                       : (user?.profileImage != null &&
                                             user!.profileImage!.isNotEmpty)
-                                      ? Image.network(
-                                          user.profileImage!,
+                                      ? CachedNetworkImage(
+                                          imageUrl: user.profileImage!,
                                           fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: AppColors
+                                                          .secondary500,
+                                                    ),
+                                              ),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(
+                                                Icons.error_outline_rounded,
+                                                color: AppColors.stateError,
+                                              ),
                                         ) // 기존 이미지 (URL 가정)
                                       : null,
                                 ),

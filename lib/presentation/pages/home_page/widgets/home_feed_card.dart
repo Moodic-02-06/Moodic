@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
 import 'package:flutter_moodic/core/theme/fonts.dart';
 import 'package:flutter_moodic/core/utils/date_formatter.dart';
@@ -51,7 +52,7 @@ class HomeFeedCard extends ConsumerWidget {
                       radius: 20,
                       backgroundColor: AppColors.gray300,
                       backgroundImage: post.userImageUrl.isNotEmpty
-                          ? NetworkImage(post.userImageUrl)
+                          ? CachedNetworkImageProvider(post.userImageUrl)
                           : null,
                       child: post.userImageUrl.isEmpty
                           ? Icon(
@@ -224,11 +225,30 @@ class HomeFeedCard extends ConsumerWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    post.imageUrls.first,
+                  child: CachedNetworkImage(
+                    imageUrl: post.imageUrls.first,
                     width: double.infinity,
                     height: 240,
                     fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: double.infinity,
+                      height: 240,
+                      color: AppColors.primary600,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.secondary500,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: double.infinity,
+                      height: 240,
+                      color: AppColors.primary600,
+                      child: const Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.stateError,
+                      ),
+                    ),
                   ),
                 ),
 
