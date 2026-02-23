@@ -72,17 +72,17 @@ class _WritePageState extends ConsumerState<WritePage> {
       child: Scaffold(
         backgroundColor: AppColors.primary900,
         appBar: AppBar(
-          actions: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                '보관함',
-                style: AppTextStyles.bodyPrimary16w500.copyWith(
-                  color: AppColors.gray500,
-                ),
-              ),
-            ),
-          ],
+          // actions: [
+          //   Padding(
+          //     padding: const EdgeInsets.all(8.0),
+          //     child: Text(
+          //       '보관함',
+          //       style: AppTextStyles.bodyPrimary16w500.copyWith(
+          //         color: AppColors.gray500,
+          //       ),
+          //     ),
+          //   ),
+          // ],
         ),
         body: ListView(
           padding: const EdgeInsets.all(12),

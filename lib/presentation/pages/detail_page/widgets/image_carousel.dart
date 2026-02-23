@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_moodic/core/theme/app_color.dart';
+import 'package:flutter_moodic/presentation/pages/detail_page/widgets/full_screen_image_page.dart';
 
 class ImageCarousel extends StatefulWidget {
   final List<String> imageUrls;
@@ -35,21 +36,39 @@ class _ImageCarouselState extends State<ImageCarousel> {
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CachedNetworkImage(
-                    imageUrl: url,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.secondary500,
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: AppColors.gray300,
-                      child: const Icon(Icons.error),
-                    ),
+child: GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenImagePage(
+          imageUrls: widget.imageUrls,
+          initialIndex: index,
+        ),
+      ),
+    );
+  },
+  child: Hero(
+    tag: url,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        placeholder: (context, url) => const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.secondary500,
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: AppColors.gray300,
+          child: const Icon(Icons.error),
+        ),
+      ),
+    ),
+  ),
+),
                   ),
                 ),
               );
