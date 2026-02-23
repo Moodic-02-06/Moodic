@@ -70,8 +70,18 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> followUser(String uid, String targetUid) async {
-    await _dataSource.followUser(uid, targetUid);
+  Future<void> followUser(
+    String uid,
+    String targetUid, {
+    required String senderNickname,
+    required String senderProfileImage,
+  }) async {
+    await _dataSource.followUser(
+      uid,
+      targetUid,
+      senderNickname: senderNickname,
+      senderProfileImage: senderProfileImage,
+    );
   }
 
   @override

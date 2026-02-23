@@ -46,7 +46,12 @@ class UserRemoteDataSource {
   }
 
   // [팔로우] 타겟 유저 팔로우
-  Future<void> followUser(String uid, String targetUid) async {
+  Future<void> followUser(
+    String uid,
+    String targetUid, {
+    required String senderNickname,
+    required String senderProfileImage,
+  }) async {
     final batch = _firestore.batch();
 
     // 1. 내 following 컬렉션에 추가
@@ -89,9 +94,11 @@ class UserRemoteDataSource {
       batch.set(notificationRef, {
         "type": "follow",
         "senderId": uid,
+        "senderNickname": senderNickname,
+        "senderProfileImage": senderProfileImage,
         "userId": targetUid, // 수신자 ID
         "postId": "",
-        "message": "님이 팔로우를 시작했습니다.",
+        "message": "$senderNickname님이 팔로우를 시작했습니다.",
         "createdAt": FieldValue.serverTimestamp(),
       });
     }

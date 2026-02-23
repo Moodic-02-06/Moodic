@@ -5,7 +5,17 @@ class FollowUserUseCase {
 
   FollowUserUseCase(this.repository);
 
-  Future<void> call(String uid, String targetUid) async {
-    return repository.followUser(uid, targetUid);
+  Future<void> call(
+    String uid,
+    String targetUid, {
+    required String senderNickname,
+    required String senderProfileImage,
+  }) async {
+    return repository.followUser(
+      uid,
+      targetUid,
+      senderNickname: senderNickname,
+      senderProfileImage: senderProfileImage,
+    );
   }
 }

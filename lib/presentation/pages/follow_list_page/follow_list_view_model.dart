@@ -111,7 +111,12 @@ class FollowListViewModel extends Notifier<FollowListState> {
       if (isFollowing) {
         await UnfollowUserUseCase(repository).call(currentUser.uid, targetUid);
       } else {
-        await FollowUserUseCase(repository).call(currentUser.uid, targetUid);
+        await FollowUserUseCase(repository).call(
+          currentUser.uid,
+          targetUid,
+          senderNickname: currentUser.nickname,
+          senderProfileImage: currentUser.profileImage ?? '',
+        );
       }
     } catch (e) {
       // 롤백

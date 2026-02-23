@@ -290,7 +290,13 @@ class MyPageViewModel extends Notifier<MyPageState> {
       if (isCurrentlyFollowing) {
         await UnfollowUserUseCase(repository).call(myUid, targetUid);
       } else {
-        await FollowUserUseCase(repository).call(myUid, targetUid);
+        final currentUser = ref.read(userProvider).value;
+        await FollowUserUseCase(repository).call(
+          myUid,
+          targetUid,
+          senderNickname: currentUser?.nickname ?? '',
+          senderProfileImage: currentUser?.profileImage ?? '',
+        );
       }
     } catch (e) {
       // 실패 시 롤백

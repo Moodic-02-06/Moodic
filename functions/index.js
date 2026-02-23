@@ -1,21 +1,18 @@
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const functions = require("firebase-functions");
+const functionsV1 = require("firebase-functions/v1");
+const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
+
+// 전역 리전 설정 (기존 us-central1 유지)
+setGlobalOptions({ region: "us-central1" });
 
 admin.initializeApp();
 
 /**
  * 탈퇴한 사용자의 데이터를 정리하는 함수
- * - Trigger: Auth User 삭제 시
- * - 삭제 대상:
- *   1. Storage: users/{userId} (프로필 이미지)
- *   2. Storage: posts/{userId} (게시글 이미지)
- *   3. Firestore: feeds 컬렉션의 본인 게시글
- * - 보존 대상:
- *   1. 댓글 (comments)
- *   2. 좋아요 (likes)
+ * - Trigger: Auth User 삭제 시 (v1 명시적 사용)
  */
-exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
+exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
   const userId = user.uid;
   console.log(`[Users Cleanup] Start cleanup for user: ${userId}`);
 
@@ -81,9 +78,9 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
 
 /**
  * 새 알림이 생성되었을 때 FCM 푸시 알림을 발송하는 함수
- * - Trigger: Firestore `notifications/{notificationId}` 문서 생성 시
+ * - Trigger: Firestore `user/{userId}/notifications/{notificationId}` 문서 생성 시
  */
-exports.sendPushNotification = onDocumentCreated("notifications/{notificationId}", async (event) => {
+exports.sendPushNotification = onDocumentCreated("user/{userId}/notifications/{notificationId}", async (event) => {
   const snapshot = event.data;
   if (!snapshot) {
     console.log("[FCM] No data associated with the event");
@@ -91,7 +88,7 @@ exports.sendPushNotification = onDocumentCreated("notifications/{notificationId}
   }
 
   const notification = snapshot.data();
-  const receiverId = notification.receiverId;
+  const receiverId = notification.receiverId || event.params.userId; // userId 파라미터 또는 receiverId 필드 사용
   const senderId = notification.senderId;
 
   // 본인 요청은 푸시 발송 제외
@@ -133,7 +130,7 @@ exports.sendPushNotification = onDocumentCreated("notifications/{notificationId}
       },
       data: {
         type: notification.type || "unknown", // like, comment 등
-        postId: notification.postId || "",
+        postId: notification.postId || notification.targetId || "",
       },
       android: {
         priority: "high",
