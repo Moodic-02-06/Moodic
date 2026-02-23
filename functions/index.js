@@ -156,3 +156,91 @@ exports.sendPushNotification = onDocumentCreated("user/{userId}/notifications/{n
     console.error(`[FCM] Error sending push notification:`, error);
   }
 });
+
+/**
+ * 신고 접수 시 관리자 슬랙으로 알림 전송 (v2)
+ * - Trigger: Firestore `reports/{reportId}` 문서 생성 시
+ */
+exports.sendSlackReportAlert = onDocumentCreated("reports/{reportId}", async (event) => {
+  const snapshot = event.data;
+  if (!snapshot) {
+    console.log("[Slack] No data associated with the event");
+    return;
+  }
+
+  const report = snapshot.data();
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+
+  if (!webhookUrl) {
+    console.warn("[Slack] SLACK_WEBHOOK_URL is not configured in environment variables (.env).");
+    return;
+  }
+
+  const reporterId = report.reporterId || "알 수 없음";
+  const targetId = report.targetId || "알 수 없음";
+  const targetType = report.targetType || "알 수 없음";
+  const reason = report.reason || "사유 없음";
+  const reportTime = report.createdAt ? new Date(report.createdAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) : "알 수 없음";
+
+  const payload = {
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "🚨 새로운 신고가 접수되었습니다.",
+          emoji: true
+        }
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*신고자 ID:*\n${reporterId}`
+          },
+          {
+            type: "mrkdwn",
+            text: `*신고 대상 ID:*\n${targetId}`
+          },
+          {
+            type: "mrkdwn",
+            text: `*유형:*\n${targetType.toUpperCase()}`
+          },
+          {
+            type: "mrkdwn",
+            text: `*신고 일시:*\n${reportTime}`
+          }
+        ]
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*신고 사유:*\n> ${reason}`
+        }
+      },
+      {
+        type: "divider"
+      }
+    ]
+  };
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      console.log(`[Slack] Successfully sent report alert for report ${report.reportId}`);
+    } else {
+      console.error(`[Slack] Failed to send alert. Status: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error("[Slack] Error sending webhook:", error);
+  }
+});
